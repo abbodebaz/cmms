@@ -39,6 +39,8 @@ public class MinioService implements StorageService {
     private String minioSecretKey;
     @Value("${storage.minio.public-endpoint}")
     private String minioPublicEndpoint;
+    @Value("${storage.minio.region:}")
+    private String minioRegion;
     private final CacheService cacheService;
 
     private MinioClient minioClient;
@@ -54,6 +56,7 @@ public class MinioService implements StorageService {
             MinioClient.Builder minioClientBuilder = MinioClient.builder()
                     .endpoint(minioEndpoint)
                     .credentials(minioAccessKey, minioSecretKey);
+            if (minioRegion != null && !minioRegion.isEmpty()) minioClientBuilder.region(minioRegion);
 
             if (Helper.isLocalhost(minioPublicEndpoint)) minioClientBuilder.httpClient(
                     new OkHttpClient.Builder().proxy(new Proxy(Proxy.Type.HTTP,
