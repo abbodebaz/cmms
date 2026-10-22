@@ -26,10 +26,10 @@ function AppInit() {
             style={{ cursor: 'pointer' }}
             fontSize={13}
             onClick={() => {
-              window.open('https://www.intel-loop.com/', '_blank');
+              window.open('https://ab18.tech', '_blank');
             }}
           >
-            Powered by Intelloop
+            Abdulrhman Bazarah
           </Typography>
         )}
       </Box>
