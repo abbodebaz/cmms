@@ -158,6 +158,7 @@ storage:
     value: ${GCP_JSON:}
     json-path: ${GCP_JSON_PATH:}
 
+evaluation-mode: ${EVALUATION_MODE:false}
 allowed-organization-admins: ${ALLOWED_ORGANIZATION_ADMINS:}
 cloud-version: ${CLOUD_VERSION:false}
 enable-sso: ${ENABLE_SSO:false}

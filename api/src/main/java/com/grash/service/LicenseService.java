@@ -48,12 +48,28 @@ public class LicenseService {
     @Value("${license-file-path:#{null}}")
     private String licenseFilePath;
 
+    // Internal evaluation switch: EVALUATION_MODE=true grants every entitlement.
+    // Turn it off (or remove it) once a real LICENSE_KEY is in place.
+    @Value("${evaluation-mode:false}")
+    private boolean evaluationMode;
+
     private volatile LicenseValidationResponse cachedLicenseResponse;
     private volatile DecryptedLicenseData cachedDecryptedLicenseData;
     private volatile Set<String> cachedEntitlements = new HashSet<>();
     private volatile long lastCheckedTime = 0;
 
     public synchronized LicensingState getLicensingState() {
+        if (evaluationMode && !hasLicenseKey() && !hasLicenseFile()) {
+            Set<String> all = new HashSet<>();
+            for (LicenseEntitlement e : LicenseEntitlement.values()) all.add(e.toString());
+            return LicensingState.builder()
+                    .hasLicense(true)
+                    .valid(true)
+                    .planName("Evaluation")
+                    .entitlements(all)
+                    .usersCount(10000)
+                    .build();
+        }
         if (isCacheValid()) {
             return buildLicensingStateFromCache();
         }
