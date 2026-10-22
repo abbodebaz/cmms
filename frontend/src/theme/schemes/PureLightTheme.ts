@@ -4,21 +4,21 @@ import { customColors } from '../../config';
 import i18n from 'src/i18n/i18n';
 
 const themeColors = {
-  primary: '#5569ff',
-  secondary: '#6E759F',
+  primary: '#977537',
+  secondary: '#7A7262',
   success: '#57CA22',
   warning: '#FFA319',
   error: '#FF1943',
   info: '#33C2FF',
-  black: '#223354',
+  black: '#2A2620',
   white: '#ffffff',
-  primaryAlt: '#000C57',
+  primaryAlt: '#3A2E1A',
   ...customColors
 };
 
 const colors = {
   gradients: {
-    blue1: 'linear-gradient(135deg, #6B73FF 0%, #000DFF 100%)',
+    blue1: 'linear-gradient(135deg, #C8A86A 0%, #8C6B2C 100%)',
     blue2: 'linear-gradient(135deg, #ABDCFF 0%, #0396FF 100%)',
     blue3: 'linear-gradient(127.55deg, #141E30 3.73%, #243B55 92.26%)',
     blue4: 'linear-gradient(-20deg, #2b5876 0%, #4e4376 100%)',
@@ -42,7 +42,7 @@ const colors = {
       '0px 1px 4px rgba(255, 25, 67, 0.25), 0px 3px 12px 2px rgba(255, 25, 67, 0.35)',
     info: '0px 1px 4px rgba(51, 194, 255, 0.25), 0px 3px 12px 2px rgba(51, 194, 255, 0.35)',
     primary:
-      '0px 1px 4px rgba(85, 105, 255, 0.25), 0px 3px 12px 2px rgba(85, 105, 255, 0.35)',
+      '0px 1px 4px rgba(151, 117, 55, 0.25), 0px 3px 12px 2px rgba(151, 117, 55, 0.35)',
     warning:
       '0px 1px 4px rgba(255, 163, 25, 0.25), 0px 3px 12px 2px rgba(255, 163, 25, 0.35)',
     card: '0px 9px 16px rgba(159, 162, 191, .18), 0px 2px 2px rgba(159, 162, 191, 0.32)',
@@ -53,16 +53,16 @@ const colors = {
   },
   layout: {
     general: {
-      bodyBg: '#f2f5f9'
+      bodyBg: '#F6F4EF'
     },
     sidebar: {
       background: themeColors.white,
       textColor: themeColors.secondary,
-      dividerBg: '#f2f5f9',
-      menuItemColor: '#242E6F',
+      dividerBg: '#F6F4EF',
+      menuItemColor: '#3A3226',
       menuItemColorActive: themeColors.primary,
       menuItemBg: themeColors.white,
-      menuItemBgActive: '#f2f5f9',
+      menuItemBgActive: '#F6F4EF',
       menuItemIconColor: lighten(themeColors.secondary, 0.3),
       menuItemIconColorActive: themeColors.primary,
       menuItemHeadingColor: darken(themeColors.secondary, 0.3)
