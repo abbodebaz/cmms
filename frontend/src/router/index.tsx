@@ -8,7 +8,6 @@ import oauthRoutes from './oauth';
 import { lazy, Suspense } from 'react';
 import SuspenseLoader from '../components/SuspenseLoader';
 import Status404 from '../content/pages/Status/Status404';
-import { Navigate } from 'react-router-dom';
 
 const Loader = (Component) => (props) =>
   (
@@ -20,6 +19,8 @@ const Loader = (Component) => (props) =>
 const PaymentSuccess = Loader(
   lazy(() => import('../content/pages/Payment/Success'))
 );
+
+const LandingPage = Loader(lazy(() => import('../content/pages/Landing')));
 
 const RequestPortalPublicPage = Loader(
   lazy(
@@ -55,7 +56,7 @@ const router: RouteObject[] = [
   },
   {
     path: '',
-    element: <Navigate to={'/app/dashboard'} />
+    element: <LandingPage />
   },
   {
     path: '*',
