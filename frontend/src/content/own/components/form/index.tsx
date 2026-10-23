@@ -47,7 +47,13 @@ interface PropsType {
   /** Keep the submit button visible at the bottom of the scroll area.
    * Defaults to true for long sectioned forms (3+ sections). */
   stickyFooter?: boolean;
+  /** 'card' (default): sections render as SectionCards.
+   * 'plain': light collapsible headers without card borders (filter panels). */
+  variant?: 'card' | 'plain';
 }
+
+/** Forms with at least this many visible fields get the polished card layout */
+const POLISHED_MIN_FIELDS = 5;
 
 interface FormSectionGroup {
   /** The titleGroupField heading; undefined for the leading "basic" block */
@@ -146,6 +152,105 @@ const FormSection = ({
   );
 };
 
+/** Light collapsible group header used by the 'plain' variant (filter drawers) */
+const PlainSection = ({
+  header,
+  open,
+  onToggle,
+  hasError,
+  children
+}: {
+  header: IField;
+  open: boolean;
+  onToggle: () => void;
+  hasError: boolean;
+  children: ReactNode;
+}) => {
+  const { t }: { t: any } = useTranslation();
+  const theme = useTheme();
+  const primary = theme.palette.primary.main;
+  const contentId = `form-plain-section-${header.name}`;
+  return (
+    <Box>
+      <ButtonBase
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={contentId}
+        aria-label={`${t(header.label)} - ${t('form_section_toggle')}`}
+        sx={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          textAlign: 'start',
+          py: 1,
+          px: 0.5,
+          borderRadius: '10px',
+          borderBottom: `1px solid ${alpha(primary, open ? 0.18 : 0.1)}`,
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
+          transition: theme.transitions.create('background-color'),
+          '&:hover': { backgroundColor: alpha(primary, 0.05) },
+          '&.Mui-focusVisible': {
+            outline: `2px solid ${alpha(primary, 0.5)}`,
+            outlineOffset: -2
+          }
+        }}
+      >
+        <Box
+          sx={{
+            width: 3,
+            height: 16,
+            borderRadius: 3,
+            flexShrink: 0,
+            backgroundColor: hasError ? theme.palette.error.main : primary
+          }}
+        />
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography
+            component="span"
+            sx={{
+              display: 'block',
+              fontWeight: 700,
+              fontSize: theme.typography.pxToRem(13.5),
+              color: hasError
+                ? theme.palette.error.main
+                : theme.palette.text.primary
+            }}
+          >
+            {t(header.label)}
+          </Typography>
+          {header.description && (
+            <Typography
+              component="span"
+              sx={{
+                display: 'block',
+                color: theme.palette.text.secondary,
+                fontSize: theme.typography.pxToRem(12)
+              }}
+            >
+              {t(header.description)}
+            </Typography>
+          )}
+        </Box>
+        <ExpandMoreTwoToneIcon
+          fontSize="small"
+          sx={{
+            color: primary,
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: theme.transitions.create('transform', {
+              duration: theme.transitions.duration.shorter
+            })
+          }}
+        />
+      </ButtonBase>
+      <Collapse in={open} timeout={200} id={contentId}>
+        <Box sx={{ pt: 2 }}>{children}</Box>
+      </Collapse>
+    </Box>
+  );
+};
+
 /** Expands every section holding a field with a validation error after a submit attempt */
 const SectionErrorExpander = ({
   formik,
@@ -173,6 +278,14 @@ export default (props: PropsType) => {
 
   const allSections = buildSections(props.fields);
   const sectionCount = allSections.filter((section) => section.header).length;
+  const variant = props.variant ?? 'card';
+  const dataFieldCount = props.fields.filter(
+    (field) => field.type !== 'titleGroupField'
+  ).length;
+  /** Card layout, two-column heuristic and prominent footer */
+  const polished =
+    variant === 'card' &&
+    (sectionCount > 0 || dataFieldCount >= POLISHED_MIN_FIELDS);
   const stickyFooter = props.stickyFooter ?? false;
 
   const isSectionOpen = (section: FormSectionGroup): boolean => {
@@ -269,7 +382,7 @@ export default (props: PropsType) => {
   const FULL_WIDTH_SELECTS = ['task', 'part'];
   const isHalfWidth = (field: IField, index: number): boolean => {
     if (field.midWidth !== undefined) return field.midWidth;
-    if (!sectionCount || field.fullWidth) return false;
+    if (!polished || field.fullWidth) return false;
     if (field.type === 'select')
       return !FULL_WIDTH_SELECTS.includes(field.type2 as string);
     if (field.type === 'date' || field.type === 'number') return true;
@@ -368,9 +481,16 @@ export default (props: PropsType) => {
         </Box>
       ) : field.type === 'dateRange' ? (
         <Box>
-          <Box pb={1}>
-            <b>{field.label}:</b>
-          </Box>
+          <Typography
+            sx={{
+              pb: 1,
+              fontSize: theme.typography.pxToRem(13),
+              fontWeight: 500,
+              color: theme.palette.text.secondary
+            }}
+          >
+            {field.label}
+          </Typography>
           <DateRangePicker
             value={formik.values[field.name]}
             onChange={(range) => {
@@ -455,54 +575,83 @@ export default (props: PropsType) => {
         {(formik) => (
           <Grid
             container
-            spacing={sectionCount ? 2.5 : 2}
-            sx={
-              sectionCount
-                ? {
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '10px',
-                      backgroundColor: theme.palette.background.paper,
-                      transition: theme.transitions.create('box-shadow'),
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: alpha(theme.palette.text.primary, 0.14)
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: alpha(theme.palette.primary.main, 0.5)
-                      },
-                      '&.Mui-focused': {
-                        boxShadow: `0 0 0 4px ${alpha(
-                          theme.palette.primary.main,
-                          0.12
-                        )}`
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.primary.main,
-                        borderWidth: '1.5px'
-                      },
-                      '&.Mui-error .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.error.main
-                      }
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: theme.palette.text.secondary,
-                      fontWeight: 500
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: theme.palette.primary.dark
-                    }
-                  }
-                : undefined
-            }
+            spacing={polished ? 2.5 : 2}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '10px',
+                backgroundColor: theme.palette.background.paper,
+                transition: theme.transitions.create('box-shadow'),
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: alpha(theme.palette.text.primary, 0.14)
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: alpha(theme.palette.primary.main, 0.5)
+                },
+                '&.Mui-focused': {
+                  boxShadow: `0 0 0 4px ${alpha(
+                    theme.palette.primary.main,
+                    0.12
+                  )}`
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: theme.palette.primary.main,
+                  borderWidth: '1.5px'
+                },
+                '&.Mui-error .MuiOutlinedInput-notchedOutline': {
+                  borderColor: theme.palette.error.main
+                }
+              },
+              '& .MuiInputLabel-root': {
+                color: theme.palette.text.secondary,
+                fontWeight: 500
+              },
+              '& .MuiInputLabel-root.Mui-focused': {
+                color: theme.palette.primary.dark
+              }
+            }}
           >
             {(() => {
               const visibleFields = filterRelatedFields(props.fields, formik);
               const sections = buildSections(visibleFields);
+              const renderFields = (fields: IField[]) =>
+                fields.map((field, index) => renderField(field, index, formik));
               if (!sections.some((section) => section.header)) {
-                // No groups: render exactly as before
-                return visibleFields.map((field, index) =>
-                  renderField(field, index, formik)
+                if (!polished) return renderFields(visibleFields);
+                // Long ungrouped form: one static "basic information" card
+                return (
+                  <Grid item xs={12}>
+                    <SectionCard
+                      title="form_section_basic"
+                      contentId="form-section-basic"
+                    >
+                      <Grid container spacing={2}>
+                        {renderFields(visibleFields)}
+                      </Grid>
+                    </SectionCard>
+                  </Grid>
                 );
               }
+              if (variant === 'plain')
+                return sections.map((section, sectionIndex) =>
+                  section.header ? (
+                    section.fields.length ? (
+                      <Grid item xs={12} key={`section-${section.header.name}`}>
+                        <PlainSection
+                          header={section.header}
+                          open={isSectionOpen(section)}
+                          onToggle={() => toggleSection(section)}
+                          hasError={sectionHasError(section, formik)}
+                        >
+                          <Grid container spacing={2}>
+                            {renderFields(section.fields)}
+                          </Grid>
+                        </PlainSection>
+                      </Grid>
+                    ) : null
+                  ) : (
+                    renderFields(section.fields)
+                  )
+                );
               return sections.map((section, sectionIndex) =>
                 section.header ? (
                   section.fields.length ? (
@@ -544,7 +693,7 @@ export default (props: PropsType) => {
               item
               xs={12}
               sx={
-                sectionCount && !stickyFooter
+                polished && !stickyFooter
                   ? {
                       mt: 1,
                       display: 'flex',
@@ -566,10 +715,10 @@ export default (props: PropsType) => {
             >
               <Button
                 type="submit"
-                size={sectionCount ? 'large' : 'medium'}
+                size={polished ? 'large' : 'medium'}
                 sx={{
                   mt: { xs: 2, sm: 0 },
-                  ...(sectionCount
+                  ...(polished
                     ? {
                         mt: 0,
                         minWidth: 160,

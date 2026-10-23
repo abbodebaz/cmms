@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,7 +22,6 @@ import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
 import Loading from '../../Loading';
 import { getDowntimesByAsset, getMTBFByAsset } from '../../../../../slices/analytics/asset';
-import { getRandomColor } from '../../../../../utils/overall';
 
 interface WOStatusIncompleteProps {
   handleOpenModal: (
@@ -34,6 +38,9 @@ interface WOStatusIncompleteProps {
 function MTBFByAsset({ handleOpenModal, start, end, assetColors, companyId }: WOStatusIncompleteProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const { mtbfByAsset, loading } = useSelector(
     (state) => state.assetAnalytics
   );
@@ -70,7 +77,7 @@ function MTBFByAsset({ handleOpenModal, start, end, assetColors, companyId }: WO
           <XAxis dataKey="label" hide />
           <YAxis yAxisId="left-axis" />
           <Tooltip />
-          <Bar dataKey="mtbf" fill="#8884d8" name={t('MTBF')} yAxisId="left-axis">
+          <Bar dataKey="mtbf" fill={chartPalette[0]} name={t('MTBF')} yAxisId="left-axis">
             {formattedData.map((entry, index) => (
               <Cell
                 key={index}

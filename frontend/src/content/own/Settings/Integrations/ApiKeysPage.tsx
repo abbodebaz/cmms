@@ -18,6 +18,9 @@ import {
   Stack
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { alpha } from '@mui/material/styles';
+import KeyTwoToneIcon from '@mui/icons-material/KeyTwoTone';
+import SettingsSection from '../components/SettingsSection';
 import {
   forwardRef,
   ReactElement,
@@ -249,37 +252,57 @@ function ApiKeys() {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="flex-end" mb={3}>
-        <Stack direction={'row'} spacing={1} alignItems={'center'}>
-          <Button onClick={onOpenApiDocs}>{t('open_api_docs')}</Button>
-          <Button
-            variant="contained"
-            startIcon={<AddTwoToneIcon />}
-            onClick={handleOpenCreateModal}
-          >
-            {t('create_api_key')}
-          </Button>
-        </Stack>
-      </Box>
-
-      <CustomDatagrid2
-        columns={columns}
-        data={apiKeys?.content || []}
-        loading={loadingGet}
-        notClickable
-        pagination={{
-          pageIndex: pageable.page,
-          pageSize: pageable.size
-        }}
-        onPaginationChange={(pagination) => {
-          setPageable({
-            page: pagination.pageIndex,
-            size: pagination.pageSize
-          });
-        }}
-        // onSortingChange={}
-        totalRows={apiKeys.totalElements}
-      />
+      <SettingsSection
+        title="api_keys"
+        description="settings_api_keys_description"
+        icon={<KeyTwoToneIcon fontSize="small" />}
+        actions={
+          <Stack direction={'row'} spacing={1} alignItems={'center'}>
+            <Button
+              size="small"
+              onClick={onOpenApiDocs}
+              sx={{ borderRadius: '10px', fontWeight: 600, display: { xs: 'none', sm: 'inline-flex' } }}
+            >
+              {t('open_api_docs')}
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AddTwoToneIcon />}
+              onClick={handleOpenCreateModal}
+              sx={{
+                borderRadius: '10px',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                boxShadow: (theme) =>
+                  `0 6px 16px ${alpha(theme.palette.primary.main, 0.28)}`
+              }}
+            >
+              {t('create_api_key')}
+            </Button>
+          </Stack>
+        }
+        noPadding
+      >
+        <CustomDatagrid2
+          columns={columns}
+          data={apiKeys?.content || []}
+          loading={loadingGet}
+          notClickable
+          pagination={{
+            pageIndex: pageable.page,
+            pageSize: pageable.size
+          }}
+          onPaginationChange={(pagination) => {
+            setPageable({
+              page: pagination.pageIndex,
+              size: pagination.pageSize
+            });
+          }}
+          // onSortingChange={}
+          totalRows={apiKeys.totalElements}
+        />
+      </SettingsSection>
 
       {/* Create API Key Modal */}
       <DialogWrapper

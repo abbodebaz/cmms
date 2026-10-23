@@ -12,6 +12,9 @@ import {
   Typography
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import SectionCard from '../../components/SectionCard';
+import SpeedTwoToneIcon from '@mui/icons-material/SpeedTwoTone';
+import { alpha } from '@mui/material/styles';
 import CustomDataGrid from '../../components/CustomDatagrid';
 import { GridRowParams, GridToolbar } from '@mui/x-data-grid';
 import { GridEnrichedColDef } from '@mui/x-data-grid/models/colDef/gridColDef';
@@ -30,6 +33,7 @@ import { CustomSnackBarContext } from '../../../../contexts/CustomSnackBarContex
 import { canAddReading } from '../../../../utils/overall';
 import useAuth from '../../../../hooks/useAuth';
 import { PermissionEntity } from '../../../../models/owns/role';
+import FormDialogTitle from '../../components/form/FormDialogTitle';
 
 interface PropsType {
   asset: AssetDTO;
@@ -117,15 +121,10 @@ const AssetMeters = ({ asset }: PropsType) => {
       open={openReadingModal}
       onClose={() => setOpenReadingModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('add_reading')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('add_reading')}
+        onClose={() => setOpenReadingModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -151,71 +150,91 @@ const AssetMeters = ({ asset }: PropsType) => {
     </Dialog>
   );
   return (
-    <Box sx={{ px: 4 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Card sx={{ p: 2 }}>
-            <Box sx={{ height: 600, width: '95%' }}>
-              {!!meters.length && (
-                <Stack direction="row" justifyContent="space-between">
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{ my: 2, alignItems: 'center' }}
-                  >
-                    <Typography variant="h5">{t('select_meter')}</Typography>
-                    <Select
-                      value={selectedMeter?.id ?? ''}
-                      onChange={(event) => {
-                        setSelectedMeter(
-                          meters.find(
-                            (meter) => meter.id === Number(event.target.value)
-                          )
-                        );
-                      }}
-                    >
-                      <MenuItem value={''}>{t('select_meter')}</MenuItem>
-                      {meters.map((meter) => (
-                        <MenuItem key={meter.id} value={meter.id}>
-                          {meter.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </Stack>
+    <Box>
+      <SectionCard
+        title="meters"
+        icon={<SpeedTwoToneIcon fontSize="small" />}
+        noPadding
+      >
+        {!!meters.length && (
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            justifyContent="space-between"
+            alignItems={{ xs: 'stretch', sm: 'center' }}
+            gap={1.5}
+            sx={{
+              px: { xs: 2, sm: 2.5 },
+              py: 1.75,
+              borderBottom: (theme) =>
+                `1px solid ${alpha(theme.palette.primary.main, 0.08)}`
+            }}
+          >
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+              <Typography
+                sx={{ color: 'text.secondary', fontSize: 13, fontWeight: 500 }}
+              >
+                {t('select_meter')}
+              </Typography>
+              <Select
+                size="small"
+                value={selectedMeter?.id ?? ''}
+                sx={{ minWidth: 200, borderRadius: '10px' }}
+                onChange={(event) => {
+                  setSelectedMeter(
+                    meters.find(
+                      (meter) => meter.id === Number(event.target.value)
+                    )
+                  );
+                }}
+              >
+                <MenuItem value={''}>{t('select_meter')}</MenuItem>
+                {meters.map((meter) => (
+                  <MenuItem key={meter.id} value={meter.id}>
+                    {meter.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Stack>
 
-                  {hasEditPermission(PermissionEntity.ASSETS, asset) && (
-                    <Button
-                      startIcon={<AddTwoToneIcon />}
-                      variant="contained"
-                      sx={{ my: 3 }}
-                      disabled={
-                        !(canAddReading(selectedMeter) && canAddReadingInternal)
-                      }
-                      onClick={() => setOpenReadingModal(true)}
-                    >
-                      {t('add_reading')}
-                    </Button>
-                  )}
-                </Stack>
-              )}
-              <CustomDataGrid
-                columns={columns}
-                rows={readings}
-                components={{
-                  Toolbar: GridToolbar
-                }}
-                loading={loadingMeters || loadingGet}
-                onRowClick={(params: GridRowParams<Meter>) => null}
-                initialState={{
-                  columns: {
-                    columnVisibilityModel: {}
-                  }
-                }}
-              />
-            </Box>
-          </Card>
-        </Grid>
-      </Grid>
+            {hasEditPermission(PermissionEntity.ASSETS, asset) && (
+              <Button
+                startIcon={<AddTwoToneIcon />}
+                variant="contained"
+                sx={(theme) => ({
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                  boxShadow: `0 6px 16px ${alpha(
+                    theme.palette.primary.main,
+                    0.28
+                  )}`
+                })}
+                disabled={
+                  !(canAddReading(selectedMeter) && canAddReadingInternal)
+                }
+                onClick={() => setOpenReadingModal(true)}
+              >
+                {t('add_reading')}
+              </Button>
+            )}
+          </Stack>
+        )}
+        <Box sx={{ width: '100%' }}>
+          <CustomDataGrid
+            columns={columns}
+            rows={readings}
+            components={{
+              Toolbar: GridToolbar
+            }}
+            loading={loadingMeters || loadingGet}
+            onRowClick={(params: GridRowParams<Meter>) => null}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {}
+              }
+            }}
+          />
+        </Box>
+      </SectionCard>
       {renderReadingModal()}
     </Box>
   );

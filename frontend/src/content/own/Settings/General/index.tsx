@@ -1,17 +1,19 @@
 import {
-  Box,
   Button,
   debounce,
-  Divider,
-  Grid,
   MenuItem,
   Select,
   Stack,
   TextField,
-  Typography,
   InputAdornment,
   Switch
 } from '@mui/material';
+import LanguageTwoToneIcon from '@mui/icons-material/LanguageTwoTone';
+import NotificationsActiveTwoToneIcon from '@mui/icons-material/NotificationsActiveTwoTone';
+import PaletteTwoToneIcon from '@mui/icons-material/PaletteTwoTone';
+import DeleteSweepTwoToneIcon from '@mui/icons-material/DeleteSweepTwoTone';
+import SettingsSection from '../components/SettingsSection';
+import { SettingsRow, SettingsRowList } from '../components/SettingsRows';
 import useHijriPreference from '../../../../hooks/useHijriPreference';
 import { formatHijri } from '../../../../utils/locale';
 import { useTranslation } from 'react-i18next';
@@ -94,278 +96,300 @@ function GeneralSettings() {
       ? [current, ...supported]
       : supported;
   }, [generalPreferences.timeZone]);
+  const selectSx = { minWidth: { xs: '100%', sm: 240 }, maxWidth: { sm: 320 } };
   return (
-    <Grid item xs={12}>
-      <Box p={4}>
-        <Formik
-          initialValues={generalPreferences}
-          validationSchema={Yup.object().shape({
-            language: Yup.string(),
-            dateFormat: Yup.string(),
-            timeZone: Yup.string(),
-            currency: Yup.string(),
-            businessType: Yup.string()
-          })}
-          onSubmit={onSubmit}
-        >
-          {({
-            errors,
-            handleBlur,
-            handleChange,
-            handleSubmit,
-            isSubmitting,
-            touched,
-            values
-          }) => (
-            <form onSubmit={handleSubmit}>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" sx={{ mb: 0.5 }}>
-                        {t('language')}
-                      </Typography>
-                      <Field
-                        onChange={(event) => {
-                          patchGeneralPreferences({
-                            language: event.target.value
-                          });
-                          switchLanguage({
-                            lng: event.target.value.toLowerCase()
-                          });
-                        }}
-                        value={generalPreferences.language}
-                        as={Select}
-                        name="language"
-                      >
-                        {supportedLanguages.map((language) => (
-                          <MenuItem
-                            key={language.code}
-                            value={language.code.toUpperCase()}
-                          >
-                            {language.label}
-                          </MenuItem>
-                        ))}
-                      </Field>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" sx={{ mb: 0.5 }}>
-                        {t('date_format')}
-                      </Typography>
-                      <Field
-                        onChange={(event) =>
-                          patchGeneralPreferences({
-                            dateFormat: event.target.value
-                          })
-                        }
-                        value={generalPreferences.dateFormat}
-                        as={Select}
-                        name="dateFormat"
-                      >
-                        <MenuItem value="DDMMYY">DD/MM/YYYY</MenuItem>
-                        <MenuItem value="MMDDYY">MM/DD/YYYY</MenuItem>
-                      </Field>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Stack
-                        direction="row"
-                        alignItems="center"
-                        justifyContent="space-between"
-                        spacing={2}
-                        sx={{ maxWidth: 520 }}
-                      >
-                        <Box>
-                          <Typography variant="h6" sx={{ mb: 0.5 }}>
-                            {t('show_hijri_dates')}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('show_hijri_dates_description', {
-                              example: formatHijri(new Date())
-                            })}
-                          </Typography>
-                        </Box>
-                        <Switch
-                          checked={showHijri}
-                          onChange={(event) =>
-                            setShowHijri(event.target.checked)
-                          }
-                          inputProps={{ 'aria-label': t('show_hijri_dates') }}
-                        />
-                      </Stack>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" sx={{ mb: 0.5 }}>
-                        {t('time_zone')}
-                      </Typography>
-                      <Field
-                        onChange={(event) =>
-                          patchGeneralPreferences({
-                            timeZone: event.target.value
-                          })
-                        }
-                        value={generalPreferences.timeZone}
-                        as={Select}
-                        name="timeZone"
-                      >
-                        {timezones.map((timezone) => (
-                          <MenuItem key={timezone} value={timezone}>
-                            {timezone}
-                          </MenuItem>
-                        ))}
-                      </Field>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" sx={{ mb: 0.5 }}>
-                        {t('currency')}
-                      </Typography>
-                      <Field
-                        onChange={(event) =>
-                          patchGeneralPreferences({
-                            currency: currencies.find(
-                              (currency) =>
-                                currency.id === Number(event.target.value)
-                            )
-                          })
-                        }
-                        value={generalPreferences.currency?.id}
-                        as={Select}
-                        name="currency"
-                      >
-                        {[...currencies]
-                          .sort((a, b) => a.name.localeCompare(b.name))
-                          .map((currency) => (
-                            <MenuItem
-                              key={currency.id}
-                              value={currency.id}
-                            >{`${currency.name} - ${currency.code}`}</MenuItem>
-                          ))}
-                      </Field>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" sx={{ mb: 0.5 }}>
-                        {t('days_before_pm_notification')}
-                      </Typography>
-                      <TextField
-                        onChange={debouncedPMNotifChange}
-                        type={'number'}
-                        defaultValue={
-                          generalPreferences.daysBeforePrevMaintNotification
-                        }
-                        name="daysBeforePrevMaintNotification"
-                        InputProps={{
-                          endAdornment: <Typography>{t('day')}</Typography>
-                        }}
-                      >
-                        {currencies.map((currency) => (
+    <Formik
+      initialValues={generalPreferences}
+      validationSchema={Yup.object().shape({
+        language: Yup.string(),
+        dateFormat: Yup.string(),
+        timeZone: Yup.string(),
+        currency: Yup.string(),
+        businessType: Yup.string()
+      })}
+      onSubmit={onSubmit}
+    >
+      {({
+        errors,
+        handleBlur,
+        handleChange,
+        handleSubmit,
+        isSubmitting,
+        touched,
+        values
+      }) => (
+        <form onSubmit={handleSubmit}>
+          <Stack spacing={{ xs: 2, md: 2.5 }}>
+            <SettingsSection
+              title="settings_localization"
+              description="settings_localization_description"
+              icon={<LanguageTwoToneIcon fontSize="small" />}
+              noPadding
+            >
+              <SettingsRowList>
+                <SettingsRow
+                  title={t('language')}
+                  description={t('settings_language_description')}
+                  control={
+                    <Field
+                      onChange={(event) => {
+                        patchGeneralPreferences({
+                          language: event.target.value
+                        });
+                        switchLanguage({
+                          lng: event.target.value.toLowerCase()
+                        });
+                      }}
+                      value={generalPreferences.language}
+                      as={Select}
+                      size="small"
+                      sx={selectSx}
+                      name="language"
+                    >
+                      {supportedLanguages.map((language) => (
+                        <MenuItem
+                          key={language.code}
+                          value={language.code.toUpperCase()}
+                        >
+                          {language.label}
+                        </MenuItem>
+                      ))}
+                    </Field>
+                  }
+                />
+                <SettingsRow
+                  title={t('date_format')}
+                  description={t('settings_date_format_description')}
+                  control={
+                    <Field
+                      onChange={(event) =>
+                        patchGeneralPreferences({
+                          dateFormat: event.target.value
+                        })
+                      }
+                      value={generalPreferences.dateFormat}
+                      as={Select}
+                      size="small"
+                      sx={selectSx}
+                      name="dateFormat"
+                    >
+                      <MenuItem value="DDMMYY">DD/MM/YYYY</MenuItem>
+                      <MenuItem value="MMDDYY">MM/DD/YYYY</MenuItem>
+                    </Field>
+                  }
+                />
+                <SettingsRow
+                  title={t('show_hijri_dates')}
+                  description={t('show_hijri_dates_description', {
+                    example: formatHijri(new Date())
+                  })}
+                  stackOnMobile={false}
+                  control={
+                    <Switch
+                      checked={showHijri}
+                      onChange={(event) => setShowHijri(event.target.checked)}
+                      inputProps={{ 'aria-label': t('show_hijri_dates') }}
+                    />
+                  }
+                />
+                <SettingsRow
+                  title={t('time_zone')}
+                  description={t('settings_time_zone_description')}
+                  control={
+                    <Field
+                      onChange={(event) =>
+                        patchGeneralPreferences({
+                          timeZone: event.target.value
+                        })
+                      }
+                      value={generalPreferences.timeZone}
+                      as={Select}
+                      size="small"
+                      sx={selectSx}
+                      MenuProps={{ PaperProps: { sx: { maxHeight: 360 } } }}
+                      name="timeZone"
+                    >
+                      {timezones.map((timezone) => (
+                        <MenuItem key={timezone} value={timezone}>
+                          {timezone}
+                        </MenuItem>
+                      ))}
+                    </Field>
+                  }
+                />
+                <SettingsRow
+                  title={t('currency')}
+                  description={t('settings_currency_description')}
+                  control={
+                    <Field
+                      onChange={(event) =>
+                        patchGeneralPreferences({
+                          currency: currencies.find(
+                            (currency) =>
+                              currency.id === Number(event.target.value)
+                          )
+                        })
+                      }
+                      value={generalPreferences.currency?.id}
+                      as={Select}
+                      size="small"
+                      sx={selectSx}
+                      MenuProps={{ PaperProps: { sx: { maxHeight: 360 } } }}
+                      name="currency"
+                    >
+                      {[...currencies]
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((currency) => (
                           <MenuItem
                             key={currency.id}
                             value={currency.id}
                           >{`${currency.name} - ${currency.code}`}</MenuItem>
                         ))}
-                      </TextField>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" sx={{ mb: 0.5 }}>
-                        {t('csv_separator')}
-                      </Typography>
-                      <TextField
-                        onChange={debouncedCsvSeparatorChange}
-                        type={'text'}
-                        defaultValue={generalPreferences.csvSeparator}
-                        name="csvSeparator"
-                        sx={{ maxWidth: '50px' }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" sx={{ mb: 0.5 }}>
-                        {t('brand_color')}
-                      </Typography>
-                      <TextField
-                        onChange={debouncedBrandColorChange}
-                        type={'text'}
-                        defaultValue={generalPreferences.color || ''}
-                        name="color"
-                        placeholder="#1975ff"
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <input
-                                type="color"
-                                defaultValue={
-                                  generalPreferences.color || '#5569ff'
-                                }
-                                onChange={debounce(
-                                  (e) =>
-                                    patchGeneralPreferences({
-                                      color: e.target.value
-                                    }).then(() =>
-                                      showSnackBar(
-                                        t('changes_saved_success'),
-                                        'success'
-                                      )
-                                    ),
-                                  2000
-                                )}
-                                style={{
-                                  width: 32,
-                                  height: 32,
-                                  padding: 0,
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  background: 'none'
-                                }}
-                              />
-                            </InputAdornment>
-                          )
-                        }}
-                      />
-                    </Grid>
-                    {/*<Grid item xs={12}>
-                        <Typography variant="h6" sx={{ mb: 0.5 }}>
-                          {t('business_type')}
-                        </Typography>
-                        <Field
-                          onChange={(event) =>
-                            patchGeneralPreferences({
-                              businessType: event.target.value
-                            })
-                          }
-                          value={generalPreferences.businessType}
-                          as={Select}
-                          name="businessType"
-                        >
-                          <MenuItem value="GENERAL_ASSET_MANAGEMENT">
-                            {t('general_asset_management')}
-                          </MenuItem>
-                          <MenuItem value="PHYSICAL_ASSET_MANAGEMENT">
-                            {t('physical_asset_management')}
-                          </MenuItem>
-                        </Field>
-                      </Grid>*/}
-                  </Grid>
-                  <Stack mt={3} direction={'row'} spacing={2}>
-                    <Button
-                      onClick={() => setOpenDeleteDemo(true)}
-                      variant={'outlined'}
-                      color={'error'}
-                    >
-                      {t('delete_demo_data')}
-                    </Button>
-                  </Stack>
-                  <ConfirmDialog
-                    open={openDeleteDemo}
-                    onCancel={() => setOpenDeleteDemo(false)}
-                    onConfirm={onDeleteDemoData}
-                    confirmText={'Delete'}
-                    question={'Are you sure you want to delete demo data?'}
-                  />
-                </Grid>
-              </Grid>
-            </form>
-          )}
-        </Formik>
-      </Box>
-    </Grid>
+                    </Field>
+                  }
+                />
+              </SettingsRowList>
+            </SettingsSection>
+
+            <SettingsSection
+              title="settings_operations"
+              description="settings_operations_description"
+              icon={<NotificationsActiveTwoToneIcon fontSize="small" />}
+              noPadding
+            >
+              <SettingsRowList>
+                <SettingsRow
+                  title={t('days_before_pm_notification')}
+                  description={t('settings_pm_notification_description')}
+                  control={
+                    <TextField
+                      onChange={debouncedPMNotifChange}
+                      type={'number'}
+                      size="small"
+                      defaultValue={
+                        generalPreferences.daysBeforePrevMaintNotification
+                      }
+                      name="daysBeforePrevMaintNotification"
+                      sx={{ width: { xs: '100%', sm: 160 } }}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            {t('day')}
+                          </InputAdornment>
+                        )
+                      }}
+                    />
+                  }
+                />
+                <SettingsRow
+                  title={t('csv_separator')}
+                  description={t('settings_csv_separator_description')}
+                  control={
+                    <TextField
+                      onChange={debouncedCsvSeparatorChange}
+                      type={'text'}
+                      size="small"
+                      defaultValue={generalPreferences.csvSeparator}
+                      name="csvSeparator"
+                      inputProps={{ style: { textAlign: 'center' } }}
+                      sx={{ width: 72 }}
+                    />
+                  }
+                />
+              </SettingsRowList>
+            </SettingsSection>
+
+            <SettingsSection
+              title="settings_branding"
+              description="settings_branding_description"
+              icon={<PaletteTwoToneIcon fontSize="small" />}
+              noPadding
+            >
+              <SettingsRowList>
+                <SettingsRow
+                  title={t('brand_color')}
+                  description={t('settings_brand_color_description')}
+                  control={
+                    <TextField
+                      onChange={debouncedBrandColorChange}
+                      type={'text'}
+                      size="small"
+                      defaultValue={generalPreferences.color || ''}
+                      name="color"
+                      placeholder="#977537"
+                      sx={{ width: { xs: '100%', sm: 220 } }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <input
+                              type="color"
+                              aria-label={t('brand_color')}
+                              defaultValue={
+                                generalPreferences.color || '#977537'
+                              }
+                              onChange={debounce(
+                                (e) =>
+                                  patchGeneralPreferences({
+                                    color: e.target.value
+                                  }).then(() =>
+                                    showSnackBar(
+                                      t('changes_saved_success'),
+                                      'success'
+                                    )
+                                  ),
+                                2000
+                              )}
+                              style={{
+                                width: 28,
+                                height: 28,
+                                padding: 0,
+                                border: 'none',
+                                borderRadius: 8,
+                                cursor: 'pointer',
+                                background: 'none'
+                              }}
+                            />
+                          </InputAdornment>
+                        )
+                      }}
+                    />
+                  }
+                />
+              </SettingsRowList>
+            </SettingsSection>
+
+            <SettingsSection
+              title="settings_danger_zone"
+              description="settings_danger_zone_description"
+              icon={<DeleteSweepTwoToneIcon fontSize="small" />}
+              noPadding
+            >
+              <SettingsRow
+                title={t('delete_demo_data')}
+                description={t('settings_delete_demo_description')}
+                control={
+                  <Button
+                    onClick={() => setOpenDeleteDemo(true)}
+                    variant={'outlined'}
+                    color={'error'}
+                    sx={{ borderRadius: '10px', fontWeight: 700 }}
+                  >
+                    {t('delete_demo_data')}
+                  </Button>
+                }
+              />
+            </SettingsSection>
+            <ConfirmDialog
+              open={openDeleteDemo}
+              onCancel={() => setOpenDeleteDemo(false)}
+              onConfirm={onDeleteDemoData}
+              confirmText={'Delete'}
+              question={'Are you sure you want to delete demo data?'}
+            />
+          </Stack>
+        </form>
+      )}
+    </Formik>
   );
 }
 

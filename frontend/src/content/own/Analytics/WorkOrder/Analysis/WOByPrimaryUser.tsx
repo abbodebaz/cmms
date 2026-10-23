@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Cell, Legend, Pie, PieChart, Tooltip } from 'recharts';
@@ -6,7 +11,6 @@ import { Filter } from '../WOModal';
 import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
 import { getCountsByUser } from '../../../../../slices/analytics/workOrder';
-import { getRandomColor } from '../../../../../utils/overall';
 import Loading from '../../Loading';
 
 interface WOByPrimaryUserProps {
@@ -23,6 +27,9 @@ interface WOByPrimaryUserProps {
 function WOByPrimaryUser({ handleOpenModal, start, end, companyId }: WOByPrimaryUserProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const dispatch = useDispatch();
   const { completeByPrimaryUser, loading } = useSelector(
     (state) => state.woAnalytics
@@ -38,7 +45,7 @@ function WOByPrimaryUser({ handleOpenModal, start, end, companyId }: WOByPrimary
     return {
       label: `${user.firstName} ${user.lastName}`,
       value: user.count,
-      color: getRandomColor(),
+      color: nextChartColor(),
       filters: [{ key: 'primaryUser', value: user.id }]
     };
   });
@@ -57,7 +64,7 @@ function WOByPrimaryUser({ handleOpenModal, start, end, companyId }: WOByPrimary
             cy="50%"
             outerRadius={100}
             innerRadius={50}
-            fill="#8884d8"
+            fill={chartPalette[0]}
           >
             {formattedData.map((entry, index) => (
               <Cell

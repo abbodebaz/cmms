@@ -8,6 +8,7 @@ import {
   Theme
 } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { alpha } from '@mui/material/styles';
 
 interface MenuItemProps {
   label: string;
@@ -51,9 +52,30 @@ const SplitButton: React.FC<SplitButtonProps> = ({
         variant="contained"
         ref={null}
         aria-label="split button"
-        sx={sx}
+        sx={[
+          (theme: Theme) => ({
+            borderRadius: '12px',
+            overflow: 'hidden',
+            flexShrink: 0,
+            boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.28)}`,
+            '& .MuiButtonGroup-grouped': {
+              borderRadius: 0,
+              minHeight: 40,
+              fontWeight: 700,
+              boxShadow: 'none',
+              whiteSpace: 'nowrap'
+            },
+            '& .MuiButtonGroup-grouped:not(:last-of-type)': {
+              borderRight: `1px solid ${alpha(
+                theme.palette.primary.contrastText,
+                0.28
+              )}`
+            }
+          }),
+          ...(Array.isArray(sx) ? sx : [sx])
+        ]}
       >
-        <Button onClick={onMainClick} startIcon={startIcon}>
+        <Button onClick={onMainClick} startIcon={startIcon} sx={{ px: 2.25 }}>
           {label}
         </Button>
         {menuItems.length > 0 && (

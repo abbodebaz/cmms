@@ -45,6 +45,27 @@ import { getFormattedQuantityWithUnit } from './Parts';
 import { getFormattedCostPerUnit } from '../../../utils/formatters';
 import { getCustomFieldValuesForDetails } from '../type';
 import RestockPartModal from './RestockPartModal';
+import SectionCard from '../components/SectionCard';
+import StatusChip, { SoftChip } from '../components/StatusChip';
+import {
+  CardLoading,
+  DetailGrid,
+  DetailItem,
+  DetailRow,
+  DetailRowText,
+  DetailsHeader,
+  DetailsPage,
+  DetailsTabs,
+  DetailThumb,
+  EmptyCardBody,
+  LinkPills
+} from '../components/DetailsKit';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import PlaceTwoToneIcon from '@mui/icons-material/PlaceTwoTone';
+import PeopleAltTwoToneIcon from '@mui/icons-material/PeopleAltTwoTone';
+import Inventory2TwoToneIcon from '@mui/icons-material/Inventory2TwoTone';
+import AttachFileTwoToneIcon from '@mui/icons-material/AttachFileTwoTone';
+import AssignmentTwoToneIcon from '@mui/icons-material/AssignmentTwoTone';
 
 interface PartDetailsProps {
   part: Part;
@@ -135,308 +156,245 @@ export default function PartDetails(props: PartDetailsProps) {
     }
   ];
 
+  const canEditPart = hasEditPermission(
+    PermissionEntity.PARTS_AND_MULTIPARTS,
+    part
+  );
+  const canDeletePart = hasDeletePermission(
+    PermissionEntity.PARTS_AND_MULTIPARTS,
+    part
+  );
+  const canCopyPart = hasCreatePermission(PermissionEntity.PARTS_AND_MULTIPARTS);
+  const isLowStock =
+    part?.minQuantity != null && part?.quantity < part?.minQuantity;
   return (
-    <Grid
-      container
-      justifyContent="center"
-      alignItems="stretch"
-      spacing={2}
-      padding={4}
-    >
-      <Grid
-        item
-        xs={12}
-        display="flex"
-        flexDirection="row"
-        justifyContent="space-between"
-      >
-        <Box>
-          <Typography variant="h2">{part?.name}</Typography>
-          <Typography variant="h6">{part?.description}</Typography>
-        </Box>
-        <Box>
-          {hasEditPermission(PermissionEntity.PARTS_AND_MULTIPARTS, part) && (
-            <IconButton onClick={handleOpenUpdate} style={{ marginRight: 10 }}>
-              <EditTwoToneIcon color="primary" />
-            </IconButton>
-          )}
-          {hasCreatePermission(PermissionEntity.PARTS_AND_MULTIPARTS) && (
-            <IconButton
-              style={{ marginRight: 10 }}
-              onClick={() => onCopy(part)}
-            >
-              <ContentCopyIcon color="primary" />
-            </IconButton>
-          )}
-          {hasEditPermission(PermissionEntity.PARTS_AND_MULTIPARTS, part) && (
-            <IconButton
-              style={{ marginRight: 10 }}
-              onClick={() => setOpenRestock(true)}
-            >
-              <AddShoppingCartTwoToneIcon color="primary" />
-            </IconButton>
-          )}
-          {hasDeletePermission(PermissionEntity.PARTS_AND_MULTIPARTS, part) && (
-            <IconButton onClick={handleOpenDelete}>
-              <DeleteTwoToneIcon style={{ cursor: 'pointer' }} color="error" />
-            </IconButton>
-          )}
-        </Box>
-      </Grid>
-      <Divider />
-      <Grid item xs={12}>
-        <Tabs
-          onChange={handleTabsChange}
-          value={currentTab}
-          variant="scrollable"
-          scrollButtons="auto"
-          textColor="primary"
-          indicatorColor="primary"
-        >
-          {tabs.map((tab) => (
-            <Tab key={tab.value} label={tab.label} value={tab.value} />
-          ))}
-        </Tabs>
-      </Grid>
-      <Grid item xs={12}>
-        {currentTab === 'details' && (
-          <Box>
-            <Grid container spacing={2}>
-              {part.image && (
-                <Grid
-                  item
-                  xs={12}
-                  lg={12}
-                  display="flex"
-                  justifyContent="center"
-                >
-                  <img
-                    src={part.image.url}
-                    style={{ borderRadius: 5, height: 250, cursor: 'pointer' }}
-                    onClick={() => setIsImageViewerOpen(true)}
-                  />
-                </Grid>
+    <DetailsPage>
+      <DetailsHeader
+        subtitle={<bdi>{`#${part?.id}`}</bdi>}
+        title={part?.name}
+        description={part?.description}
+        media={
+          part.image ? (
+            <DetailThumb
+              src={part.image.url}
+              alt={part?.name}
+              size={80}
+              onClick={() => setIsImageViewerOpen(true)}
+            />
+          ) : undefined
+        }
+        chips={
+          <>
+            <SoftChip
+              tone={isLowStock ? 'warning' : 'success'}
+              size="medium"
+              label={`${t('quantity')}: ${getFormattedQuantityWithUnit(
+                part.quantity,
+                part.unit
+              )}`}
+            />
+            {part.category?.name && (
+              <SoftChip tone="neutral" size="medium" label={part.category.name} />
+            )}
+          </>
+        }
+        actions={
+          canEditPart || canCopyPart || canDeletePart ? (
+            <>
+              {canEditPart && (
+                <IconButton aria-label={t('edit')} onClick={handleOpenUpdate}>
+                  <EditTwoToneIcon fontSize="small" color="primary" />
+                </IconButton>
               )}
-              <Grid item xs={12} lg={12}>
-                <Typography sx={{ mb: 1 }} variant="h4">
-                  {t('part_details')}
-                </Typography>
-                <Grid container spacing={2}>
-                  {firstFieldsToRender(part).map((field) => (
+              {canCopyPart && (
+                <IconButton aria-label={t('copy')} onClick={() => onCopy(part)}>
+                  <ContentCopyIcon fontSize="small" color="primary" />
+                </IconButton>
+              )}
+              {canEditPart && (
+                <IconButton
+                  aria-label={t('restock')}
+                  onClick={() => setOpenRestock(true)}
+                >
+                  <AddShoppingCartTwoToneIcon fontSize="small" color="primary" />
+                </IconButton>
+              )}
+              {canDeletePart && (
+                <IconButton aria-label={t('delete')} onClick={handleOpenDelete}>
+                  <DeleteTwoToneIcon fontSize="small" color="error" />
+                </IconButton>
+              )}
+            </>
+          ) : undefined
+        }
+      />
+      <DetailsTabs onChange={handleTabsChange} value={currentTab}>
+        {tabs.map((tab) => (
+          <Tab key={tab.value} label={tab.label} value={tab.value} />
+        ))}
+      </DetailsTabs>
+      <Box>
+        {currentTab === 'details' && (
+          <Stack spacing={2.5}>
+            <SectionCard
+              title="part_details"
+              icon={<InfoTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid>
+                {firstFieldsToRender(part)
+                  .filter(
+                    (field) =>
+                      field.label !== t('name') &&
+                      field.label !== t('description')
+                  )
+                  .map((field) => (
                     <BasicField key={field.label} {...field} />
                   ))}
-                </Grid>
-              </Grid>
-              <Grid item xs={12} lg={12}>
-                <Typography sx={{ mt: 2, mb: 1 }} variant="h4">
-                  {t('area_details')}
-                </Typography>
-                <Grid container spacing={2}>
-                  {areaFieldsToRender(part).map((field) => (
-                    <BasicField
-                      key={field.label}
-                      label={field.label}
-                      value={field.value}
-                    />
-                  ))}
-                </Grid>
-              </Grid>
-              <Grid item xs={12} lg={12}>
-                <Typography sx={{ mt: 2, mb: 1 }} variant="h4">
-                  {t('assigned_people')}
-                </Typography>
-                <Grid container spacing={2}>
-                  {!!part.assignedTo.length && (
-                    <Grid item xs={12} lg={6}>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: theme.colors.alpha.black[70] }}
-                      >
-                        Assigned users
-                      </Typography>
-                      {part.assignedTo.map((user) => (
-                        <Link
-                          key={user.id}
-                          href={getUserUrl(user.id)}
-                          variant="h6"
-                        >{`${user.firstName} ${user.lastName}`}</Link>
-                      ))}
-                    </Grid>
-                  )}
-                  {!!part.customers.length && (
-                    <Grid item xs={12} lg={6}>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: theme.colors.alpha.black[70] }}
-                      >
-                        {t('assigned_customers')}
-                      </Typography>
-                      {part.customers.map((customer) => (
-                        <Link
-                          key={customer.id}
-                          href={getCustomerUrl(customer.id)}
-                          variant="h6"
-                        >
-                          {customer.name}
-                        </Link>
-                      ))}
-                    </Grid>
-                  )}
-                  {!!part.vendors.length && (
-                    <Grid item xs={12} lg={6}>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: theme.colors.alpha.black[70] }}
-                      >
-                        {t('assigned_vendors')}
-                      </Typography>
-                      {part.vendors.map((vendor) => (
-                        <Link
-                          key={vendor.id}
-                          href={getVendorUrl(vendor.id)}
-                          variant="h6"
-                        >
-                          {vendor.companyName}
-                        </Link>
-                      ))}
-                    </Grid>
-                  )}
-                  {!!part.teams.length && (
-                    <Grid item xs={12} lg={6}>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: theme.colors.alpha.black[70] }}
-                      >
-                        {t('assigned_teams')}
-                      </Typography>
-                      {part.teams.map((team) => (
-                        <Link
-                          key={team.id}
-                          href={getTeamUrl(team.id)}
-                          variant="h6"
-                        >
-                          {team.name}
-                        </Link>
-                      ))}
-                    </Grid>
-                  )}
-                </Grid>
-              </Grid>
-            </Grid>
-          </Box>
+              </DetailGrid>
+            </SectionCard>
+            <SectionCard
+              title="area_details"
+              icon={<PlaceTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid>
+                {areaFieldsToRender(part).map((field) => (
+                  <DetailItem
+                    key={field.label}
+                    label={field.label}
+                    value={field.value}
+                  />
+                ))}
+              </DetailGrid>
+            </SectionCard>
+            <SectionCard
+              title="assigned_people"
+              icon={<PeopleAltTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid>
+                <DetailItem label={t('assigned_to')}>
+                  <LinkPills
+                    items={part.assignedTo.map((user) => ({
+                      key: user.id,
+                      href: getUserUrl(user.id),
+                      label: `${user.firstName} ${user.lastName}`
+                    }))}
+                  />
+                </DetailItem>
+                <DetailItem label={t('assigned_teams')}>
+                  <LinkPills
+                    items={part.teams.map((team) => ({
+                      key: team.id,
+                      href: getTeamUrl(team.id),
+                      label: team.name
+                    }))}
+                  />
+                </DetailItem>
+                <DetailItem label={t('assigned_customers')}>
+                  <LinkPills
+                    items={part.customers.map((customer) => ({
+                      key: customer.id,
+                      href: getCustomerUrl(customer.id),
+                      label: customer.name
+                    }))}
+                  />
+                </DetailItem>
+                <DetailItem label={t('assigned_vendors')}>
+                  <LinkPills
+                    items={part.vendors.map((vendor) => ({
+                      key: vendor.id,
+                      href: getVendorUrl(vendor.id),
+                      label: vendor.companyName
+                    }))}
+                  />
+                </DetailItem>
+              </DetailGrid>
+            </SectionCard>
+          </Stack>
         )}
         {currentTab === 'assets' && (
-          <Box>
+          <SectionCard
+            title="assets"
+            icon={<Inventory2TwoToneIcon fontSize="small" />}
+            noPadding
+          >
             {loadingAssets ? (
-              <Box display="flex" justifyContent="center" alignItems="center" py={4}>
-                <CircularProgress />
-              </Box>
+              <CardLoading />
             ) : assets.length ? (
-              <List sx={{ width: '100%' }}>
+              <Box>
                 {assets.map((asset) => (
-                  <ListItemButton
+                  <DetailRow
                     key={asset.id}
-                    divider
                     onClick={() => navigate(getAssetUrl(asset.id))}
                   >
-                    <ListItem
-                      secondaryAction={
-                        <Typography>
-                          {getFormattedDate(asset.createdAt)}
-                        </Typography>
-                      }
-                    >
-                      <ListItemText
-                        primary={asset.name}
-                        secondary={t(asset.status)}
-                      />
-                    </ListItem>
-                  </ListItemButton>
+                    <DetailRowText
+                      primary={asset.name}
+                      secondary={getFormattedDate(asset.createdAt)}
+                    />
+                    <SoftChip tone="neutral" label={t(asset.status)} />
+                  </DetailRow>
                 ))}
-              </List>
+              </Box>
             ) : (
-              <Stack direction="row" justifyContent="center" width="100%">
-                <Typography variant="h5">
-                  {t('no_asset_related_part')}
-                </Typography>
-              </Stack>
+              <EmptyCardBody message={t('no_asset_related_part')} />
             )}
-          </Box>
+          </SectionCard>
         )}
         {currentTab === 'files' && (
-          <Box>
-            {/*<Box display="flex" justifyContent="right">*/}
-            {/*  <Button startIcon={<AddTwoToneIcon fontSize="small" />}>*/}
-            {/*    {t('file')}*/}
-            {/*  </Button>*/}
-            {/*</Box>*/}
-            <Box sx={{ width: '100%' }}>
-              {part.files.length ? (
-                <FilesList
-                  confirmMessage={t(
-                    'Are you sure you want to remove this file from this Part ?'
-                  )}
-                  files={part.files}
-                  removeDisabled={
-                    !hasEditPermission(
-                      PermissionEntity.PARTS_AND_MULTIPARTS,
-                      part
-                    )
-                  }
-                  onRemove={(id: number) => {
-                    dispatch(
-                      editPart(part.id, {
-                        ...part,
-                        files: part.files.filter((f) => f.id !== id)
-                      })
-                    );
-                  }}
-                />
-              ) : (
-                <Stack direction="row" justifyContent="center" width="100%">
-                  <Typography variant="h5">{t('no_file_found')}</Typography>
-                </Stack>
-              )}
-            </Box>
-          </Box>
+          <SectionCard
+            title="files"
+            icon={<AttachFileTwoToneIcon fontSize="small" />}
+            noPadding
+          >
+            {part.files.length ? (
+              <FilesList
+                confirmMessage={t(
+                  'Are you sure you want to remove this file from this Part ?'
+                )}
+                files={part.files}
+                removeDisabled={!canEditPart}
+                onRemove={(id: number) => {
+                  dispatch(
+                    editPart(part.id, {
+                      ...part,
+                      files: part.files.filter((f) => f.id !== id)
+                    })
+                  );
+                }}
+              />
+            ) : (
+              <EmptyCardBody message={t('no_file_found')} />
+            )}
+          </SectionCard>
         )}
         {currentTab === 'workOrders' && (
-          <Box>
+          <SectionCard
+            title="work_orders"
+            icon={<AssignmentTwoToneIcon fontSize="small" />}
+            noPadding
+          >
             {loadingWorkOrders ? (
-              <Box display="flex" justifyContent="center" alignItems="center" py={4}>
-                <CircularProgress />
-              </Box>
+              <CardLoading />
             ) : workOrders.length ? (
-              <List sx={{ width: '100%' }}>
+              <Box>
                 {workOrders.map((workOrder) => (
-                  <ListItemButton
+                  <DetailRow
                     key={workOrder.id}
-                    divider
                     onClick={() => navigate(getWorkOrderUrl(workOrder.id))}
                   >
-                    <ListItem
-                      secondaryAction={
-                        <Typography>
-                          {getFormattedDate(workOrder.createdAt)}
-                        </Typography>
-                      }
-                    >
-                      <ListItemText
-                        primary={workOrder.title}
-                        secondary={t(workOrder.status)}
-                      />
-                    </ListItem>
-                  </ListItemButton>
+                    <DetailRowText
+                      primary={workOrder.title}
+                      secondary={getFormattedDate(workOrder.createdAt)}
+                    />
+                    <StatusChip status={workOrder.status} />
+                  </DetailRow>
                 ))}
-              </List>
+              </Box>
             ) : (
-              <Stack direction="row" justifyContent="center" width="100%">
-                <Typography variant="h5">{t('no_wo_found')}</Typography>
-              </Stack>
+              <EmptyCardBody message={t('no_wo_found')} />
             )}
-          </Box>
+          </SectionCard>
         )}
-      </Grid>
+      </Box>
       <RestockPartModal
         open={openRestock}
         onClose={() => setOpenRestock(false)}
@@ -456,6 +414,6 @@ export default function PartDetails(props: PartDetailsProps) {
           />
         </div>
       )}
-    </Grid>
+    </DetailsPage>
   );
 }

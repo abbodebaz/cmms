@@ -18,6 +18,7 @@ import {
   Typography
 } from '@mui/material';
 import Form from '../../components/form';
+import FormDialogTitle from '../../components/form/FormDialogTitle';
 import * as Yup from 'yup';
 import {
   addAsset,
@@ -179,12 +180,11 @@ const ShowAsset = ({}: PropsType) => {
   };
   const onDeleteFailure = (err) =>
     showSnackBar(t('asset_remove_failure'), 'error');
+  const assetCustomFields = getCustomFieldsIFields(
+    customFields,
+    CustomFieldEntityType.ASSET
+  );
   const defaultFields: Array<IField> = [
-    {
-      name: 'assetInfo',
-      type: 'titleGroupField',
-      label: t('asset_information')
-    },
     {
       name: 'name',
       type: 'text',
@@ -202,11 +202,19 @@ const ShowAsset = ({}: PropsType) => {
       midWidth: true
     },
     {
-      name: 'acquisitionCost',
-      type: 'number',
-      label: t('acquisition_cost'),
-      placeholder: t('acquisition_cost'),
-      midWidth: true
+      name: 'category',
+      midWidth: true,
+      label: t('category'),
+      placeholder: t('category'),
+      type: 'select',
+      type2: 'category',
+      category: 'asset-categories'
+    },
+    {
+      name: 'image',
+      type: 'file',
+      fileType: 'image',
+      label: t('image')
     },
     {
       name: 'description',
@@ -216,17 +224,16 @@ const ShowAsset = ({}: PropsType) => {
       multiple: true
     },
     {
+      name: 'technicalDetailsGroup',
+      type: 'titleGroupField',
+      label: t('form_section_technical_details'),
+      description: t('form_section_technical_details_desc')
+    },
+    {
       name: 'manufacturer',
       type: 'text',
       label: t('manufacturer'),
       placeholder: t('manufacturer'),
-      midWidth: true
-    },
-    {
-      name: 'power',
-      type: 'text',
-      label: t('power'),
-      placeholder: t('power'),
       midWidth: true
     },
     {
@@ -237,13 +244,6 @@ const ShowAsset = ({}: PropsType) => {
       midWidth: true
     },
     {
-      name: 'barCode',
-      type: 'text',
-      label: t('barcode'),
-      placeholder: t('barcode'),
-      midWidth: true
-    },
-    {
       name: 'serialNumber',
       type: 'text',
       label: t('serial_number'),
@@ -251,13 +251,18 @@ const ShowAsset = ({}: PropsType) => {
       midWidth: true
     },
     {
-      name: 'category',
-      midWidth: true,
-      label: t('category'),
-      placeholder: t('category'),
-      type: 'select',
-      type2: 'category',
-      category: 'asset-categories'
+      name: 'barCode',
+      type: 'text',
+      label: t('barcode'),
+      placeholder: t('barcode'),
+      midWidth: true
+    },
+    {
+      name: 'power',
+      type: 'text',
+      label: t('power'),
+      placeholder: t('power'),
+      midWidth: true
     },
     {
       name: 'area',
@@ -267,15 +272,11 @@ const ShowAsset = ({}: PropsType) => {
       placeholder: t('area')
     },
     {
-      name: 'image',
-      type: 'file',
-      fileType: 'image',
-      label: t('image')
-    },
-    {
-      name: 'assignedTo',
+      name: 'assignmentGroup',
       type: 'titleGroupField',
-      label: t('assigned_to')
+      label: t('form_section_assignment'),
+      description: t('form_section_asset_assignment_desc'),
+      defaultCollapsed: true
     },
     {
       name: 'primaryUser',
@@ -301,11 +302,6 @@ const ShowAsset = ({}: PropsType) => {
       placeholder: t('teams_description')
     },
     {
-      name: 'moreInfos',
-      type: 'titleGroupField',
-      label: t('more_informations')
-    },
-    {
       name: 'customers',
       type: 'select',
       type2: 'customer',
@@ -322,6 +318,20 @@ const ShowAsset = ({}: PropsType) => {
       placeholder: t('vendors_description')
     },
     {
+      name: 'financialGroup',
+      type: 'titleGroupField',
+      label: t('form_section_financial_warranty'),
+      description: t('form_section_financial_warranty_desc'),
+      defaultCollapsed: true
+    },
+    {
+      name: 'acquisitionCost',
+      type: 'number',
+      label: t('acquisition_cost'),
+      placeholder: t('acquisition_cost'),
+      midWidth: true
+    },
+    {
       name: 'inServiceDate',
       type: 'date',
       midWidth: true,
@@ -334,11 +344,11 @@ const ShowAsset = ({}: PropsType) => {
       label: t('warranty_expiration_date')
     },
     {
-      name: 'additionalInfos',
-      type: 'text',
-      label: t('additional_information'),
-      placeholder: t('additional_information'),
-      multiple: true
+      name: 'attachmentsGroup',
+      type: 'titleGroupField',
+      label: t('form_section_attachments_notes'),
+      description: t('form_section_attachments_notes_desc'),
+      defaultCollapsed: true
     },
     {
       name: 'files',
@@ -348,9 +358,18 @@ const ShowAsset = ({}: PropsType) => {
       fileType: 'file'
     },
     {
+      name: 'additionalInfos',
+      type: 'text',
+      label: t('additional_information'),
+      placeholder: t('additional_information'),
+      multiple: true
+    },
+    {
       name: 'structure',
       type: 'titleGroupField',
-      label: t('structure')
+      label: t('structure'),
+      description: t('form_section_structure_desc'),
+      defaultCollapsed: true
     },
     { name: 'parts', type: 'select', type2: 'part', label: t('parts') },
     {
@@ -360,7 +379,16 @@ const ShowAsset = ({}: PropsType) => {
       label: t('parent_asset'),
       excluded: Number(assetId)
     },
-    ...getCustomFieldsIFields(customFields, CustomFieldEntityType.ASSET)
+    ...(assetCustomFields.length
+      ? ([
+          {
+            name: 'customFieldsGroup',
+            type: 'titleGroupField',
+            label: t('custom_fields')
+          },
+          ...assetCustomFields
+        ] as IField[])
+      : [])
   ];
 
   const shape = {
@@ -393,20 +421,15 @@ const ShowAsset = ({}: PropsType) => {
       open={openUpdateModal}
       onClose={handleCloseUpdateModal}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {copyAssetData ? t('copy_asset') : t('edit_asset')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {copyAssetData
+      <FormDialogTitle
+        title={copyAssetData ? t('copy_asset') : t('edit_asset')}
+        subtitle={
+          copyAssetData
             ? t('copy_asset_description')
-            : t('edit_asset_description')}
-        </Typography>
-      </DialogTitle>
+            : t('edit_asset_description')
+        }
+        onClose={handleCloseUpdateModal}
+      />
       <DialogContent
         dividers
         sx={{
@@ -470,7 +493,7 @@ const ShowAsset = ({}: PropsType) => {
         basePath={`/app/assets/${assetId}`}
         tabs={tabs}
         tabIndex={tabIndex}
-        title={`Asset`}
+        title={asset?.name ?? t('asset')}
         action={
           hasEditPermission(PermissionEntity.ASSETS, asset)
             ? handleOpenUpdateModal

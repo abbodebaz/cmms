@@ -1,4 +1,7 @@
 import { Box, Button, IconButton, Link } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import WebAssetTwoToneIcon from '@mui/icons-material/WebAssetTwoTone';
+import SettingsSection from '../../../components/SettingsSection';
 import { useTranslation } from 'react-i18next';
 import * as React from 'react';
 import { useContext, useEffect, useState } from 'react';
@@ -211,19 +214,37 @@ export default function RequestPortalTable({
 
   return (
     <>
-      <Box justifyContent="center" p={4}>
-        {hasCreatePermission(PermissionEntity.SETTINGS) && (
-          <Box display="flex" flexDirection="row" alignItems="center">
+      <SettingsSection
+        title="request_portals"
+        description="request_portals_settings_description"
+        icon={<WebAssetTwoToneIcon fontSize="small" />}
+        actions={
+          hasCreatePermission(PermissionEntity.SETTINGS) && (
             <Button
               startIcon={<AddTwoToneIcon />}
               variant="contained"
+              size="small"
               onClick={() => onOpenModal(undefined, 'edit')}
+              sx={{
+                borderRadius: '10px',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                boxShadow: (theme) =>
+                  `0 6px 16px ${alpha(theme.palette.primary.main, 0.28)}`
+              }}
             >
               {t('create_request_portal')}
             </Button>
-          </Box>
-        )}
-        <Box sx={{ mt: 2, width: '95%' }}>
+          )
+        }
+        noPadding
+      >
+        <Box
+          sx={{
+            width: '100%',
+            '& .MuiDataGrid-root': { border: 0, borderRadius: 0 }
+          }}
+        >
           <CustomDataGrid
             columns={columns}
             loading={loadingGet}
@@ -282,7 +303,7 @@ export default function RequestPortalTable({
             }}
           />
         </Box>
-      </Box>
+      </SettingsSection>
       <RequestPortalModal
         open={openModal}
         onClose={onCloseModal}

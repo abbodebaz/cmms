@@ -1,5 +1,7 @@
 import { Helmet } from 'react-helmet-async';
-import { Grid } from '@mui/material';
+import { Box, Grid } from '@mui/material';
+import InsightsTwoToneIcon from '@mui/icons-material/InsightsTwoTone';
+import PageHeading from '../../../Settings/components/PageHeading';
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState } from 'react';
 import { TitleContext } from '../../../../../contexts/TitleContext';
@@ -42,15 +44,14 @@ function PartsConsumption({ handleOpenWOModal }: WOStatusStatsProps) {
       <Helmet>
         <title>{t('parts_consumption')}</title>
       </Helmet>
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="stretch"
-        spacing={1}
-        my={2}
-        paddingX={1}
-      >
-        <Grid item xs={6}>
+      <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+        <PageHeading
+          title={t('parts_consumption')}
+          description={t('analytics_page_description')}
+          icon={<InsightsTwoToneIcon />}
+        />
+      <Grid container alignItems="stretch" spacing={{ xs: 2, md: 2.5 }}>
+        <Grid item xs={12}>
           <CustomDateRangePicker start={start} end={end} setStart={setStart} setEnd={setEnd} companyId={companyId} onCompanyChange={setCompanyId} />
         </Grid>
         <Grid item xs={12} md={12}>
@@ -72,6 +73,7 @@ function PartsConsumption({ handleOpenWOModal }: WOStatusStatsProps) {
           <PartConsumptionsByDate handleOpenModal={handleOpenWOModal} start={start} end={end} companyId={companyId} />
         </Grid>
       </Grid>
+      </Box>
     </>
   );
 }

@@ -54,54 +54,68 @@ function CompanyPlan(props: CompanyPlanProps) {
       .finally(() => setLoadingBilling(false));
   };
 
+  const onGold = theme.palette.primary.contrastText;
   return (
     <Card
       sx={{
-        background: `${theme.colors.gradients.blue4}`,
-        color: `${theme.palette.getContrastText(theme.colors.primary.main)}`,
+        position: 'relative',
+        overflow: 'hidden',
+        borderRadius: '14px',
+        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+        color: onGold,
         display: 'flex',
-        alignItems: 'flex-start',
-        px: 3,
-        py: 5,
-        mb: 2
+        flexDirection: { xs: 'column', sm: 'row' },
+        alignItems: { xs: 'flex-start', sm: 'center' },
+        gap: { xs: 2, sm: 3 },
+        px: { xs: 2.5, md: 3.5 },
+        py: { xs: 3, md: 3.5 },
+        mb: 2,
+        boxShadow: `0 10px 28px ${alpha(theme.palette.primary.main, 0.3)}`,
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          width: 220,
+          height: 220,
+          borderRadius: '50%',
+          top: -90,
+          insetInlineEnd: -60,
+          background: alpha(onGold, 0.08),
+          pointerEvents: 'none'
+        }
       }}
     >
       <Avatar
         sx={{
-          mr: 3,
-          mt: -1.8,
-          width: 62,
-          height: 62,
-          color: `${theme.colors.warning.main}`,
-          background: `${theme.palette.getContrastText(
-            theme.colors.warning.main
-          )}`
+          width: 56,
+          height: 56,
+          flexShrink: 0,
+          borderRadius: '16px',
+          color: theme.palette.primary.main,
+          background: alpha(onGold, 0.92)
         }}
       >
         <CardMembershipTwoToneIcon
           sx={{
-            fontSize: `${theme.typography.pxToRem(30)}`
+            fontSize: `${theme.typography.pxToRem(28)}`
           }}
         />
       </Avatar>
-      <Box>
+      <Box sx={{ position: 'relative', zIndex: 1, minWidth: 0 }}>
         <Typography
           sx={{
-            pb: 1.5,
-            color: `${theme.palette.getContrastText(theme.colors.primary.main)}`
+            pb: 0.75,
+            fontWeight: 700,
+            fontSize: theme.typography.pxToRem(20),
+            color: onGold
           }}
-          variant="h3"
         >
           {t('upgrade_plan')}
         </Typography>
         <Typography
-          variant="subtitle2"
           sx={{
             lineHeight: 1.8,
-            color: `${alpha(
-              theme.palette.getContrastText(theme.colors.primary.main),
-              0.8
-            )}`
+            fontSize: theme.typography.pxToRem(13.5),
+            color: alpha(onGold, 0.85)
           }}
         >
           {t('you_are_using_plan', {
@@ -123,10 +137,17 @@ function CompanyPlan(props: CompanyPlanProps) {
               })}`
             : ''}
         </Typography>
-        <Box sx={{ mt: 2 }}>
+        <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           <Button
-            sx={{ mr: 2 }}
             variant="contained"
+            sx={{
+              borderRadius: '12px',
+              fontWeight: 700,
+              color: theme.palette.primary.dark,
+              backgroundColor: onGold,
+              boxShadow: 'none',
+              '&:hover': { backgroundColor: alpha(onGold, 0.9) }
+            }}
             component={isCloudVersion ? RouterLink : 'a'}
             {...(isCloudVersion
               ? { to: '/app/subscription/plans' }
@@ -149,9 +170,17 @@ function CompanyPlan(props: CompanyPlanProps) {
                   i18n.language
                 );
               }}
-              variant="contained"
-              color="secondary"
-              sx={{ mr: 2 }}
+              variant="outlined"
+              sx={{
+                borderRadius: '12px',
+                fontWeight: 600,
+                color: onGold,
+                borderColor: alpha(onGold, 0.5),
+                '&:hover': {
+                  borderColor: onGold,
+                  backgroundColor: alpha(onGold, 0.08)
+                }
+              }}
             >
               {t('learn_more')}
             </Button>
@@ -160,10 +189,22 @@ function CompanyPlan(props: CompanyPlanProps) {
             <Button
               disabled={loadingBilling}
               startIcon={
-                loadingBilling ? <CircularProgress size={'1rem'} /> : null
+                loadingBilling ? (
+                  <CircularProgress size={'1rem'} sx={{ color: onGold }} />
+                ) : null
               }
               variant={'outlined'}
               onClick={goToPaddleBilling}
+              sx={{
+                borderRadius: '12px',
+                fontWeight: 600,
+                color: onGold,
+                borderColor: alpha(onGold, 0.5),
+                '&:hover': {
+                  borderColor: onGold,
+                  backgroundColor: alpha(onGold, 0.08)
+                }
+              }}
             >
               {t('go_to_billing')}
             </Button>

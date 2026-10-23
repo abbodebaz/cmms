@@ -1,4 +1,5 @@
-import { Box, Divider, Grid, Tab, Tabs } from '@mui/material';
+import { Stack } from '@mui/material';
+import PillTabs from '../../components/PillTabs';
 import { useTranslation } from 'react-i18next';
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
 import FieldsConfigurationForm from '../../FieldsConfigurationForm';
@@ -54,47 +55,38 @@ function WorkOrderSettings() {
     setTitle(t('work_orders'));
   }, []);
   return (
-    <Grid item xs={12}>
-      <Box p={4}>
-        <Box>
-          <Tabs
-            onChange={handleTabsChange}
-            value={currentTab}
-            variant="scrollable"
-            scrollButtons="auto"
-            textColor="primary"
-            indicatorColor="primary"
-          >
-            {tabs.map((tab) => (
-              <Tab key={tab.value} label={tab.label} value={tab.value} />
-            ))}
-          </Tabs>
-          <Divider sx={{ mt: 1 }} />
-          {!hasFeature(PlanFeature.REQUEST_CONFIGURATION) ? (
-            <FeatureErrorMessage message="Upgrade to configure the work orders" />
-          ) : (
-            <Box p={3}>
-              {currentTab === 'create' && (
-                <FieldsConfigurationForm
-                  initialValues={{}}
-                  fields={createFields.map((field) => {
-                    return { ...field, type: 'workOrder' };
-                  })}
-                />
-              )}
-              {currentTab === 'complete' && (
-                <FieldsConfigurationForm
-                  initialValues={{}}
-                  fields={completeFields.map((field) => {
-                    return { ...field, type: 'workOrder' };
-                  })}
-                />
-              )}
-            </Box>
+    <Stack spacing={2}>
+      <PillTabs
+        tabs={tabs}
+        value={currentTab}
+        onChange={(value) => handleTabsChange(null, value)}
+        ariaLabel={t('configure_fields')}
+      />
+      {!hasFeature(PlanFeature.REQUEST_CONFIGURATION) ? (
+        <FeatureErrorMessage message="Upgrade to configure the work orders" />
+      ) : (
+        <>
+          {currentTab === 'create' && (
+            <FieldsConfigurationForm
+              title="creating_wo"
+              initialValues={{}}
+              fields={createFields.map((field) => {
+                return { ...field, type: 'workOrder' };
+              })}
+            />
           )}
-        </Box>
-      </Box>
-    </Grid>
+          {currentTab === 'complete' && (
+            <FieldsConfigurationForm
+              title="completing_wo"
+              initialValues={{}}
+              fields={completeFields.map((field) => {
+                return { ...field, type: 'workOrder' };
+              })}
+            />
+          )}
+        </>
+      )}
+    </Stack>
   );
 }
 

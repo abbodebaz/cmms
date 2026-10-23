@@ -251,6 +251,7 @@ function Filters({ filterFields, onFilterChange, onSave }: OwnProps) {
       <Grid item xs={12}>
         <Form
           fields={fields}
+          variant="plain"
           validation={Yup.object().shape(shape)}
           submitText={t('save')}
           values={getValuesFromFilterFields()}

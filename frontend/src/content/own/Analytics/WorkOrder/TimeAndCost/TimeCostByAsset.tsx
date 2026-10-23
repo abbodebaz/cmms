@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -16,7 +21,6 @@ import { Filter } from '../WOModal';
 import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
 import Loading from '../../Loading';
-import { getRandomColor } from '../../../../../utils/overall';
 import { getWOTimeCostByAsset } from '../../../../../slices/analytics/asset';
 
 interface WOStatusIncompleteProps {
@@ -33,6 +37,9 @@ interface WOStatusIncompleteProps {
 function TimeCostByAsset({ handleOpenModal, start, end, companyId }: WOStatusIncompleteProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const { completeTimeCostByAsset, loading } = useSelector(
     (state) => state.assetAnalytics
   );
@@ -55,7 +62,7 @@ function TimeCostByAsset({ handleOpenModal, start, end, companyId }: WOStatusInc
       label: asset.name,
       time: (asset.time / 3600).toFixed(2),
       cost: Number(asset.cost.toFixed(2)),
-      color: getRandomColor(),
+      color: nextChartColor(),
       filters: [{ key: 'asset', value: asset.id }]
     };
   });

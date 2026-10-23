@@ -13,6 +13,14 @@ import {
   Typography
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import {
+  ListCard,
+  ListCardBody,
+  ListPage,
+  ListPageHeader,
+  ListToolbar,
+  PrimaryAddButton
+} from '../components/ListPageShell';
 import * as React from 'react';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { TitleContext } from '../../../contexts/TitleContext';
@@ -34,6 +42,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import PurchaseOrderDetails from './PurchaseOrderDetails';
 import { IField, getCustomFieldsIFields } from '../type';
 import Form from '../components/form';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 import * as Yup from 'yup';
 import { isNumeric } from '../../../utils/validators';
 import { formatSelect, formatCustomFields } from '../../../utils/formatters';
@@ -299,7 +308,8 @@ function PurchaseOrders() {
     {
       name: 'purchaseOrderDetails',
       type: 'titleGroupField',
-      label: t('po_details')
+      label: t('po_details'),
+      description: t('form_section_po_details_desc')
     },
     {
       name: 'name',
@@ -342,12 +352,14 @@ function PurchaseOrders() {
       name: 'partQuantities',
       type: 'partQuantity',
       label: t('parts'),
-      midWidth: true
+      midWidth: false
     },
     {
       name: 'shippingInformation',
       type: 'titleGroupField',
-      label: t('shipping_information')
+      label: t('shipping_information'),
+      description: t('form_section_po_shipping_desc'),
+      defaultCollapsed: true
     },
     {
       name: 'shippingCompanyName',
@@ -408,7 +420,9 @@ function PurchaseOrders() {
     {
       name: 'additionalInformation',
       type: 'titleGroupField',
-      label: t('additional_information')
+      label: t('additional_information'),
+      description: t('form_section_po_additional_desc'),
+      defaultCollapsed: true
     },
     {
       name: 'additionalInfoDate',
@@ -446,6 +460,11 @@ function PurchaseOrders() {
       placeholder: t('shipping_method'),
       midWidth: true
     },
+    {
+      name: 'customFieldsGroup',
+      type: 'titleGroupField',
+      label: t('custom_fields')
+    },
     ...getCustomFieldsIFields(customFields, CustomFieldEntityType.PURCHASE_REQUEST)
   ];
   const shape = {
@@ -459,16 +478,11 @@ function PurchaseOrders() {
       open={openUpdateModal}
       onClose={() => setOpenUpdateModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('edit_po')}
-        </Typography>
-        <Typography variant="subtitle2">{t('edit_po_description')}</Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('edit_po')}
+        subtitle={t('edit_po_description')}
+        onClose={() => setOpenUpdateModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -539,34 +553,24 @@ function PurchaseOrders() {
           <Helmet>
             <title>{t('purchase_orders')}</title>
           </Helmet>
-          <Box justifyContent="center" alignItems="stretch" paddingX={4}>
-            {hasCreatePermission(PermissionEntity.PURCHASE_ORDERS) && (
-              <Stack
-                my={1}
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
+          <ListPage>
+            <ListPageHeader
+              title={t('purchase_orders')}
+              count={purchaseOrders.totalElements}
+              actions={
+                hasCreatePermission(PermissionEntity.PURCHASE_ORDERS) ? (
+                  <PrimaryAddButton
+                    label={t('purchase_order')}
+                    onClick={() => navigate('/app/purchase-orders/create')}
+                  />
+                ) : undefined
+              }
+            />
+            <ListCard>
+              <ListToolbar>
                 <SearchInput onChange={debouncedQueryChange} />
-                <Button
-                  onClick={() => navigate('/app/purchase-orders/create')}
-                  startIcon={<AddTwoToneIcon />}
-                  variant="contained"
-                >
-                  {t('purchase_order')}
-                </Button>
-              </Stack>
-            )}
-            <Card
-              sx={{
-                py: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Box sx={{ width: '95%' }}>
+              </ListToolbar>
+              <ListCardBody>
                 <CustomDataGrid
                   columns={columns}
                   pageSize={criteria.pageSize}
@@ -594,9 +598,9 @@ function PurchaseOrders() {
                     }
                   }}
                 />
-              </Box>
-            </Card>
-          </Box>
+              </ListCardBody>
+            </ListCard>
+          </ListPage>
           <Drawer
             anchor="right"
             open={openDrawer}

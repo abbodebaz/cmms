@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogTitle, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import Form from '../components/form';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 import * as Yup from 'yup';
 import { IField } from '../type';
 import { formatSelect, formatSelectMultiple, formatCustomFields } from '../../../utils/formatters';
@@ -39,7 +40,19 @@ export default function AddTriggerModal({
     }
   }, [open]);
 
+  const woBaseFields = getWOBaseFields(t, customFields);
+  const pickWOBaseFields = (names: string[]): IField[] =>
+    names.flatMap((name) => woBaseFields.filter((field) => field.name === name));
+  const woBaseCustomFields = woBaseFields.filter((field) =>
+    field.name.startsWith('customField_')
+  );
   const fields: Array<IField> = [
+    {
+      name: 'triggerConfiguration',
+      type: 'titleGroupField',
+      label: t('trigger_configuration'),
+      description: t('form_section_meter_trigger_desc')
+    },
     {
       name: 'name',
       type: 'text',
@@ -67,9 +80,51 @@ export default function AddTriggerModal({
     {
       name: 'workOrderConfig',
       type: 'titleGroupField',
-      label: t('wo_configuration')
+      label: t('wo_configuration'),
+      description: t('form_section_meter_wo_desc')
     },
-    ...getWOBaseFields(t, customFields)
+    ...pickWOBaseFields([
+      'title',
+      'description',
+      'priority',
+      'category',
+      'location',
+      'asset'
+    ]),
+    {
+      name: 'schedulingGroup',
+      type: 'titleGroupField',
+      label: t('form_section_scheduling'),
+      description: t('form_section_scheduling_desc'),
+      defaultCollapsed: true
+    },
+    ...pickWOBaseFields(['dueDate', 'estimatedStartDate', 'estimatedDuration']),
+    {
+      name: 'assignmentGroup',
+      type: 'titleGroupField',
+      label: t('form_section_assignment'),
+      description: t('form_section_wo_assignment_desc'),
+      defaultCollapsed: true
+    },
+    ...pickWOBaseFields(['primaryUser', 'team']),
+    {
+      name: 'attachmentsGroup',
+      type: 'titleGroupField',
+      label: t('form_section_attachments'),
+      description: t('form_section_files_desc'),
+      defaultCollapsed: true
+    },
+    ...pickWOBaseFields(['image', 'files']),
+    ...(woBaseCustomFields.length
+      ? ([
+          {
+            name: 'customFieldsGroup',
+            type: 'titleGroupField',
+            label: t('custom_fields')
+          },
+          ...woBaseCustomFields
+        ] as IField[])
+      : [])
   ];
   const shape = {
     name: Yup.string().required(t('required_trigger_name')),
@@ -103,18 +158,11 @@ export default function AddTriggerModal({
 
   return (
     <Dialog fullWidth maxWidth="sm" open={open} onClose={onClose}>
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('add_wo_trigger')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('add_wo_trigger_description')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('add_wo_trigger')}
+        subtitle={t('add_wo_trigger_description')}
+        onClose={onClose}
+      />
       <DialogContent
         dividers
         sx={{

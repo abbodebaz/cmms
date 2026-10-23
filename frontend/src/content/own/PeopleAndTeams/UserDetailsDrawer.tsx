@@ -29,6 +29,17 @@ const dayTranslationKey: Record<string, string> = {
 import { useDispatch, useSelector } from '../../../store';
 import { getTwoWeeksWorkOrders } from '../../../slices/analytics/user';
 import { getDayAndMonthAndYear } from '../../../utils/dates';
+import SectionCard from '../components/SectionCard';
+import { SoftChip } from '../components/StatusChip';
+import {
+  DetailGrid,
+  DetailItem,
+  DetailsHeader,
+  DetailsPage,
+  DetailsTabs
+} from '../components/DetailsKit';
+import BadgeTwoToneIcon from '@mui/icons-material/BadgeTwoTone';
+import InsightsTwoToneIcon from '@mui/icons-material/InsightsTwoTone';
 
 const AvatarPrimary = styled(Avatar)(
   ({ theme }) => `
@@ -36,6 +47,7 @@ const AvatarPrimary = styled(Avatar)(
     color: ${theme.colors.primary.main};
     width: ${theme.spacing(8)};
     height: ${theme.spacing(8)};
+    border-radius: 14px;
 `
 );
 
@@ -175,101 +187,102 @@ function UserDetailsDrawer({ user }: PropsType) {
     <Box
       sx={{
         height: '100%',
-        width: { xs: 340, lg: 400 }
+        width: { xs: 340, lg: 400 },
+        maxWidth: '100vw'
       }}
     >
       <Scrollbar>
-        <Box
-          sx={{
-            textAlign: 'center',
-            mt: 1
-          }}
-        >
-          <Typography component="span" variant="subtitle2">
-            {t('user_details')}
-          </Typography>
-        </Box>
-        <Divider sx={{ my: 1 }} />
-
-        <Box
-          sx={{
-            textAlign: 'center'
-          }}
-        >
-          <AvatarPrimary
-            sx={{
-              mx: 'auto',
-              my: 2
-            }}
-            variant="rounded"
-            src={user.image?.url}
-          >
-            <Typography variant="h1">
-              {Array.from(user.firstName)[0].toUpperCase()}
-            </Typography>
-          </AvatarPrimary>
-          <Typography variant="h3" noWrap gutterBottom>
-            {`${user.firstName} ${user.lastName}`}
-          </Typography>
-        </Box>
-        <Divider sx={{ my: 3 }} />
-
-        <TabsContainerWrapper>
-          <Tabs
-            onChange={handleTabsChange}
-            value={currentTab}
-            variant="scrollable"
-            scrollButtons="auto"
-            textColor="primary"
-            indicatorColor="primary"
-          >
+        <DetailsPage sx={{ p: { xs: 2, sm: 2.5 } }}>
+          <DetailsHeader
+            subtitle={t('user_details')}
+            title={`${user.firstName} ${user.lastName}`}
+            media={
+              <AvatarPrimary variant="rounded" src={user.image?.url}>
+                <Typography
+                  sx={{ fontSize: 26, fontWeight: 700, color: 'inherit' }}
+                >
+                  {Array.from(user.firstName)[0]?.toUpperCase()}
+                </Typography>
+              </AvatarPrimary>
+            }
+            chips={
+              <>
+                {user.role?.name && (
+                  <SoftChip tone="primary" label={user.role.name} />
+                )}
+                {user.jobTitle && (
+                  <SoftChip tone="neutral" label={user.jobTitle} />
+                )}
+              </>
+            }
+          />
+          <DetailsTabs onChange={handleTabsChange} value={currentTab}>
             {tabs.map((tab) => (
               <Tab key={tab.value} label={tab.label} value={tab.value} />
             ))}
-          </Tabs>
-        </TabsContainerWrapper>
+          </DetailsTabs>
 
-        <Divider sx={{ my: 1 }} />
+          {currentTab === 'overview' && (
+            <SectionCard
+              title="details"
+              icon={<BadgeTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid minColumnWidth={150}>
+                {fieldsToRender(user).map(({ label, value }) => (
+                  <DetailItem
+                    key={label}
+                    label={label}
+                    value={
+                      value === null || value === undefined || value === ''
+                        ? null
+                        : value
+                    }
+                  />
+                ))}
+              </DetailGrid>
+            </SectionCard>
+          )}
 
-        {currentTab === 'overview' && (
-          <>
-            {fieldsToRender(user).map(({ label, value }) =>
-              value ? (
-                <>
-                  <Box mt={1} px={3}>
-                    <Typography component="span" variant="subtitle2">
-                      {label}
-                    </Typography>
-                    <Typography variant="h5">{value}</Typography>
-                  </Box>
-                  <Divider sx={{ my: 1 }} />
-                </>
-              ) : null
-            )}
-          </>
-        )}
-
-        {currentTab === 'activity' && (
-          <Box sx={{ mt: 3, px: 3, textAlign: 'center' }}>
-            <Typography variant="subtitle2">
-              {t('wo_complete_last_14_days')}
-            </Typography>
-            <Typography variant="h2">{completedWorkOrdersCount}</Typography>
-            {completedWorkOrdersCount === 0 && (
-              <Typography variant="subtitle2" color="green">
-                {t('no_wo_complete_last_14_days')}
-              </Typography>
-            )}
-            <Box flexGrow={1} px={2} pb={2}>
-              <Chart
-                options={chart3Options}
-                series={chart3Data}
-                type="line"
-                height={'100%'}
-              />
-            </Box>
-          </Box>
-        )}
+          {currentTab === 'activity' && (
+            <SectionCard
+              title="activity"
+              icon={<InsightsTwoToneIcon fontSize="small" />}
+            >
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography
+                  sx={{ color: 'text.secondary', fontSize: 13, fontWeight: 500 }}
+                >
+                  {t('wo_complete_last_14_days')}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: 34,
+                    fontWeight: 700,
+                    color: 'primary.main',
+                    lineHeight: 1.3
+                  }}
+                >
+                  {completedWorkOrdersCount}
+                </Typography>
+                {completedWorkOrdersCount === 0 && (
+                  <Typography
+                    sx={{ color: 'text.secondary', fontSize: 13, mt: 0.5 }}
+                  >
+                    {t('no_wo_complete_last_14_days')}
+                  </Typography>
+                )}
+                <Box flexGrow={1} pt={1}>
+                  <Chart
+                    options={chart3Options}
+                    series={chart3Data}
+                    type="line"
+                    height={'100%'}
+                  />
+                </Box>
+              </Box>
+            </SectionCard>
+          )}
+        </DetailsPage>
       </Scrollbar>
     </Box>
   );

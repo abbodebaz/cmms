@@ -2,7 +2,12 @@ import { useContext, useEffect } from 'react';
 
 import { Helmet } from 'react-helmet-async';
 
-import { Button, Grid } from '@mui/material';
+import { Box, Button, Grid } from '@mui/material';
+import AccountCircleTwoToneIcon from '@mui/icons-material/AccountCircleTwoTone';
+import PersonOffTwoToneIcon from '@mui/icons-material/PersonOffTwoTone';
+import PageHeading from '../Settings/components/PageHeading';
+import SectionCard from '../components/SectionCard';
+import { SettingsRow } from '../Settings/components/SettingsRows';
 import { useTranslation } from 'react-i18next';
 import ProfileCover from './ProfileCover';
 import RecentActivity from './RecentActivity';
@@ -44,39 +49,49 @@ function UserProfile() {
       <Helmet>
         <title>{user.firstName} - Profile Details</title>
       </Helmet>
-      <Grid
-        sx={{
-          px: 4
-        }}
-        container
-        direction="row"
-        justifyContent="center"
-        alignItems="stretch"
-        spacing={2}
-      >
-        <Grid item xs={12} md={4}>
-          <ProfileCover user={user} />
+      <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+        <PageHeading
+          title={t('profile')}
+          description={t('personal_details_description')}
+          icon={<AccountCircleTwoToneIcon />}
+        />
+        <Grid container alignItems="stretch" spacing={{ xs: 2, md: 2.5 }}>
+          <Grid item xs={12} md={4}>
+            <ProfileCover user={user} />
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <RecentActivity />
+          </Grid>
+          <Grid item xs={12}>
+            <ProfileDetails />
+          </Grid>
+          <Grid item xs={12}>
+            <SectionCard
+              title="settings_danger_zone"
+              icon={<PersonOffTwoToneIcon fontSize="small" />}
+              noPadding
+            >
+              <SettingsRow
+                title={t('delete_account')}
+                description={t('settings_delete_account_description')}
+                control={
+                  <Button
+                    onClick={onDeleteAccount}
+                    variant="outlined"
+                    color="error"
+                    sx={{ borderRadius: '10px', fontWeight: 700, whiteSpace: 'nowrap' }}
+                  >
+                    {t('delete_account')}
+                  </Button>
+                }
+              />
+            </SectionCard>
+          </Grid>
+          {/*<Grid item xs={12} md={12}>*/}
+          {/*  <MyCards />*/}
+          {/*</Grid>*/}
         </Grid>
-        <Grid item xs={12} md={8}>
-          <RecentActivity />
-        </Grid>
-        <Grid item xs={12}>
-          <ProfileDetails />
-        </Grid>
-        <Grid item xs={12}>
-          <Button
-            sx={{ mb: 2 }}
-            onClick={onDeleteAccount}
-            variant="contained"
-            color="error"
-          >
-            {t('delete_account')}
-          </Button>
-        </Grid>
-        {/*<Grid item xs={12} md={12}>*/}
-        {/*  <MyCards />*/}
-        {/*</Grid>*/}
-      </Grid>
+      </Box>
     </>
   );
 }

@@ -11,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { FilterField } from '../../../../models/owns/page';
 import { pushOrRemove } from '../../../../utils/overall';
+import { filterPillSx } from '../../components/ListPageShell';
 
 interface OwnProps {
   filterFields: FilterField[];
@@ -40,10 +41,16 @@ function EnumFilter({
     <>
       <Button
         onClick={handleOpenMenu}
-        sx={{
-          '& .MuiButton-startIcon': { margin: '0px' },
-          minWidth: 0
-        }}
+        sx={filterPillSx(
+          (() => {
+            const selected =
+              filterFields.find(({ field }) => field === fieldName)?.values ??
+              [];
+            return (
+              selected.length > 0 && selected.length < completeOptions.length
+            );
+          })()
+        )}
         variant={'outlined'}
         startIcon={icon}
       >

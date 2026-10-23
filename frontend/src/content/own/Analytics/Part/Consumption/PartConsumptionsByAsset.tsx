@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -16,7 +21,6 @@ import { Filter } from '../WOModal';
 import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
 import Loading from '../../Loading';
-import { getRandomColor } from '../../../../../utils/overall';
 import { getPartConsumptionsByAsset } from '../../../../../slices/analytics/part';
 
 interface WOStatusIncompleteProps {
@@ -33,6 +37,9 @@ interface WOStatusIncompleteProps {
 function PartConsumptionsByAsset({ handleOpenModal, start, end, companyId }: WOStatusIncompleteProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const { partConsumptionsByAsset, loading } = useSelector(
     (state) => state.partAnalytics
   );
@@ -53,7 +60,7 @@ function PartConsumptionsByAsset({ handleOpenModal, start, end, companyId }: WOS
     return {
       label: asset.name,
       cost: asset.cost,
-      color: getRandomColor(),
+      color: nextChartColor(),
       filters: [{ key: 'asset', value: asset.id }]
     };
   });
@@ -68,7 +75,7 @@ function PartConsumptionsByAsset({ handleOpenModal, start, end, companyId }: WOS
           <XAxis dataKey="label" />
           <YAxis yAxisId="left-axis" />
           <Tooltip />
-          <Bar dataKey="cost" fill="#8884d8" name={t('cost')} yAxisId="left-axis">
+          <Bar dataKey="cost" fill={chartPalette[0]} name={t('cost')} yAxisId="left-axis">
             {formattedData.map((entry, index) => (
               <Cell
                 key={index}

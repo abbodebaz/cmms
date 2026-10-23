@@ -44,7 +44,7 @@ const HeaderWrapper = styled(Box)(
 
 function Header() {
   const { sidebarToggle, toggleSidebar } = useContext(SidebarContext);
-  const { title } = useContext(TitleContext);
+  const { title, hideHeaderTitle } = useContext(TitleContext);
   const theme = useTheme();
   const { t }: { t: any } = useTranslation();
   const navigate = useNavigate();
@@ -79,7 +79,7 @@ function Header() {
         <IconButton onClick={()=>navigate(-1)} disabled={location.key==='default'}>
           <ArrowBackTwoToneIcon/>
           </IconButton>
-        <Typography variant="h2">{title}</Typography>
+        {!hideHeaderTitle && <Typography variant="h2">{title}</Typography>}
       </Stack>
       <Box display="flex" alignItems="center">
         <HeaderButtons />

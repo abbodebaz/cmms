@@ -57,6 +57,23 @@ import {
 import { format } from 'date-fns';
 import { subDays } from 'date-fns';
 import useDateLocale from '../../../hooks/useDateLocale';
+import { alpha } from '@mui/material/styles';
+import SectionCard from '../components/SectionCard';
+import { SoftChip } from '../components/StatusChip';
+import {
+  DetailGrid,
+  DetailRow,
+  DetailRowText,
+  DetailsHeader,
+  DetailsPage,
+  DetailsTabs,
+  DetailThumb,
+  EmptyCardBody,
+  softButtonSx
+} from '../components/DetailsKit';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import ShowChartTwoToneIcon from '@mui/icons-material/ShowChartTwoTone';
+import NotificationsActiveTwoToneIcon from '@mui/icons-material/NotificationsActiveTwoTone';
 
 interface MeterDetailsProps {
   meter: Meter;
@@ -169,210 +186,222 @@ export default function MeterDetails(props: MeterDetailsProps) {
   const shape = {
     value: Yup.number().required(t('required_reading_value'))
   };
+  const canEditMeter = hasEditPermission(PermissionEntity.METERS, meter);
+  const canDeleteMeter = hasDeletePermission(PermissionEntity.METERS, meter);
+  const canCopyMeter = hasCreatePermission(PermissionEntity.METERS);
   return (
-    <Grid
-      container
-      justifyContent="center"
-      alignItems="stretch"
-      spacing={2}
-      padding={4}
-    >
-      <Grid
-        item
-        xs={12}
-        display="flex"
-        flexDirection="row"
-        justifyContent="space-between"
-      >
-        <Box>
-          <Typography variant="h2">{meter?.name}</Typography>
-        </Box>
-        <Box>
-          {hasEditPermission(PermissionEntity.METERS, meter) && (
-            <IconButton onClick={handleOpenUpdate} style={{ marginRight: 10 }}>
-              <EditTwoToneIcon color="primary" />
-            </IconButton>
-          )}
-          {hasCreatePermission(PermissionEntity.METERS) && (
-            <IconButton
-              style={{ marginRight: 10 }}
-              onClick={() => onCopy(meter)}
-            >
-              <ContentCopyIcon color="primary" />
-            </IconButton>
-          )}
-          {hasDeletePermission(PermissionEntity.METERS, meter) && (
-            <IconButton onClick={handleOpenDelete}>
-              <DeleteTwoToneIcon color="error" />
-            </IconButton>
-          )}
-        </Box>
-      </Grid>
-      <Divider />
-      <Grid item xs={12}>
-        <Tabs
-          onChange={handleTabsChange}
-          value={currentTab}
-          variant="scrollable"
-          scrollButtons="auto"
-          textColor="primary"
-          indicatorColor="primary"
-        >
-          {tabs.map((tab) => (
-            <Tab key={tab.value} label={tab.label} value={tab.value} />
-          ))}
-        </Tabs>
-      </Grid>
-      <Grid item xs={12}>
+    <DetailsPage>
+      <DetailsHeader
+        subtitle={meter?.unit ? <bdi>{meter.unit}</bdi> : undefined}
+        title={meter?.name}
+        media={
+          meter.image ? (
+            <DetailThumb
+              src={meter.image.url}
+              alt={meter?.name}
+              size={80}
+              onClick={() => setIsImageViewerOpen(true)}
+            />
+          ) : undefined
+        }
+        chips={
+          meter.meterCategory?.name ? (
+            <SoftChip
+              tone="neutral"
+              size="medium"
+              label={meter.meterCategory.name}
+            />
+          ) : undefined
+        }
+        actions={
+          canEditMeter || canCopyMeter || canDeleteMeter ? (
+            <>
+              {canEditMeter && (
+                <IconButton aria-label={t('edit')} onClick={handleOpenUpdate}>
+                  <EditTwoToneIcon fontSize="small" color="primary" />
+                </IconButton>
+              )}
+              {canCopyMeter && (
+                <IconButton
+                  aria-label={t('copy')}
+                  onClick={() => onCopy(meter)}
+                >
+                  <ContentCopyIcon fontSize="small" color="primary" />
+                </IconButton>
+              )}
+              {canDeleteMeter && (
+                <IconButton aria-label={t('delete')} onClick={handleOpenDelete}>
+                  <DeleteTwoToneIcon fontSize="small" color="error" />
+                </IconButton>
+              )}
+            </>
+          ) : undefined
+        }
+      />
+      <DetailsTabs onChange={handleTabsChange} value={currentTab}>
+        {tabs.map((tab) => (
+          <Tab key={tab.value} label={tab.label} value={tab.value} />
+        ))}
+      </DetailsTabs>
+      <Box>
         {currentTab === 'details' && (
-          <Box>
-            <Box sx={{ mb: 2 }}>
-              <DateRangePicker
-                value={dateRange}
-                onChange={(range) => setDateRange(range)}
-              />
-            </Box>
-            {loadingHistogram ? (
-              <Box display="flex" justifyContent="center" py={4}>
-                <CircularProgress />
+          <Stack spacing={2.5}>
+            <SectionCard
+              title="meter_details"
+              icon={<InfoTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid>
+                {fieldsToRender(meter).map((field) => (
+                  <BasicField key={field.label} {...field} />
+                ))}
+              </DetailGrid>
+            </SectionCard>
+            <SectionCard
+              title="reading"
+              icon={<ShowChartTwoToneIcon fontSize="small" />}
+            >
+              <Box sx={{ mb: 2 }}>
+                <DateRangePicker
+                  value={dateRange}
+                  onChange={(range) => setDateRange(range)}
+                />
               </Box>
-            ) : histogramData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={histogramData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(d) =>
-                      format(new Date(d), 'MMM dd', { locale: dateLocale })
-                    }
-                  />
-                  <YAxis />
-                  <Tooltip
-                    labelFormatter={(d) =>
-                      format(new Date(d), 'MMM dd, yyyy', {
-                        locale: dateLocale
-                      })
-                    }
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke={theme.palette.primary.main}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <Typography
-                variant="body1"
-                color="textSecondary"
-                textAlign="center"
-                py={4}
-              >
-                {t('no_data')}
-              </Typography>
-            )}
-            <Box sx={{ mt: 2 }}>
-              {canAddReading(meter) &&
-              hasEditPermission(PermissionEntity.METERS, meter) ? (
-                <Form
-                  fields={fields}
-                  validation={Yup.object().shape(shape)}
-                  submitText={t('add_reading')}
-                  values={{ value: 0 }}
-                  onSubmit={async (values) => {
-                    return dispatch(createReading(meter.id, values))
-                      .then(onNewReading)
-                      .then(onRefreshHistogram);
-                  }}
-                />
-              ) : null}
-            </Box>
-            {meter.image && (
-              <Grid
-                item
-                xs={12}
-                lg={12}
-                display="flex"
-                justifyContent="center"
-                sx={{ mt: 2 }}
-              >
-                <img
-                  src={meter.image.url}
-                  style={{ borderRadius: 5, height: 250, cursor: 'pointer' }}
-                  onClick={() => setIsImageViewerOpen(true)}
-                />
-              </Grid>
-            )}
-            <Typography sx={{ mt: 2, mb: 1 }} variant="h4">
-              {t('meter_details')}
-            </Typography>
-            <Grid container spacing={2}>
-              {fieldsToRender(meter).map((field) => (
-                <BasicField key={field.label} {...field} />
-              ))}
-            </Grid>
-            <Typography sx={{ mt: 2, mb: 1 }} variant="h4">
-              {t('wo_triggers')}
-            </Typography>
-            <Grid container spacing={1}>
-              <Grid item xs={12} lg={12}>
-                <List>
-                  {currentMeterTriggers.map((trigger) => (
-                    <ListItem
-                      key={trigger.id}
-                      secondaryAction={
-                        <Stack spacing={1} direction="row">
-                          <IconButton
-                            onClick={() => {
-                              setCurrentWorkOrderMeterTrigger(
-                                currentMeterTriggers.find(
-                                  (t) => t.id === trigger.id
-                                )
-                              );
-                              setOpenEditTriggerModal(true);
-                            }}
-                          >
-                            <EditTwoToneIcon />
-                          </IconButton>
-                          <IconButton
-                            onClick={() => {
-                              dispatch(
-                                deleteWorkOrderMeterTrigger(
-                                  meter.id,
-                                  trigger.id
-                                )
-                              );
-                            }}
-                          >
-                            <DeleteTwoToneIcon color="error" />
-                          </IconButton>
-                        </Stack>
-                      }
-                    >
-                      <ListItemText
-                        primary={trigger.name}
-                        secondary={`${
-                          trigger.triggerCondition === 'MORE_THAN'
-                            ? t('greater_than')
-                            : t('lower_than')
-                        } ${trigger.value} ${meter.unit}`}
+              {loadingHistogram ? (
+                <Box display="flex" justifyContent="center" py={4}>
+                  <CircularProgress size={28} />
+                </Box>
+              ) : histogramData.length > 0 ? (
+                <Box sx={{ direction: 'ltr' }}>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={histogramData}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={alpha(theme.palette.text.primary, 0.1)}
                       />
-                    </ListItem>
-                  ))}
-                </List>
-                {hasEditPermission(PermissionEntity.METERS, meter) && (
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+                        tickFormatter={(d) =>
+                          format(new Date(d), 'MMM dd', { locale: dateLocale })
+                        }
+                      />
+                      <YAxis
+                        tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+                      />
+                      <Tooltip
+                        labelFormatter={(d) =>
+                          format(new Date(d), 'MMM dd, yyyy', {
+                            locale: dateLocale
+                          })
+                        }
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        strokeWidth={2}
+                        stroke={theme.palette.primary.main}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              ) : (
+                <Typography
+                  sx={{ color: 'text.secondary', fontSize: 14 }}
+                  textAlign="center"
+                  py={4}
+                >
+                  {t('no_data')}
+                </Typography>
+              )}
+              {canAddReading(meter) && canEditMeter ? (
+                <Box
+                  sx={{
+                    mt: 2,
+                    pt: 2,
+                    borderTop: `1px solid ${alpha(
+                      theme.palette.primary.main,
+                      0.1
+                    )}`
+                  }}
+                >
+                  <Form
+                    fields={fields}
+                    validation={Yup.object().shape(shape)}
+                    submitText={t('add_reading')}
+                    values={{ value: 0 }}
+                    onSubmit={async (values) => {
+                      return dispatch(createReading(meter.id, values))
+                        .then(onNewReading)
+                        .then(onRefreshHistogram);
+                    }}
+                  />
+                </Box>
+              ) : null}
+            </SectionCard>
+            <SectionCard
+              title="wo_triggers"
+              icon={<NotificationsActiveTwoToneIcon fontSize="small" />}
+              noPadding
+              actions={
+                canEditMeter ? (
                   <Button
+                    size="small"
                     startIcon={<AddTwoToneIcon />}
-                    sx={{ my: 1 }}
-                    variant="outlined"
+                    sx={softButtonSx}
                     onClick={() => setOpenAddTriggerModal(true)}
                   >
                     {t('add_trigger')}
                   </Button>
-                )}
-              </Grid>
-            </Grid>
-          </Box>
+                ) : undefined
+              }
+            >
+              {currentMeterTriggers.length ? (
+                <Box>
+                  {currentMeterTriggers.map((trigger) => (
+                    <DetailRow key={trigger.id}>
+                      <DetailRowText
+                        primary={trigger.name}
+                        secondary={
+                          <bdi>{`${
+                            trigger.triggerCondition === 'MORE_THAN'
+                              ? t('greater_than')
+                              : t('lower_than')
+                          } ${trigger.value} ${meter.unit}`}</bdi>
+                        }
+                      />
+                      <Stack spacing={0.5} direction="row">
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setCurrentWorkOrderMeterTrigger(
+                              currentMeterTriggers.find(
+                                (t) => t.id === trigger.id
+                              )
+                            );
+                            setOpenEditTriggerModal(true);
+                          }}
+                        >
+                          <EditTwoToneIcon fontSize="small" color="primary" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            dispatch(
+                              deleteWorkOrderMeterTrigger(meter.id, trigger.id)
+                            );
+                          }}
+                        >
+                          <DeleteTwoToneIcon fontSize="small" color="error" />
+                        </IconButton>
+                      </Stack>
+                    </DetailRow>
+                  ))}
+                </Box>
+              ) : (
+                <EmptyCardBody message="—" />
+              )}
+            </SectionCard>
+          </Stack>
         )}
         {currentTab === 'history' && (
           <MeterReadingHistory
@@ -381,7 +410,7 @@ export default function MeterDetails(props: MeterDetailsProps) {
             onRefreshHistogram={onRefreshHistogram}
           />
         )}
-      </Grid>
+      </Box>
       <AddTriggerModal
         open={openAddTriggerModal}
         onClose={() => setOpenAddTriggerModal(false)}
@@ -407,6 +436,6 @@ export default function MeterDetails(props: MeterDetailsProps) {
           />
         </div>
       )}
-    </Grid>
+    </DetailsPage>
   );
 }

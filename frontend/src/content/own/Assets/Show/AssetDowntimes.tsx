@@ -10,6 +10,9 @@ import {
   Typography
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import SectionCard from '../../components/SectionCard';
+import PowerOffTwoToneIcon from '@mui/icons-material/PowerOffTwoTone';
+import { alpha } from '@mui/material/styles';
 import CustomDataGrid from '../../components/CustomDatagrid';
 import {
   GridActionsCellItem,
@@ -44,6 +47,7 @@ import {
 import { CompanySettingsContext } from '../../../../contexts/CompanySettingsContext';
 import AssetDowntime from '../../../../models/owns/assetDowntime';
 import { getErrorMessage } from '../../../../utils/api';
+import FormDialogTitle from '../../components/form/FormDialogTitle';
 
 interface PropsType {
   asset: AssetDTO;
@@ -176,15 +180,10 @@ const AssetDowntimes = ({ asset }: PropsType) => {
       open={openAddModal}
       onClose={() => setOpenAddModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('add_downtime')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('add_downtime')}
+        onClose={() => setOpenAddModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -221,15 +220,10 @@ const AssetDowntimes = ({ asset }: PropsType) => {
       open={openEditModal}
       onClose={() => setOpenEditModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('Edit Downtime')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('Edit Downtime')}
+        onClose={() => setOpenEditModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -268,52 +262,72 @@ const AssetDowntimes = ({ asset }: PropsType) => {
     </Dialog>
   );
   return (
-    <Box sx={{ px: 4 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Card sx={{ p: 2 }}>
-            <Box sx={{ height: 550, width: '95%' }}>
-              <Stack direction="row" justifyContent="space-between" py={3}>
-                <AssetStatusSelect
-                  value={asset?.status ?? 'OPERATIONAL'}
-                  onChange={(status) => {
-                    dispatch(
-                      editAsset(asset.id, {
-                        ...asset,
-                        status
-                      })
-                    );
-                  }}
-                  disabled={!hasEditPermission(PermissionEntity.ASSETS, asset)}
-                />
-                {hasEditPermission(PermissionEntity.ASSETS, asset) && (
-                  <Button
-                    startIcon={<AddTwoToneIcon />}
-                    variant="contained"
-                    onClick={() => setOpenAddModal(true)}
-                  >
-                    {t('add_downtime')}
-                  </Button>
-                )}
-              </Stack>
-              <CustomDataGrid
-                columns={columns}
-                rows={downtimes.filter((downtime) => downtime.duration)}
-                components={{
-                  Toolbar: GridToolbar
-                }}
-                onRowClick={(params) => null}
-                initialState={{
-                  columns: {
-                    columnVisibilityModel: {}
-                  }
-                }}
-                loading={loading}
-              />
-            </Box>
-          </Card>
-        </Grid>
-      </Grid>
+    <Box>
+      <SectionCard
+        title="downtimes"
+        icon={<PowerOffTwoToneIcon fontSize="small" />}
+        noPadding
+      >
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          flexWrap="wrap"
+          gap={1.5}
+          sx={{
+            px: { xs: 2, sm: 2.5 },
+            py: 1.75,
+            borderBottom: (theme) =>
+              `1px solid ${alpha(theme.palette.primary.main, 0.08)}`
+          }}
+        >
+          <AssetStatusSelect
+            value={asset?.status ?? 'OPERATIONAL'}
+            onChange={(status) => {
+              dispatch(
+                editAsset(asset.id, {
+                  ...asset,
+                  status
+                })
+              );
+            }}
+            disabled={!hasEditPermission(PermissionEntity.ASSETS, asset)}
+          />
+          {hasEditPermission(PermissionEntity.ASSETS, asset) && (
+            <Button
+              startIcon={<AddTwoToneIcon />}
+              variant="contained"
+              onClick={() => setOpenAddModal(true)}
+              sx={(theme) => ({
+                borderRadius: '12px',
+                fontWeight: 700,
+                boxShadow: `0 6px 16px ${alpha(
+                  theme.palette.primary.main,
+                  0.28
+                )}`
+              })}
+            >
+              {t('add_downtime')}
+            </Button>
+          )}
+        </Stack>
+        <Box sx={{ width: '100%' }}>
+          <CustomDataGrid
+            columns={columns}
+            rows={downtimes.filter((downtime) => downtime.duration)}
+            components={{
+              Toolbar: GridToolbar
+            }}
+            onRowClick={(params) => null}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {}
+              }
+            }}
+            loading={loading}
+          />
+        </Box>
+      </SectionCard>
       {renderAddModal()}
       {renderEditModal()}
     </Box>

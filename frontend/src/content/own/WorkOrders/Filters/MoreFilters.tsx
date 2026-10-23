@@ -349,6 +349,7 @@ function MoreFilters({
         <Form
           // key={`${assetsMini.length}-${teamsMini.length}-${customersMini.length}-${locationsMini.length}-${usersMini.length}-${categories['work-order-categories']?.length}`}
           fields={fields}
+          variant="plain"
           validation={Yup.object().shape(shape)}
           submitText={t('save')}
           values={getValuesFromFilterFields()}

@@ -89,7 +89,7 @@ const SectionCard = ({
             color: hasError ? theme.palette.error.main : theme.palette.text.primary
           }}
         >
-          {t(title)}
+          {t(title, { nsSeparator: false })}
         </Typography>
         {description && (
           <Typography
@@ -101,7 +101,7 @@ const SectionCard = ({
               mt: 0.25
             }}
           >
-            {t(description)}
+            {t(description, { nsSeparator: false })}
           </Typography>
         )}
       </Box>
@@ -167,7 +167,7 @@ const SectionCard = ({
           onClick={onToggle}
           aria-expanded={open}
           aria-controls={contentId}
-          aria-label={`${t(title)} - ${t('form_section_toggle')}`}
+          aria-label={`${t(title, { nsSeparator: false })} - ${t('form_section_toggle')}`}
           sx={{
             ...headerSx,
             backgroundColor: open ? alpha(primary, 0.035) : 'transparent',

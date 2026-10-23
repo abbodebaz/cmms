@@ -1,5 +1,6 @@
 import { Stack, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { KpiLabel, KpiRow, KpiTile, KpiValue } from '../../KpiTiles';
 import AnalyticsCard from '../../AnalyticsCard';
 import { Filter } from '../WOModal';
 import { useDispatch, useSelector } from '../../../../../store';
@@ -57,19 +58,16 @@ function Overview({ handleOpenModal, start, end, companyId }: WOStatusNumbersPro
   return (
     <AnalyticsCard
       title={t('incomplete_wo')}
-      height={200}
       description="wo_age_description"
     >
-      <Stack sx={{ height: '100%', justifyContent: 'center' }}>
+      <Stack sx={{ height: '100%', width: '100%', justifyContent: 'center' }}>
         {loading.incompleteOverview ? (
           <Loading />
         ) : (
-          <Stack direction="row" spacing={2}>
+          <KpiRow>
             {formattedData.map((data) => (
-              <Stack key={data.label} alignItems="center">
-                <Typography
-                  variant="h2"
-                  fontWeight="bold"
+              <KpiTile key={data.label}>
+                <KpiValue
                   style={{ cursor: data.config ? 'pointer' : 'auto' }}
                   onClick={() =>
                     handleOpenModal(
@@ -80,11 +78,11 @@ function Overview({ handleOpenModal, start, end, companyId }: WOStatusNumbersPro
                   }
                 >
                   {data.value}
-                </Typography>
-                <Typography>{data.label}</Typography>
-              </Stack>
+                </KpiValue>
+                <KpiLabel>{data.label}</KpiLabel>
+              </KpiTile>
             ))}
-          </Stack>
+          </KpiRow>
         )}
       </Stack>
     </AnalyticsCard>

@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,7 +20,6 @@ import AnalyticsCard from '../../AnalyticsCard';
 import { Filter } from '../WOModal';
 import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
-import { getRandomColor } from '../../../../../utils/overall';
 import Loading from '../../Loading';
 import { getDowntimesAndCostsByAsset } from '../../../../../slices/analytics/asset';
 
@@ -33,6 +37,9 @@ interface WOByPrimaryUserProps {
 function DowntimesAndCosts({ handleOpenModal, start, end, companyId }: WOByPrimaryUserProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const dispatch = useDispatch();
   const { downtimesAndCostsByAsset, loading } = useSelector(
     (state) => state.assetAnalytics
@@ -55,7 +62,7 @@ function DowntimesAndCosts({ handleOpenModal, start, end, companyId }: WOByPrima
       label: asset.name,
       duration: Number((asset.duration / 3600).toFixed(2)),
       cost: Number(asset.workOrdersCosts.toFixed(2)),
-      color: getRandomColor(),
+      color: nextChartColor(),
       filters: [{ key: 'user', value: asset.id }]
     };
   });
@@ -75,7 +82,7 @@ function DowntimesAndCosts({ handleOpenModal, start, end, companyId }: WOByPrima
           <Legend />
           <Bar
             dataKey="duration"
-            fill="#8884d8"
+            fill={chartPalette[0]}
             name={t('total_downtime_in_hours')}
             yAxisId="left-axis"
           >
@@ -93,7 +100,7 @@ function DowntimesAndCosts({ handleOpenModal, start, end, companyId }: WOByPrima
             name={t('cost')}
             type="monotone"
             dataKey="cost"
-            stroke="#ff7300"
+            stroke={chartLineColor}
             yAxisId="right-axis"
           />
         </ComposedChart>

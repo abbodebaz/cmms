@@ -10,11 +10,18 @@ import {
   Grid,
   MenuItem,
   Select,
+  Stack,
   Switch,
   TextField,
   Typography
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { alpha } from '@mui/material/styles';
+import BadgeTwoToneIcon from '@mui/icons-material/BadgeTwoTone';
+import NotificationsActiveTwoToneIcon from '@mui/icons-material/NotificationsActiveTwoTone';
+import SectionCard from '../components/SectionCard';
+import DetailItem from '../Settings/components/DetailItem';
+import { SettingsRow, SettingsRowList } from '../Settings/components/SettingsRows';
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
 import LockTwoToneIcon from '@mui/icons-material/LockTwoTone';
 import Text from 'src/components/Text';
@@ -104,31 +111,21 @@ function ProfileDetails() {
 
   const renderKeyAndValue = (key: string, value: string) => {
     return (
-      <>
-        <Grid item xs={12} sm={4} md={3} textAlign={{ sm: 'right' }}>
-          <Box pr={3} pb={2}>
-            {t(key)}:
-          </Box>
-        </Grid>
-        <Grid item xs={12} sm={8} md={9}>
-          <Text color="black">
-            <b>{value ?? t('N/A')}</b>
-          </Text>
-        </Grid>
-      </>
+      <Grid item xs={12} sm={6} md={4} key={key}>
+        <DetailItem label={t(key)} value={value} />
+      </Grid>
     );
   };
   const renderKeyAndSwitch = (key: string, value: boolean, setting: string) => {
     return (
-      <>
-        <Grid item xs={12} sm={4} md={3} textAlign={{ sm: 'right' }}>
-          <Box pr={3} pb={2}>
-            {t(key)}:
-          </Box>
-        </Grid>
-        <Grid item xs={12} sm={8} md={9}>
+      <SettingsRow
+        key={setting}
+        title={t(key)}
+        stackOnMobile={false}
+        control={
           <Switch
-            checked={value}
+            checked={!!value}
+            inputProps={{ 'aria-label': t(key) }}
             onChange={(event, value) => {
               patchUserSettings({
                 ...userSettings,
@@ -136,8 +133,8 @@ function ProfileDetails() {
               });
             }}
           />
-        </Grid>
-      </>
+        }
+      />
     );
   };
   const renderEditModal = () => (
@@ -437,99 +434,76 @@ function ProfileDetails() {
     </CustomDialog>
   );
   return (
-    <Grid container spacing={2}>
+    <Stack spacing={{ xs: 2, md: 2.5 }}>
       {renderEditModal()}
       {renderPasswordModal()}
-      <Grid item xs={12}>
-        <Card>
-          <Box
-            p={3}
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Box>
-              <Typography variant="h4" gutterBottom>
-                {t('personal_details')}
-              </Typography>
-              <Typography variant="subtitle2">
-                {t('personal_details_description')}
-              </Typography>
-            </Box>
-            <Box>
-              <Button
-                onClick={handleOpenEditModal}
-                variant="text"
-                startIcon={<EditTwoToneIcon />}
-              >
-                {t('edit')}
-              </Button>
-              <Button
-                onClick={handleOpenPasswordModal}
-                variant="text"
-                startIcon={<LockTwoToneIcon />}
-              >
-                {t('change_password')}
-              </Button>
-            </Box>
-          </Box>
-          <Divider />
-          <CardContent
-            sx={{
-              p: 4
-            }}
-          >
-            <Typography variant="subtitle2">
-              <Grid container spacing={0}>
-                {Object.keys(userConfig).map((key) => {
-                  return renderKeyAndValue(
-                    userConfig[key].title,
-                    userConfig[key].label || userConfig[key].value
-                  );
-                })}
-              </Grid>
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={12}>
-        <Card>
-          <Box
-            p={3}
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Box>
-              <Typography variant="h4" gutterBottom>
-                {t('notification_settings')}
-              </Typography>
-              <Typography variant="subtitle2">
-                {t('notification_settings_description')}
-              </Typography>
-            </Box>
-          </Box>
-          <Divider />
-          <CardContent
-            sx={{
-              p: 4
-            }}
-          >
-            <Typography variant="subtitle2">
-              <Grid container spacing={0}>
-                {Object.keys(userBooleanSettings).map((key) =>
-                  renderKeyAndSwitch(
-                    userBooleanSettings[key].title,
-                    userBooleanSettings[key].value,
-                    key
-                  )
-                )}
-              </Grid>
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
+      <SectionCard
+        title="personal_details"
+        description="personal_details_description"
+        icon={<BadgeTwoToneIcon fontSize="small" />}
+        actions={
+          <Stack direction="row" spacing={0.5}>
+            <Button
+              onClick={handleOpenEditModal}
+              size="small"
+              startIcon={<EditTwoToneIcon fontSize="small" />}
+              sx={{
+                borderRadius: '10px',
+                fontWeight: 600,
+                color: (theme) => theme.palette.primary.dark,
+                backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1)
+              }}
+            >
+              {t('edit')}
+            </Button>
+            <Button
+              onClick={handleOpenPasswordModal}
+              size="small"
+              startIcon={<LockTwoToneIcon fontSize="small" />}
+              sx={{ borderRadius: '10px', fontWeight: 600, display: { xs: 'none', sm: 'inline-flex' } }}
+            >
+              {t('change_password')}
+            </Button>
+          </Stack>
+        }
+      >
+        <Grid container spacing={2.5}>
+          {Object.keys(userConfig).map((key) => {
+            return renderKeyAndValue(
+              userConfig[key].title,
+              userConfig[key].label || userConfig[key].value
+            );
+          })}
+          <Grid item xs={12} sx={{ display: { xs: 'block', sm: 'none' } }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={handleOpenPasswordModal}
+              startIcon={<LockTwoToneIcon fontSize="small" />}
+              sx={{ borderRadius: '10px' }}
+            >
+              {t('change_password')}
+            </Button>
+          </Grid>
+        </Grid>
+      </SectionCard>
+      <SectionCard
+        title="notification_settings"
+        description="notification_settings_description"
+        icon={<NotificationsActiveTwoToneIcon fontSize="small" />}
+        noPadding
+      >
+        <SettingsRowList>
+          {Object.keys(userBooleanSettings).map((key) =>
+            renderKeyAndSwitch(
+              userBooleanSettings[key].title,
+              userBooleanSettings[key].value,
+              key
+            )
+          )}
+        </SettingsRowList>
+      </SectionCard>
+    </Stack>
   );
 }
 

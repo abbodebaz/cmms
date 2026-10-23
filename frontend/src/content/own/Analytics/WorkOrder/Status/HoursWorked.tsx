@@ -1,5 +1,6 @@
 import { Stack, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { KpiLabel, KpiRow, KpiTile, KpiValue } from '../../KpiTiles';
 import AnalyticsCard from '../../AnalyticsCard';
 import { Filter } from '../WOModal';
 import { useDispatch, useSelector } from '../../../../../store';
@@ -45,28 +46,25 @@ function HoursWorked({ handleOpenModal, start, end, companyId }: HoursWorkedProp
   return (
     <AnalyticsCard
       title={title}
-      height={200}
       description="hours_worked_description"
     >
-      <Stack sx={{ height: '100%', justifyContent: 'center' }}>
+      <Stack sx={{ height: '100%', width: '100%', justifyContent: 'center' }}>
         {loading.hours ? (
           <Loading />
         ) : (
-          <Stack direction="row" spacing={2}>
+          <KpiRow>
             {formattedData.map((data) => (
-              <Stack key={data.label} alignItems="center">
-                <Typography
-                  variant="h2"
-                  fontWeight="bold"
+              <KpiTile key={data.label}>
+                <KpiValue
                   style={{ cursor: 'pointer' }}
                   onClick={() => handleOpenModal(columns, data.filters, title)}
                 >
                   {data.value}
-                </Typography>
-                <Typography>{data.label}</Typography>
-              </Stack>
+                </KpiValue>
+                <KpiLabel>{data.label}</KpiLabel>
+              </KpiTile>
             ))}
-          </Stack>
+          </KpiRow>
         )}
       </Stack>
     </AnalyticsCard>

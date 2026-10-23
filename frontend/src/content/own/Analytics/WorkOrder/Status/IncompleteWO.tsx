@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -32,6 +37,9 @@ interface WOStatusIncompleteProps {
 function IncompleteWO({ handleOpenModal, start, end, companyId }: WOStatusIncompleteProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const { incompleteByPriority, loading } = useSelector(
     (state) => state.woAnalytics
   );
@@ -93,7 +101,7 @@ function IncompleteWO({ handleOpenModal, start, end, companyId }: WOStatusIncomp
                  orientation="right" unit={t('hours')} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="count" fill="#8884d8" name={t('work_orders')} yAxisId="left-axis">
+          <Bar dataKey="count" fill={chartPalette[0]} name={t('work_orders')} yAxisId="left-axis">
             {formattedData.map((entry, index) => (
               <Cell
                 key={index}
@@ -108,7 +116,7 @@ function IncompleteWO({ handleOpenModal, start, end, companyId }: WOStatusIncomp
             name={t('estimated_duration')}
             type="monotone"
             dataKey="estimatedHours"
-            stroke="#ff7300"
+            stroke={chartLineColor}
             yAxisId="right-axis"
           />
         </ComposedChart>

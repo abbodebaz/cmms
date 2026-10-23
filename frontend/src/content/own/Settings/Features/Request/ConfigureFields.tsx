@@ -1,4 +1,3 @@
-import { Box, Grid } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import FieldsConfigurationForm from '../../FieldsConfigurationForm';
 import useAuth from '../../../../../hooks/useAuth';
@@ -28,25 +27,16 @@ function ConfigureRequestFields() {
     setTitle(t('requests'));
   }, []);
 
-  return (
-    <Grid item xs={12}>
-      <Box p={4}>
-        {hasFeature(PlanFeature.REQUEST_CONFIGURATION) ? (
-          <Box>
-            <Box p={3}>
-              <FieldsConfigurationForm
-                initialValues={{}}
-                fields={fields.map((field) => {
-                  return { ...field, type: 'request' };
-                })}
-              />
-            </Box>
-          </Box>
-        ) : (
-          <FeatureErrorMessage message="Upgrade to configure the Request Form" />
-        )}
-      </Box>
-    </Grid>
+  return hasFeature(PlanFeature.REQUEST_CONFIGURATION) ? (
+    <FieldsConfigurationForm
+      title="requests"
+      initialValues={{}}
+      fields={fields.map((field) => {
+        return { ...field, type: 'request' };
+      })}
+    />
+  ) : (
+    <FeatureErrorMessage message="Upgrade to configure the Request Form" />
   );
 }
 

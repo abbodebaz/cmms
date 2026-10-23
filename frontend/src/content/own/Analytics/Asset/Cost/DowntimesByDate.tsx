@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,7 +20,6 @@ import AnalyticsCard from '../../AnalyticsCard';
 import { Filter } from '../WOModal';
 import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
-import { getRandomColor } from '../../../../../utils/overall';
 import Loading from '../../Loading';
 import { getDowntimesByDate } from '../../../../../slices/analytics/asset';
 import { getDayAndMonth } from '../../../../../utils/dates';
@@ -34,6 +38,9 @@ interface DowntimesByDateProps {
 function DowntimesByDate({ handleOpenModal, start, end, companyId }: DowntimesByDateProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const dispatch = useDispatch();
   const { downtimesByDate, loading } = useSelector(
     (state) => state.assetAnalytics
@@ -56,7 +63,7 @@ function DowntimesByDate({ handleOpenModal, start, end, companyId }: DowntimesBy
       label: getDayAndMonth(month.date),
       duration: Number((month.duration / 3600).toFixed(2)),
       cost: month.workOrdersCosts.toFixed(2),
-      color: getRandomColor(),
+      color: nextChartColor(),
       filters: [{ key: 'month', value: month.date }]
     };
   });
@@ -74,7 +81,7 @@ function DowntimesByDate({ handleOpenModal, start, end, companyId }: DowntimesBy
                  orientation="right" unit={t('hours')} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="cost" fill="#8884d8" name={t('total_maintenance_cost')} yAxisId="left-axis">
+          <Bar dataKey="cost" fill={chartPalette[0]} name={t('total_maintenance_cost')} yAxisId="left-axis">
             {formattedData.map((entry, index) => (
               <Cell
                 key={index}
@@ -89,7 +96,7 @@ function DowntimesByDate({ handleOpenModal, start, end, companyId }: DowntimesBy
             name={t('total_downtime_in_hours')}
             type="monotone"
             dataKey="duration"
-            stroke="#ff7300"
+            stroke={chartLineColor}
             yAxisId="right-axis"
           />
         </ComposedChart>

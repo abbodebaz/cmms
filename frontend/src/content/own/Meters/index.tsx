@@ -29,6 +29,14 @@ import {
 import { useDispatch, useSelector } from '../../../store';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { useTranslation } from 'react-i18next';
+import {
+  ListCard,
+  ListCardBody,
+  ListPage,
+  ListPageHeader,
+  ListToolbar,
+  SoftIconButton
+} from '../components/ListPageShell';
 import * as React from 'react';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { TitleContext } from '../../../contexts/TitleContext';
@@ -39,6 +47,7 @@ import { SearchCriteria, SortDirection } from '../../../models/owns/page';
 import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 import Meter from '../../../models/owns/meter';
 import Form from '../components/form';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 import * as Yup from 'yup';
 import { IField } from '../type';
 import MeterDetails from './MeterDetails';
@@ -377,20 +386,6 @@ function Meters() {
       required: true
     },
     {
-      name: 'unit',
-      type: 'text',
-      label: t('unit'),
-      placeholder: t('unit'),
-      required: true
-    },
-    {
-      name: 'updateFrequency',
-      type: 'number',
-      label: t('update_frequency'),
-      placeholder: t('update_frequency_in_days'),
-      required: true
-    },
-    {
       name: 'category',
       type: 'select',
       type2: 'category',
@@ -405,10 +400,30 @@ function Meters() {
       label: t('image')
     },
     {
-      name: 'location',
-      type: 'select',
-      type2: 'location',
-      label: t('location')
+      name: 'readingGroup',
+      type: 'titleGroupField',
+      label: t('form_section_meter_reading'),
+      description: t('form_section_meter_reading_desc')
+    },
+    {
+      name: 'unit',
+      type: 'text',
+      label: t('unit'),
+      placeholder: t('unit'),
+      required: true
+    },
+    {
+      name: 'updateFrequency',
+      type: 'number',
+      label: t('update_frequency'),
+      placeholder: t('update_frequency_in_days'),
+      required: true
+    },
+    {
+      name: 'assetGroup',
+      type: 'titleGroupField',
+      label: t('form_section_meter_asset'),
+      description: t('form_section_meter_asset_desc')
     },
     {
       name: 'asset',
@@ -419,11 +434,22 @@ function Meters() {
       required: true
     },
     {
+      name: 'location',
+      type: 'select',
+      type2: 'location',
+      label: t('location')
+    },
+    {
       name: 'users',
       type: 'select',
       type2: 'user',
       label: t('workers'),
       multiple: true
+    },
+    {
+      name: 'customFieldsGroup',
+      type: 'titleGroupField',
+      label: t('custom_fields')
     },
     ...getCustomFieldsIFields(customFields, CustomFieldEntityType.METER)
   ];
@@ -454,20 +480,22 @@ function Meters() {
         }
       }}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {copyMeterData ? t('copy_meter') : t('add_meter')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {copyMeterData
+      <FormDialogTitle
+        title={copyMeterData ? t('copy_meter') : t('add_meter')}
+        subtitle={
+          copyMeterData
             ? t('copy_meter_description')
-            : t('add_meter_description')}
-        </Typography>
-      </DialogTitle>
+            : t('add_meter_description')
+        }
+        onClose={() => {
+          if (isFormDirty) {
+            setOpenDiscardDialog(true);
+          } else {
+            setOpenAddModal(false);
+            setCopyMeterData(null);
+          }
+        }}
+      />
       <DialogContent
         dividers
         sx={{
@@ -529,18 +557,11 @@ function Meters() {
       open={openUpdateModal}
       onClose={() => setOpenUpdateModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('edit_meter')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('edit_meter_description')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('edit_meter')}
+        subtitle={t('edit_meter_description')}
+        onClose={() => setOpenUpdateModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -625,48 +646,41 @@ function Meters() {
           {renderAddModal()}
           {renderUpdateModal()}
           {renderMenu()}
-          <Box justifyContent="center" alignItems="stretch" paddingX={4}>
-            <Stack
-              my={1}
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <SearchInput onChange={debouncedQueryChange} />
-              <Stack direction={'row'} alignItems="center" spacing={1}>
-                <IconButton onClick={handleOpenMenu} color="primary">
-                  <MoreVertTwoToneIcon />
-                </IconButton>
-                {hasCreatePermission(PermissionEntity.METERS) && (
-                  <SplitButton
-                    onMainClick={() => setOpenAddModal(true)}
-                    startIcon={<AddTwoToneIcon />}
-                    label={t('meter')}
-                    menuItems={
-                      hasViewPermission(PermissionEntity.SETTINGS) &&
-                      hasFeature(PlanFeature.IMPORT_CSV)
-                        ? [
-                            {
-                              label: t('import_from_spreadsheet'),
-                              onClick: () => navigate('/app/imports/meters')
-                            }
-                          ]
-                        : []
-                    }
-                  />
-                )}
-              </Stack>
-            </Stack>
-            <Card
-              sx={{
-                py: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Box sx={{ width: '95%' }}>
+          <ListPage>
+            <ListPageHeader
+              title={t('meters')}
+              count={meters.totalElements}
+              actions={
+                <>
+                  <SoftIconButton title={t('more')} onClick={handleOpenMenu}>
+                    <MoreVertTwoToneIcon />
+                  </SoftIconButton>
+                  {hasCreatePermission(PermissionEntity.METERS) && (
+                    <SplitButton
+                      onMainClick={() => setOpenAddModal(true)}
+                      startIcon={<AddTwoToneIcon />}
+                      label={t('meter')}
+                      menuItems={
+                        hasViewPermission(PermissionEntity.SETTINGS) &&
+                        hasFeature(PlanFeature.IMPORT_CSV)
+                          ? [
+                              {
+                                label: t('import_from_spreadsheet'),
+                                onClick: () => navigate('/app/imports/meters')
+                              }
+                            ]
+                          : []
+                      }
+                    />
+                  )}
+                </>
+              }
+            />
+            <ListCard>
+              <ListToolbar>
+                <SearchInput onChange={debouncedQueryChange} />
+              </ListToolbar>
+              <ListCardBody>
                 <CustomDatagrid2
                   columns={columns}
                   data={meters.content}
@@ -691,9 +705,9 @@ function Meters() {
                   pinnedColumns={pinnedColumns}
                   onPinnedColumnsChange={setPinnedColumns}
                 />
-              </Box>
-            </Card>
-          </Box>
+              </ListCardBody>
+            </ListCard>
+          </ListPage>
           <Drawer
             anchor="right"
             open={openDrawer}

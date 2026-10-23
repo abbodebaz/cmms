@@ -1,5 +1,12 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { Helmet } from 'react-helmet-async';
-import { Grid } from '@mui/material';
+import { Box, Grid, useTheme } from '@mui/material';
+import InsightsTwoToneIcon from '@mui/icons-material/InsightsTwoTone';
+import PageHeading from '../../../Settings/components/PageHeading';
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState } from 'react';
 import { TitleContext } from '../../../../../contexts/TitleContext';
@@ -12,7 +19,6 @@ import { Filter } from '../WOModal';
 import CustomDateRangePicker from '../../CustomDateRangePicker';
 import { useDispatch, useSelector } from '../../../../../store';
 import { getAssetsMini } from '../../../../../slices/asset';
-import { getRandomColor } from '../../../../../utils/overall';
 import MTBFByAsset from './MTBFByAsset';
 
 interface WOStatusStatsProps {
@@ -25,6 +31,10 @@ interface WOStatusStatsProps {
 
 function WOStatusStats({ handleOpenWOModal }: WOStatusStatsProps) {
   const { t }: { t: any } = useTranslation();
+  const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const { setTitle } = useContext(TitleContext);
   const [end, setEnd] = useState(new Date());
   const nowMinusMonth = new Date();
@@ -44,21 +54,20 @@ function WOStatusStats({ handleOpenWOModal }: WOStatusStatsProps) {
   }, [companyId]);
 
   useEffect(() => {
-    setAssetColors(assetsMini.map((assetMini) => ({ color: getRandomColor(), id: assetMini.id })));
+    setAssetColors(assetsMini.map((assetMini) => ({ color: nextChartColor(), id: assetMini.id })));
   }, [assetsMini]);
   return (
     <>
       <Helmet>
         <title>{t('reliability_dashboard')}</title>
       </Helmet>
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="stretch"
-        spacing={1}
-        my={2}
-        paddingX={1}
-      >
+      <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+        <PageHeading
+          title={t('reliability_dashboard')}
+          description={t('analytics_page_description')}
+          icon={<InsightsTwoToneIcon />}
+        />
+      <Grid container alignItems="stretch" spacing={{ xs: 2, md: 2.5 }}>
         <Grid item xs={12}>
           <CustomDateRangePicker start={start} end={end} setStart={setStart} setEnd={setEnd} companyId={companyId} onCompanyChange={setCompanyId} />
         </Grid>
@@ -81,6 +90,7 @@ function WOStatusStats({ handleOpenWOModal }: WOStatusStatsProps) {
           <MeantimesTrends handleOpenModal={handleOpenWOModal} start={start} end={end} companyId={companyId} />
         </Grid>
       </Grid>
+      </Box>
     </>
   );
 }

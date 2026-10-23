@@ -20,8 +20,15 @@ import {
   Step,
   StepLabel,
   Stepper,
-  Typography
+  Typography,
+  useTheme
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import UploadFileTwoToneIcon from '@mui/icons-material/UploadFileTwoTone';
+import TableViewTwoToneIcon from '@mui/icons-material/TableViewTwoTone';
+import CheckCircleTwoToneIcon from '@mui/icons-material/CheckCircleTwoTone';
+import SectionCard from '../components/SectionCard';
+import PageHeading from '../Settings/components/PageHeading';
 import PermissionErrorMessage from '../components/PermissionErrorMessage';
 import { useContext, useEffect, useState } from 'react';
 import FileUpload from '../components/FileUpload';
@@ -58,6 +65,7 @@ export interface OwnHeader {
 const Import = ({}: OwnProps) => {
   const { hasViewPermission, hasFeature } = useAuth();
   const { t }: { t: any } = useTranslation();
+  const theme = useTheme();
   const { importEntity: importEntityHook, loadingImport } = useImport();
   const entityFromUrl = window.location.href.substring(
     window.location.href.lastIndexOf('/') + 1
@@ -291,14 +299,35 @@ const Import = ({}: OwnProps) => {
     };
     return (
       <Grid item xs={12}>
-        <Card sx={{ display: 'flex', flexDirection: 'row', p: 2 }}>
-          <Grid container spacing={1}>
-            <Grid item xs={6}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Box>
-                  <Typography variant={'h5'}>{userHeader}</Typography>
-                </Box>
+        <Box
+          sx={{
+            p: 2,
+            borderRadius: '12px',
+            border: `1px solid ${alpha(
+              getMatchLabel(userHeader)
+                ? theme.palette.primary.main
+                : theme.palette.warning.main,
+              0.25
+            )}`,
+            backgroundColor: theme.palette.background.paper
+          }}
+        >
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={7}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={1.5}
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+              >
+                <Typography
+                  sx={{ fontWeight: 700, fontSize: 14, minWidth: 0 }}
+                  noWrap
+                >
+                  {userHeader}
+                </Typography>
                 <Select
+                  size="small"
+                  sx={{ minWidth: 200 }}
                   value={
                     matches.find(
                       (headerMatching) =>
@@ -308,7 +337,7 @@ const Import = ({}: OwnProps) => {
                   onChange={onChange}
                 >
                   <MenuItem disabled value={''}>
-                    <em>{t('select')}</em>
+                    {t('select')}
                   </MenuItem>
                   {headerKeysConfig[entity].map((header, index) => (
                     <MenuItem key={header.keyName} value={header.keyName}>
@@ -317,32 +346,56 @@ const Import = ({}: OwnProps) => {
                   ))}
                 </Select>
               </Stack>
-              <Box sx={{ mt: 1 }}>
+              <Box sx={{ mt: 1.5, overflowX: 'auto' }}>
                 <Spreadsheet
                   data={spreadSheetsConfig[userHeader][0].slice(0, 4)}
                 />
               </Box>
             </Grid>
-            <Grid item xs={6} sx={{ p: 2 }}>
-              <Stack
-                width={'100%'}
-                height={'100%'}
-                justifyContent={'center'}
-                alignItems={'center'}
-              >
-                {!getMatchLabel(userHeader) && (
-                  <WarningAmberIcon color="warning" />
-                )}
-                <Typography>
-                  {getMatchLabel(userHeader)
-                    ? t(`matched_to_field`, {
-                        field: getMatchLabel(userHeader)
-                      })
-                    : t('no_match_yet')}
-                </Typography>
-                <Stack direction="row" spacing={1}>
-                  <InfoTwoToneIcon />
-                  <Typography>
+            <Grid item xs={12} md={5}>
+              <Stack spacing={1} alignItems={{ xs: 'flex-start', md: 'center' }}>
+                <Stack
+                  direction="row"
+                  spacing={0.75}
+                  alignItems="center"
+                  sx={{
+                    px: 1.25,
+                    py: 0.5,
+                    borderRadius: '20px',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: getMatchLabel(userHeader)
+                      ? theme.palette.success.dark
+                      : theme.palette.warning.dark,
+                    backgroundColor: alpha(
+                      getMatchLabel(userHeader)
+                        ? theme.palette.success.main
+                        : theme.palette.warning.main,
+                      0.12
+                    )
+                  }}
+                >
+                  {getMatchLabel(userHeader) ? (
+                    <CheckCircleTwoToneIcon sx={{ fontSize: 18 }} />
+                  ) : (
+                    <WarningAmberIcon sx={{ fontSize: 18 }} />
+                  )}
+                  <span>
+                    {getMatchLabel(userHeader)
+                      ? t(`matched_to_field`, {
+                          field: getMatchLabel(userHeader)
+                        })
+                      : t('no_match_yet')}
+                  </span>
+                </Stack>
+                <Stack
+                  direction="row"
+                  spacing={0.75}
+                  alignItems="center"
+                  sx={{ color: theme.palette.text.secondary }}
+                >
+                  <InfoTwoToneIcon sx={{ fontSize: 18 }} />
+                  <Typography sx={{ fontSize: 13 }}>
                     {t('percent_rows_have_value', {
                       percent: getPercent().toFixed(0)
                     })}
@@ -351,7 +404,7 @@ const Import = ({}: OwnProps) => {
               </Stack>
             </Grid>
           </Grid>
-        </Card>
+        </Box>
       </Grid>
     );
   };
@@ -370,9 +423,24 @@ const Import = ({}: OwnProps) => {
           p: 3
         }}
       >
-        <Typography variant="h4" gutterBottom>
-          {t('import')}
-        </Typography>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Box
+            sx={{
+              width: 38,
+              height: 38,
+              borderRadius: '12px',
+              display: 'grid',
+              placeItems: 'center',
+              color: theme.palette.primary.main,
+              backgroundColor: alpha(theme.palette.primary.main, 0.1)
+            }}
+          >
+            <UploadFileTwoToneIcon fontSize="small" />
+          </Box>
+          <Typography sx={{ fontWeight: 700, fontSize: 18 }}>
+            {t('import')}
+          </Typography>
+        </Stack>
       </DialogTitle>
       <DialogContent
         dividers
@@ -381,7 +449,7 @@ const Import = ({}: OwnProps) => {
         }}
       >
         <Box>
-          <Stepper activeStep={activeStep}>
+          <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3 }}>
             {steps.map((label, index) => (
               <Step key={index}>
                 <StepLabel>{label}</StepLabel>
@@ -465,7 +533,7 @@ const Import = ({}: OwnProps) => {
           ) : null}
         </Box>
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ p: 2, gap: 1 }}>
         {activeStep > 0 && (
           <Button
             variant="outlined"
@@ -499,81 +567,111 @@ const Import = ({}: OwnProps) => {
           <Helmet>
             <title>{t('import')}</title>
           </Helmet>
-          <Grid
-            container
-            justifyContent="center"
-            alignItems="stretch"
-            spacing={2}
-            padding={4}
-          >
-            <Grid item xs={12}>
-              <Card
-                sx={{
-                  p: 2
-                }}
+          <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+            <PageHeading
+              title={t('import_data')}
+              description={t('imports_page_description')}
+              icon={<UploadFileTwoToneIcon />}
+            />
+            <Box sx={{ maxWidth: 760 }}>
+              <SectionCard
+                title="import_data"
+                description="imports_card_description"
+                icon={<TableViewTwoToneIcon fontSize="small" />}
               >
-                <Grid container spacing={2}>
-                  <Grid
-                    item
-                    xs={12}
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                  >
-                    <Typography variant="h4">{t('import_data')}</Typography>
-                  </Grid>
-                  <Grid
-                    item
-                    xs={12}
-                    display="flex"
-                    justifyContent="center"
-                    flexDirection="column"
-                    alignItems="center"
-                  >
-                    <Select
-                      value={entity}
-                      onChange={(event) => {
-                        setEntity(event.target.value as EntityType);
-                        window.history.replaceState(
-                          null,
-                          '',
-                          `/app/imports/${event.target.value}`
-                        );
-                      }}
-                    >
-                      {options.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-
-                    <Button
-                      sx={{ mt: 1 }}
-                      variant="contained"
-                      size="medium"
-                      onClick={onStartProcess}
-                    >
-                      {t('start_import_process')}
-                    </Button>
-                    <Stack
-                      direction={'row'}
-                      sx={{ mt: 2 }}
-                      onClick={downloadTemplate}
-                    >
-                      <DownloadTwoToneIcon color={'primary'} />
-                      <Typography
-                        color={'primary'}
-                        style={{ cursor: 'pointer' }}
+                <Grid container spacing={1.5} sx={{ mb: 3 }}>
+                  {steps.slice(0, 3).map((label, index) => (
+                    <Grid item xs={12} sm={4} key={index}>
+                      <Stack
+                        direction="row"
+                        spacing={1.25}
+                        alignItems="center"
+                        sx={{
+                          p: 1.5,
+                          height: '100%',
+                          borderRadius: '12px',
+                          backgroundColor: alpha(theme.palette.primary.main, 0.05),
+                          border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`
+                        }}
                       >
-                        {t('download_template')}
-                      </Typography>
-                    </Stack>
-                  </Grid>
+                        <Box
+                          sx={{
+                            width: 26,
+                            height: 26,
+                            borderRadius: '50%',
+                            display: 'grid',
+                            placeItems: 'center',
+                            flexShrink: 0,
+                            fontSize: 12.5,
+                            fontWeight: 700,
+                            color: theme.palette.primary.contrastText,
+                            backgroundColor: theme.palette.primary.main
+                          }}
+                        >
+                          {index + 1}
+                        </Box>
+                        <Typography sx={{ fontWeight: 600, fontSize: 13.5 }}>
+                          {label}
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                  ))}
                 </Grid>
-              </Card>
-            </Grid>
-          </Grid>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1.5}
+                  alignItems={{ xs: 'stretch', sm: 'center' }}
+                >
+                  <Select
+                    size="small"
+                    value={entity}
+                    sx={{ minWidth: { sm: 240 } }}
+                    onChange={(event) => {
+                      setEntity(event.target.value as EntityType);
+                      window.history.replaceState(
+                        null,
+                        '',
+                        `/app/imports/${event.target.value}`
+                      );
+                    }}
+                  >
+                    {options.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <Button
+                    variant="contained"
+                    onClick={onStartProcess}
+                    startIcon={<UploadFileTwoToneIcon fontSize="small" />}
+                    sx={{
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.28)}`
+                    }}
+                  >
+                    {t('start_import_process')}
+                  </Button>
+                  <Button
+                    onClick={downloadTemplate}
+                    startIcon={<DownloadTwoToneIcon fontSize="small" />}
+                    sx={{
+                      borderRadius: '12px',
+                      fontWeight: 600,
+                      color: theme.palette.primary.dark,
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.16)
+                      }
+                    }}
+                  >
+                    {t('download_template')}
+                  </Button>
+                </Stack>
+              </SectionCard>
+            </Box>
+          </Box>
           {renderModal()}
         </>
       );

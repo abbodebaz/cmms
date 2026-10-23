@@ -14,6 +14,14 @@ import {
   Typography
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import {
+  ListCard,
+  ListCardBody,
+  ListPage,
+  ListPageHeader,
+  ListToolbar,
+  PrimaryAddButton
+} from '../components/ListPageShell';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { TitleContext } from '../../../contexts/TitleContext';
 import {
@@ -32,6 +40,7 @@ import CustomDatagrid2, {
 import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 import Request from '../../../models/owns/request';
 import Form from '../components/form';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 import * as Yup from 'yup';
 import { IField } from '../type';
 import RequestDetails from './RequestDetails';
@@ -343,7 +352,56 @@ function Requests() {
       size: 150
     })
   ];
-  const defaultFields: Array<IField> = [...getWOBaseFields(t, customFields)];
+  const woBaseFields = getWOBaseFields(t, customFields);
+  const pickWOBaseFields = (names: string[]): IField[] =>
+    names.flatMap((name) => woBaseFields.filter((field) => field.name === name));
+  const woBaseCustomFields = woBaseFields.filter((field) =>
+    field.name.startsWith('customField_')
+  );
+  const defaultFields: Array<IField> = [
+    ...pickWOBaseFields([
+      'title',
+      'description',
+      'priority',
+      'category',
+      'location',
+      'asset'
+    ]),
+    {
+      name: 'schedulingGroup',
+      type: 'titleGroupField',
+      label: t('form_section_scheduling'),
+      description: t('form_section_scheduling_desc'),
+      defaultCollapsed: true
+    },
+    ...pickWOBaseFields(['dueDate', 'estimatedStartDate', 'estimatedDuration']),
+    {
+      name: 'assignmentGroup',
+      type: 'titleGroupField',
+      label: t('form_section_assignment'),
+      description: t('form_section_request_assignment_desc'),
+      defaultCollapsed: true
+    },
+    ...pickWOBaseFields(['primaryUser', 'team']),
+    {
+      name: 'attachmentsGroup',
+      type: 'titleGroupField',
+      label: t('form_section_attachments'),
+      description: t('form_section_files_desc'),
+      defaultCollapsed: true
+    },
+    ...pickWOBaseFields(['image', 'files']),
+    ...(woBaseCustomFields.length
+      ? ([
+          {
+            name: 'customFieldsGroup',
+            type: 'titleGroupField',
+            label: t('custom_fields')
+          },
+          ...woBaseCustomFields
+        ] as IField[])
+      : [])
+  ];
   const defaultShape = {
     title: Yup.string().required(t('required_request_name')),
     ...getCustomFieldsRequiredShape(
@@ -371,6 +429,7 @@ function Requests() {
       const fieldIndexInFields = fields.findIndex(
         (field) => field.name === name
       );
+      if (!fieldConfig || fieldIndexInFields === -1) return;
       if (fieldConfig.fieldType === 'REQUIRED') {
         fields[fieldIndexInFields] = {
           ...fields[fieldIndexInFields],
@@ -429,18 +488,17 @@ function Requests() {
         }
       }}
     >
-      <DialogTitle
-        sx={{
-          p: 3
+      <FormDialogTitle
+        title={t('add_request')}
+        subtitle={t('add_request_description')}
+        onClose={() => {
+          if (isFormDirty) {
+            setOpenDiscardDialog(true);
+          } else {
+            setOpenAddModal(false);
+          }
         }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('add_request')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('add_request_description')}
-        </Typography>
-      </DialogTitle>
+      />
       <DialogContent
         dividers
         sx={{
@@ -500,18 +558,11 @@ function Requests() {
       open={openUpdateModal}
       onClose={() => setOpenUpdateModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('edit_request')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('edit_request_description')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('edit_request')}
+        subtitle={t('edit_request_description')}
+        onClose={() => setOpenUpdateModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -567,39 +618,21 @@ function Requests() {
         </Helmet>
         {renderAddModal()}
         {renderUpdateModal()}
-        <Box justifyContent="center" alignItems="stretch" paddingX={4}>
-          {hasCreatePermission(PermissionEntity.REQUESTS) && (
-            <Box
-              display="flex"
-              flexDirection="row"
-              justifyContent="right"
-              alignItems="center"
-            >
-              <Button
-                startIcon={<AddTwoToneIcon />}
-                sx={{ my: 1 }}
-                variant="contained"
-                onClick={() => setOpenAddModal(true)}
-              >
-                {t('request')}
-              </Button>
-            </Box>
-          )}
-          <Card
-            sx={{
-              py: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center'
-            }}
-          >
-            <Stack
-              sx={{ ml: 1 }}
-              direction="row"
-              spacing={1}
-              justifyContent={'flex-start'}
-              width={'95%'}
-            >
+        <ListPage>
+          <ListPageHeader
+            title={t('requests')}
+            count={requests.totalElements}
+            actions={
+              hasCreatePermission(PermissionEntity.REQUESTS) ? (
+                <PrimaryAddButton
+                  label={t('request')}
+                  onClick={() => setOpenAddModal(true)}
+                />
+              ) : undefined
+            }
+          />
+          <ListCard>
+            <ListToolbar>
               <EnumFilter
                 filterFields={criteria.filterFields}
                 onChange={onFilterChange}
@@ -623,9 +656,8 @@ function Requests() {
                 />
               )}
               <SearchInput onChange={debouncedQueryChange} />
-            </Stack>
-            <Divider sx={{ mt: 1 }} />
-            <Box sx={{ width: '95%' }}>
+            </ListToolbar>
+            <ListCardBody>
               <CustomDatagrid2
                 columns={columns}
                 data={requests.content}
@@ -650,9 +682,9 @@ function Requests() {
                 pinnedColumns={pinnedColumns}
                 onPinnedColumnsChange={setPinnedColumns}
               />
-            </Box>
-          </Card>
-        </Box>
+            </ListCardBody>
+          </ListCard>
+        </ListPage>
         <Drawer
           anchor="right"
           open={openDrawer}

@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { Card, Grid } from '@mui/material';
+import { Box, Grid } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { IField } from '../type';
 import { useContext, useEffect } from 'react';
@@ -45,7 +45,8 @@ function CreatePurchaseOrder() {
     {
       name: 'purchaseOrderDetails',
       type: 'titleGroupField',
-      label: t('po_details')
+      label: t('po_details'),
+      description: t('form_section_po_details_desc')
     },
     {
       name: 'name',
@@ -88,13 +89,15 @@ function CreatePurchaseOrder() {
       name: 'partQuantities',
       type: 'partQuantity',
       label: t('parts'),
-      midWidth: true,
+      midWidth: false,
       multiple: true
     },
     {
       name: 'shippingInformation',
       type: 'titleGroupField',
-      label: t('shipping_information')
+      label: t('shipping_information'),
+      description: t('form_section_po_shipping_desc'),
+      defaultCollapsed: true
     },
     {
       name: 'shippingCompanyName',
@@ -155,7 +158,9 @@ function CreatePurchaseOrder() {
     {
       name: 'additionalInformation',
       type: 'titleGroupField',
-      label: t('additional_information')
+      label: t('additional_information'),
+      description: t('form_section_po_additional_desc'),
+      defaultCollapsed: true
     },
     {
       name: 'additionalInfoDate',
@@ -198,6 +203,11 @@ function CreatePurchaseOrder() {
     let fields = [...defaultFields];
     if (hasViewPermission(PermissionEntity.SETTINGS)) {
       fields.push({
+        name: 'submissionGroup',
+        type: 'titleGroupField',
+        label: t('form_section_submission')
+      });
+      fields.push({
         name: 'approveOnSubmit',
         type: 'switch',
         label: t('approve_while_submitting')
@@ -222,18 +232,10 @@ function CreatePurchaseOrder() {
             justifyContent="center"
             alignItems="stretch"
             spacing={1}
-            paddingX={4}
+            paddingX={{ xs: 2, md: 4 }}
           >
             <Grid item xs={12}>
-              <Card
-                sx={{
-                  p: 2,
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
+              <Box sx={{ maxWidth: 980, mx: 'auto', py: { xs: 2, md: 3 } }}>
                 <Form
                   fields={getFields()}
                   validation={Yup.object().shape(shape)}
@@ -279,7 +281,7 @@ function CreatePurchaseOrder() {
                       .catch(onCreationFailure);
                   }}
                 />
-              </Card>
+              </Box>
             </Grid>
           </Grid>
         </>

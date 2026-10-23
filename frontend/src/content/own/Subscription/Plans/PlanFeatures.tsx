@@ -1,7 +1,7 @@
-import { Card, Grid, Stack, Typography, useTheme } from '@mui/material';
+import { Box, Grid, Stack, Typography, useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import CheckTwoToneIcon from '@mui/icons-material/CheckTwoTone';
 import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
-import { splitToChunks } from '../../../../utils/array';
 import { PlanFeature } from '../../../../models/owns/subscriptionPlan';
 import { useTranslation } from 'react-i18next';
 
@@ -34,40 +34,55 @@ function PlanFeatures(props: PlanFeatureProps) {
     }))
   ];
   return (
-    <Card
-      sx={{
-        background: `${theme.colors.gradients.blue4}`,
-        color: `${theme.palette.getContrastText(theme.colors.primary.main)}`,
-        display: 'flex',
-        alignItems: 'flex-start',
-        px: 3,
-        py: 5,
-        mb: 2
-      }}
-    >
-      <Grid container>
-        {splitToChunks(completeFeatures, 3).map((featuresColumn, index) => (
-          <Grid key={index} item xs={12} md={4}>
-            {featuresColumn.map((feature, index) => (
-              <Stack
-                key={index}
-                spacing={1}
-                direction="row"
-                alignItems="center"
+    <Grid container spacing={1}>
+      {completeFeatures.map((feature, index) => {
+        const included =
+          feature.isBasic || features.includes(feature.name as PlanFeature);
+        return (
+          <Grid key={index} item xs={12} sm={6} md={4}>
+            <Stack
+              spacing={1}
+              direction="row"
+              alignItems="center"
+              sx={{ py: 0.5 }}
+            >
+              <Box
+                sx={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  display: 'grid',
+                  placeItems: 'center',
+                  flexShrink: 0,
+                  color: included
+                    ? theme.palette.success.main
+                    : theme.palette.text.disabled,
+                  backgroundColor: included
+                    ? alpha(theme.palette.success.main, 0.12)
+                    : alpha(theme.palette.text.primary, 0.05)
+                }}
               >
-                {feature.isBasic ||
-                features.includes(feature.name as PlanFeature) ? (
-                  <CheckTwoToneIcon />
+                {included ? (
+                  <CheckTwoToneIcon sx={{ fontSize: 15 }} />
                 ) : (
-                  <CloseTwoToneIcon color="error" />
+                  <CloseTwoToneIcon sx={{ fontSize: 15 }} />
                 )}
-                <Typography>{t(`${feature.name}_feature`)}</Typography>
-              </Stack>
-            ))}
+              </Box>
+              <Typography
+                sx={{
+                  fontSize: 13.5,
+                  color: included
+                    ? theme.palette.text.primary
+                    : theme.palette.text.secondary
+                }}
+              >
+                {t(`${feature.name}_feature`)}
+              </Typography>
+            </Stack>
           </Grid>
-        ))}
-      </Grid>
-    </Card>
+        );
+      })}
+    </Grid>
   );
 }
 

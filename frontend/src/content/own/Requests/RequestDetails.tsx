@@ -44,6 +44,21 @@ import BasicField from '../components/BasicField';
 import { editAsset } from '../../../slices/asset';
 import { AssetStatus, assetStatuses } from '../../../models/owns/asset';
 import { getCustomFieldValuesForDetails } from '../type';
+import { alpha } from '@mui/material/styles';
+import SectionCard from '../components/SectionCard';
+import { SoftChip } from '../components/StatusChip';
+import PriorityWrapper from '../components/PriorityWrapper';
+import {
+  DetailGrid,
+  DetailItem,
+  DetailsHeader,
+  DetailsPage,
+  DetailThumb,
+  primaryButtonSx
+} from '../components/DetailsKit';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import AttachFileTwoToneIcon from '@mui/icons-material/AttachFileTwoTone';
+import Inventory2TwoToneIcon from '@mui/icons-material/Inventory2TwoTone';
 
 interface RequestDetailsProps {
   request: Request;
@@ -141,95 +156,122 @@ export default function RequestDetails({
       getFormattedDate
     )
   ];
+  const canEditRequest =
+    !request.cancelled && hasEditPermission(PermissionEntity.REQUESTS, request);
+  const canDeleteRequest = hasDeletePermission(
+    PermissionEntity.REQUESTS,
+    request
+  );
+  const canReview =
+    !request.workOrder &&
+    !request.cancelled &&
+    (hasViewPermission(PermissionEntity.SETTINGS) ||
+      user.role.code === 'LIMITED_ADMIN') &&
+    hasCreatePermission(PermissionEntity.WORK_ORDERS);
+  const approveIcon = approving ? (
+    <CircularProgress size="1rem" color="inherit" />
+  ) : (
+    <CheckTwoToneIcon />
+  );
   return (
-    <Grid
-      container
-      justifyContent="center"
-      alignItems="stretch"
-      spacing={2}
-      padding={4}
-    >
-      <Grid
-        item
-        xs={12}
-        display="flex"
-        flexDirection="row"
-        justifyContent="space-between"
-      >
-        <Box>
-          <Typography variant="h2">{request?.title}</Typography>
-          {request?.cancelled && (
-            <Typography variant="h5">{t('cancelled')}</Typography>
-          )}
-        </Box>
-        <Box>
-          {!request.cancelled &&
-            hasEditPermission(PermissionEntity.REQUESTS, request) && (
-              <IconButton
-                style={{ marginRight: 10 }}
-                onClick={handleOpenUpdate}
-              >
-                <EditTwoToneIcon color="primary" />
-              </IconButton>
-            )}
-          {hasDeletePermission(PermissionEntity.REQUESTS, request) && (
-            <IconButton onClick={handleOpenDelete}>
-              <DeleteTwoToneIcon color="error" />
-            </IconButton>
-          )}
-        </Box>
-      </Grid>
-      {!showAssetStatuses ? (
-        !request.workOrder &&
-        !request.cancelled &&
-        (hasViewPermission(PermissionEntity.SETTINGS) ||
-          user.role.code === 'LIMITED_ADMIN') &&
-        hasCreatePermission(PermissionEntity.WORK_ORDERS) && (
+    <DetailsPage>
+      <DetailsHeader
+        subtitle={
+          request?.customId ? <bdi>{`#${request.customId}`}</bdi> : undefined
+        }
+        title={request?.title}
+        media={
+          request.image ? (
+            <DetailThumb
+              src={request.image.url}
+              alt={request?.title}
+              size={80}
+              onClick={() => setIsImageViewerOpen(true)}
+            />
+          ) : undefined
+        }
+        chips={
           <>
-            <Divider />
-            <Grid
-              item
-              xs={12}
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-around'
-              }}
-            >
-              <Button
-                startIcon={<ClearTwoToneIcon />}
-                onClick={() => setOpenCancellationModal(true)}
-                variant="outlined"
-              >
-                {t('reject')}
-              </Button>
-              <Button
-                startIcon={
-                  approving ? (
-                    <CircularProgress size="1rem" sx={{ color: 'white' }} />
-                  ) : (
-                    <CheckTwoToneIcon />
-                  )
-                }
-                onClick={() => {
-                  if (request.asset) setShowAssetStatuses(true);
-                  else onApprove();
-                }}
-                variant="contained"
-              >
-                {t('approve')}
-              </Button>
-            </Grid>
+            {request.cancelled ? (
+              <SoftChip tone="error" size="medium" label={t('cancelled')} />
+            ) : request.workOrder ? (
+              <SoftChip tone="success" size="medium" label={t('approved')} />
+            ) : (
+              <SoftChip tone="warning" size="medium" label={t('pending')} />
+            )}
+            {request.priority && request.priority !== 'NONE' && (
+              <PriorityWrapper
+                priority={request.priority}
+                withSuffix
+                size="medium"
+              />
+            )}
           </>
+        }
+        actions={
+          canEditRequest || canDeleteRequest ? (
+            <>
+              {canEditRequest && (
+                <IconButton aria-label={t('edit')} onClick={handleOpenUpdate}>
+                  <EditTwoToneIcon fontSize="small" color="primary" />
+                </IconButton>
+              )}
+              {canDeleteRequest && (
+                <IconButton aria-label={t('delete')} onClick={handleOpenDelete}>
+                  <DeleteTwoToneIcon fontSize="small" color="error" />
+                </IconButton>
+              )}
+            </>
+          ) : undefined
+        }
+        description={request?.description}
+      />
+      {!showAssetStatuses ? (
+        canReview && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'flex-end',
+              gap: 1.5,
+              p: 1.5,
+              borderRadius: '14px',
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
+              backgroundColor: alpha(theme.palette.primary.main, 0.035)
+            }}
+          >
+            <Button
+              startIcon={<ClearTwoToneIcon />}
+              onClick={() => setOpenCancellationModal(true)}
+              variant="outlined"
+              color="error"
+              sx={{ borderRadius: '12px', fontWeight: 700 }}
+            >
+              {t('reject')}
+            </Button>
+            <Button
+              startIcon={approveIcon}
+              onClick={() => {
+                if (request.asset) setShowAssetStatuses(true);
+                else onApprove();
+              }}
+              variant="contained"
+              sx={primaryButtonSx}
+            >
+              {t('approve')}
+            </Button>
+          </Box>
         )
       ) : (
-        <Stack direction={'column'} spacing={2}>
-          <Box>
-            <Typography fontWeight={'bold'} gutterBottom>
-              {t('asset_status')}
-            </Typography>
+        <SectionCard
+          title="asset_status"
+          icon={<Inventory2TwoToneIcon fontSize="small" />}
+        >
+          <Stack spacing={2}>
             <Select
+              size="small"
               value={selectedAssetStatus}
+              sx={{ borderRadius: '10px', maxWidth: 360 }}
               onChange={(event) => {
                 setSelectedAssetStatus(event.target.value as AssetStatus);
               }}
@@ -243,179 +285,114 @@ export default function RequestDetails({
                 </MenuItem>
               ))}
             </Select>
-          </Box>
-          <Stack direction={'row'} spacing={4}>
-            <Button
-              onClick={() => setShowAssetStatuses(false)}
-              variant={'outlined'}
-            >
-              {t('go_back')}
-            </Button>
-            <Button
-              startIcon={
-                approving ? (
-                  <CircularProgress size="1rem" sx={{ color: 'white' }} />
-                ) : (
-                  <CheckTwoToneIcon />
-                )
-              }
-              variant={'contained'}
-              onClick={onApprove}
-            >
-              {t('approve')}
-            </Button>
+            <Stack direction={'row'} spacing={1.5} justifyContent="flex-end">
+              <Button
+                onClick={() => setShowAssetStatuses(false)}
+                variant={'outlined'}
+                sx={{ borderRadius: '12px', fontWeight: 700 }}
+              >
+                {t('go_back')}
+              </Button>
+              <Button
+                startIcon={approveIcon}
+                variant={'contained'}
+                onClick={onApprove}
+                sx={primaryButtonSx}
+              >
+                {t('approve')}
+              </Button>
+            </Stack>
           </Stack>
-        </Stack>
+        </SectionCard>
       )}
-      <Divider />
-      <Grid item xs={12}>
-        <Box>
-          <Typography sx={{ mt: 2, mb: 1 }} variant="h4">
-            {t('request_details')}
-          </Typography>
-          <Grid container spacing={2}>
-            <>
-              {request.image && (
-                <Grid
-                  item
-                  xs={12}
-                  lg={12}
-                  display="flex"
-                  justifyContent="center"
-                >
-                  <img
-                    src={request.image.url}
-                    style={{ borderRadius: 5, height: 250, cursor: 'pointer' }}
-                    onClick={() => setIsImageViewerOpen(true)}
-                  />
-                </Grid>
-              )}
-              {request.requestPortal && (
-                <Box
-                  sx={{
-                    mt: 1,
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <Alert severity={'info'}>
-                    {t('requested_from_portal')}{' '}
-                    {
-                      <Link
-                        href={`/app/settings/features/request-portals/${request.requestPortal.id}`}
-                      >
-                        {request.requestPortal.title}
-                      </Link>
-                    }
-                  </Alert>
-                </Box>
-              )}
-              {fieldsToRender(request).map((field) => (
-                <BasicField
-                  key={field.label}
-                  label={field.label}
-                  value={field.value}
-                  isPriority={field.label === t('priority')}
-                  {...field}
-                />
-              ))}
-              {request?.createdBy && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('requested_by')}
-                  </Typography>
-                  <Link variant="h6" href={getUserUrl(request.createdBy)}>
-                    {getUserNameById(request.createdBy)}
-                  </Link>
-                </Grid>
-              )}
-              {request?.asset && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('asset')}
-                  </Typography>
-                  <Link variant="h6" href={getAssetUrl(request.asset.id)}>
-                    {request.asset.name}
-                  </Link>
-                </Grid>
-              )}
-              {request?.location && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('location')}
-                  </Typography>
-                  <Link variant="h6" href={getLocationUrl(request.location.id)}>
-                    {request.location.name}
-                  </Link>
-                </Grid>
-              )}
-              {request?.primaryUser && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('assigned_to')}
-                  </Typography>
-                  <Link variant="h6" href={getUserUrl(request.primaryUser.id)}>
-                    {`${request.primaryUser.firstName} ${request.primaryUser.lastName}`}
-                  </Link>
-                </Grid>
-              )}
-              {request?.team && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('team')}
-                  </Typography>
-                  <Link variant="h6" href={getTeamUrl(request.team.id)}>
-                    {request.team.name}
-                  </Link>
-                </Grid>
-              )}
-              {!!request.files.length && (
-                <Grid item xs={12} lg={12}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('files')}
-                  </Typography>
-                  <FilesList
-                    confirmMessage={t(
-                      'Are you sure you want to remove this file from this Request ?'
-                    )}
-                    removeDisabled={
-                      !hasEditPermission(PermissionEntity.REQUESTS, request)
-                    }
-                    files={request.files}
-                    onRemove={(id: number) => {
-                      dispatch(
-                        editRequest(request.id, {
-                          ...request,
-                          files: request.files.filter((f) => f.id !== id)
-                        })
-                      );
-                    }}
-                  />
-                </Grid>
-              )}
-            </>
-          </Grid>
-        </Box>
-      </Grid>
+      {request.requestPortal && (
+        <Alert severity={'info'} sx={{ borderRadius: '12px' }}>
+          {t('requested_from_portal')}{' '}
+          {
+            <Link
+              href={`/app/settings/features/request-portals/${request.requestPortal.id}`}
+            >
+              {request.requestPortal.title}
+            </Link>
+          }
+        </Alert>
+      )}
+      <SectionCard
+        title="request_details"
+        icon={<InfoTwoToneIcon fontSize="small" />}
+      >
+        <DetailGrid>
+          {fieldsToRender(request)
+            .filter((field) => field.label !== t('description'))
+            .map((field) => (
+              <BasicField
+                key={field.label}
+                label={field.label}
+                value={field.value}
+                isPriority={field.label === t('priority')}
+                {...field}
+              />
+            ))}
+          {request?.createdBy && (
+            <DetailItem label={t('requested_by')}>
+              <Link href={getUserUrl(request.createdBy)} underline="hover">
+                {getUserNameById(request.createdBy)}
+              </Link>
+            </DetailItem>
+          )}
+          {request?.asset && (
+            <DetailItem label={t('asset')}>
+              <Link href={getAssetUrl(request.asset.id)} underline="hover">
+                {request.asset.name}
+              </Link>
+            </DetailItem>
+          )}
+          {request?.location && (
+            <DetailItem label={t('location')}>
+              <Link href={getLocationUrl(request.location.id)} underline="hover">
+                {request.location.name}
+              </Link>
+            </DetailItem>
+          )}
+          {request?.primaryUser && (
+            <DetailItem label={t('assigned_to')}>
+              <Link href={getUserUrl(request.primaryUser.id)} underline="hover">
+                {`${request.primaryUser.firstName} ${request.primaryUser.lastName}`}
+              </Link>
+            </DetailItem>
+          )}
+          {request?.team && (
+            <DetailItem label={t('team')}>
+              <Link href={getTeamUrl(request.team.id)} underline="hover">
+                {request.team.name}
+              </Link>
+            </DetailItem>
+          )}
+        </DetailGrid>
+      </SectionCard>
+      {!!request.files.length && (
+        <SectionCard
+          title="files"
+          icon={<AttachFileTwoToneIcon fontSize="small" />}
+          noPadding
+        >
+          <FilesList
+            confirmMessage={t(
+              'Are you sure you want to remove this file from this Request ?'
+            )}
+            removeDisabled={!hasEditPermission(PermissionEntity.REQUESTS, request)}
+            files={request.files}
+            onRemove={(id: number) => {
+              dispatch(
+                editRequest(request.id, {
+                  ...request,
+                  files: request.files.filter((f) => f.id !== id)
+                })
+              );
+            }}
+          />
+        </SectionCard>
+      )}
       {isImageViewerOpen && (
         <div style={{ zIndex: 100 }}>
           <ImageViewer
@@ -439,6 +416,6 @@ export default function RequestDetails({
           onClose();
         }}
       />
-    </Grid>
+    </DetailsPage>
   );
 }

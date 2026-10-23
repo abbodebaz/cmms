@@ -16,6 +16,7 @@ import { getErrorMessage } from '../../../../utils/api';
 import { useContext } from 'react';
 import { CustomSnackBarContext } from '../../../../contexts/CustomSnackBarContext';
 import AdditionalCost from '../../../../models/owns/additionalCost';
+import FormDialogTitle from '../../components/form/FormDialogTitle';
 
 interface AddCostProps {
   open: boolean;
@@ -99,16 +100,11 @@ export default function AddCostModal({
     : { includeToTotalCost: true };
   return (
     <Dialog fullWidth maxWidth="sm" open={open} onClose={onClose}>
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {isEdit ? t('edit_cost') : t('add_cost')}
-        </Typography>
-        <Typography variant="subtitle2">{t('add_cost_description')}</Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={isEdit ? t('edit_cost') : t('add_cost')}
+        subtitle={t('add_cost_description')}
+        onClose={onClose}
+      />
       <DialogContent
         dividers
         sx={{

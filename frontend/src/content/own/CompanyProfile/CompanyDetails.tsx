@@ -13,6 +13,10 @@ import {
   Typography
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { alpha } from '@mui/material/styles';
+import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
+import SectionCard from '../components/SectionCard';
+import DetailItem from '../Settings/components/DetailItem';
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
 import Text from 'src/components/Text';
 import { Formik } from 'formik';
@@ -51,34 +55,32 @@ function CompanyDetails(props: CompanyDetailsProps) {
     isLink: boolean;
   }) => {
     return (
-      <>
-        <Grid item xs={12} sm={4} md={3} textAlign={{ sm: 'right' }}>
-          <Box pr={3} pb={2}>
-            {t(label)}:
-          </Box>
-        </Grid>
-        <Grid item xs={12} sm={8} md={9}>
-          {isLink && value ? (
-            <Link
-              href={
-                value
-                  ? value.startsWith('https://') || value.startsWith('http://')
-                    ? value
-                    : `https://${value}`
-                  : null
-              }
-              target="_blank"
-              rel="noreferrer"
-            >
-              {value}
-            </Link>
-          ) : (
-            <Text color="black">
-              <b>{value ?? 'N/A'}</b>
-            </Text>
-          )}
-        </Grid>
-      </>
+      <Grid item xs={12} sm={6} md={3}>
+        <DetailItem
+          label={t(label)}
+          value={
+            isLink && value ? (
+              <Link
+                href={
+                  value
+                    ? value.startsWith('https://') ||
+                      value.startsWith('http://')
+                      ? value
+                      : `https://${value}`
+                    : null
+                }
+                target="_blank"
+                rel="noreferrer"
+                sx={{ fontWeight: 600, direction: 'ltr' }}
+              >
+                {value}
+              </Link>
+            ) : (
+              value
+            )
+          }
+        />
+      </Grid>
     );
   };
 
@@ -216,60 +218,46 @@ function CompanyDetails(props: CompanyDetailsProps) {
     </CustomDialog>
   );
   return (
-    <Grid container spacing={2}>
+    <>
       {renderEditModal()}
-      <Grid item xs={12}>
-        <Card>
-          <Box
-            p={3}
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Box>
-              <Typography variant="h4" gutterBottom>
-                {t('company_details')}
-              </Typography>
-              <Typography variant="subtitle2">
-                {t('company_details_description')}
-              </Typography>
-            </Box>
-            {user.ownsCompany && (
-              <Box>
-                <Button
-                  onClick={handleOpenEditModal}
-                  variant="text"
-                  startIcon={<EditTwoToneIcon />}
-                >
-                  {t('edit')}
-                </Button>
-              </Box>
-            )}
-          </Box>
-          <Divider />
-          <CardContent
-            sx={{
-              p: 4
-            }}
-          >
-            <Typography variant="subtitle2">
-              <Grid container spacing={0}>
-                {Object.keys(companyDetails).map((key) => {
-                  if (key !== 'settings')
-                    return (
-                      <KeyAndValue
-                        label={companyDetails[key].title}
-                        value={companyDetails[key].value}
-                        isLink={companyDetails[key].isLink}
-                      />
-                    );
-                })}
-              </Grid>
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
+      <SectionCard
+        title="company_details"
+        description="company_details_description"
+        icon={<BusinessTwoToneIcon fontSize="small" />}
+        actions={
+          user.ownsCompany && (
+            <Button
+              onClick={handleOpenEditModal}
+              size="small"
+              startIcon={<EditTwoToneIcon fontSize="small" />}
+              sx={{
+                borderRadius: '10px',
+                fontWeight: 600,
+                color: (theme) => theme.palette.primary.dark,
+                backgroundColor: (theme) =>
+                  alpha(theme.palette.primary.main, 0.1)
+              }}
+            >
+              {t('edit')}
+            </Button>
+          )
+        }
+      >
+        <Grid container spacing={2.5}>
+          {Object.keys(companyDetails).map((key) => {
+            if (key !== 'settings')
+              return (
+                <KeyAndValue
+                  key={key}
+                  label={companyDetails[key].title}
+                  value={companyDetails[key].value}
+                  isLink={companyDetails[key].isLink}
+                />
+              );
+          })}
+        </Grid>
+      </SectionCard>
+    </>
   );
 }
 

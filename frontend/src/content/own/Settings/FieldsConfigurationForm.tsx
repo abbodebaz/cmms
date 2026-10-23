@@ -1,7 +1,9 @@
-import { Box, Grid, Typography, useTheme } from '@mui/material';
+import { useTheme } from '@mui/material';
+import RuleTwoToneIcon from '@mui/icons-material/RuleTwoTone';
+import SettingsSection from './components/SettingsSection';
 import { Formik } from 'formik';
 import { useTranslation } from 'react-i18next';
-import { FC, useContext } from 'react';
+import { FC, ReactNode, useContext } from 'react';
 import { FieldConfigurationsType } from '../../../contexts/JWTAuthContext';
 import useAuth from '../../../hooks/useAuth';
 import GrayWhiteSelector from './components/GrayWhiteSelector';
@@ -12,11 +14,15 @@ import { CustomSnackBarContext } from '../../../contexts/CustomSnackBarContext';
 interface FieldsConfigurationFormProps {
   initialValues: any;
   fields: { label: string; name: string; type: FieldConfigurationsType }[];
+  title?: string;
+  actions?: ReactNode;
 }
 
 const FieldsConfigurationForm: FC<FieldsConfigurationFormProps> = ({
   initialValues,
-  fields
+  fields,
+  title,
+  actions
 }) => {
   const { t }: { t: any } = useTranslation();
   const { patchFieldConfiguration, companySettings } = useAuth();
@@ -60,10 +66,13 @@ const FieldsConfigurationForm: FC<FieldsConfigurationFormProps> = ({
     );
   };
   return (
-    <Box>
-      <Typography variant="h5" sx={{ mb: 2 }}>
-        {t('field_configuration_description')}
-      </Typography>
+    <SettingsSection
+      title={title ?? 'configure_fields'}
+      description="field_configuration_description"
+      icon={<RuleTwoToneIcon fontSize="small" />}
+      actions={actions}
+      noPadding
+    >
       <Formik initialValues={initialValues} onSubmit={() => null}>
         {({
           errors,
@@ -74,14 +83,10 @@ const FieldsConfigurationForm: FC<FieldsConfigurationFormProps> = ({
           touched,
           values
         }) => (
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={1}>
-              {renderFields(fields)}
-            </Grid>
-          </form>
+          <form onSubmit={handleSubmit}>{renderFields(fields)}</form>
         )}
       </Formik>
-    </Box>
+    </SettingsSection>
   );
 };
 

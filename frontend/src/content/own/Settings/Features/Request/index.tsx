@@ -1,11 +1,17 @@
-import { Box, Button, Grid } from '@mui/material';
+import { Stack } from '@mui/material';
+import TuneTwoToneIcon from '@mui/icons-material/TuneTwoTone';
+import DynamicFormTwoToneIcon from '@mui/icons-material/DynamicFormTwoTone';
+import RuleTwoToneIcon from '@mui/icons-material/RuleTwoTone';
+import {
+  SettingsLinkRow,
+  SettingsRowList,
+  SettingsSwitchRow
+} from '../../components/SettingsRows';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Formik } from 'formik';
-import CustomSwitch from '../../../components/form/CustomSwitch';
 import useAuth from '../../../../../hooks/useAuth';
 import { GeneralPreferences } from '../../../../../models/owns/generalPreferences';
-import { ChevronRight } from '@mui/icons-material';
 import SettingsSection from '../../components/SettingsSection';
 
 function RequestSettings() {
@@ -37,66 +43,64 @@ function RequestSettings() {
   ) => {};
 
   return (
-    <Grid item xs={12}>
-      <Box p={4}>
-        <Formik
-          initialValues={generalPreferences}
-          validationSchema={undefined}
-          onSubmit={onSubmit}
-        >
-          {({
-            errors,
-            handleBlur,
-            handleChange,
-            handleSubmit,
-            isSubmitting,
-            touched,
-            values
-          }) => (
-            <form onSubmit={handleSubmit}>
-              <SettingsSection title={t('preferences')}>
-                <Grid container spacing={2}>
-                  {switches.map((element) => (
-                    <CustomSwitch
-                      key={element.name}
-                      title={element.title}
-                      description={element.description}
-                      checked={values[element.name]}
-                      name={element.name}
-                      handleChange={(event) => {
-                        handleChange(event);
-                        patchGeneralPreferences({
-                          [element.name]: event.target.checked
-                        });
-                      }}
-                    />
-                  ))}
-                </Grid>
-              </SettingsSection>
-              <SettingsSection title={t('customize_form')}>
-                <Box display="flex" flexDirection="column" gap={2}>
-                  <Button
-                    variant="text"
-                    endIcon={<ChevronRight />}
-                    onClick={() =>
-                      navigate(
-                        '/app/settings/features/request/configure-fields'
-                      )
-                    }
-                    sx={{
-                      justifyContent: 'space-between',
-                      textTransform: 'none'
+    <Formik
+      initialValues={generalPreferences}
+      validationSchema={undefined}
+      onSubmit={onSubmit}
+    >
+      {({
+        errors,
+        handleBlur,
+        handleChange,
+        handleSubmit,
+        isSubmitting,
+        touched,
+        values
+      }) => (
+        <form onSubmit={handleSubmit}>
+          <Stack spacing={{ xs: 2, md: 2.5 }}>
+            <SettingsSection
+              title="preferences"
+              description="settings_preferences_description"
+              icon={<TuneTwoToneIcon fontSize="small" />}
+              noPadding
+            >
+              <SettingsRowList>
+                {switches.map((element) => (
+                  <SettingsSwitchRow
+                    key={element.name}
+                    title={element.title}
+                    description={element.description}
+                    checked={values[element.name]}
+                    name={element.name}
+                    handleChange={(event) => {
+                      handleChange(event);
+                      patchGeneralPreferences({
+                        [element.name]: event.target.checked
+                      });
                     }}
-                  >
-                    {t('configure_fields')}
-                  </Button>
-                </Box>
-              </SettingsSection>
-            </form>
-          )}
-        </Formik>
-      </Box>
-    </Grid>
+                  />
+                ))}
+              </SettingsRowList>
+            </SettingsSection>
+            <SettingsSection
+              title="customize_form"
+              description="settings_customize_form_description"
+              noPadding
+            >
+              <SettingsRowList>
+                <SettingsLinkRow
+                  title={t('configure_fields')}
+                  description={t('settings_configure_fields_description')}
+                  icon={<RuleTwoToneIcon fontSize="small" />}
+                  onClick={() => navigate('/app/settings/features/request/configure-fields')}
+                />
+              </SettingsRowList>
+            </SettingsSection>
+          </Stack>
+        </form>
+      )}
+    </Formik>
   );
 }
 

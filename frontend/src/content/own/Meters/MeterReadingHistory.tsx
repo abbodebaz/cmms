@@ -27,6 +27,17 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import { CustomSnackBarContext } from '../../../contexts/CustomSnackBarContext';
 import useAuth from '../../../hooks/useAuth';
 import { PermissionEntity } from '../../../models/owns/role';
+import FormDialogTitle from '../components/form/FormDialogTitle';
+import SectionCard from '../components/SectionCard';
+import {
+  CardLoading,
+  DetailRow,
+  DetailRowText,
+  EmptyCardBody,
+  IconTile
+} from '../components/DetailsKit';
+import HistoryTwoToneIcon from '@mui/icons-material/HistoryTwoTone';
+import SpeedTwoToneIcon from '@mui/icons-material/SpeedTwoTone';
 
 interface MeterReadingHistoryProps {
   meter: Meter;
@@ -81,44 +92,49 @@ export default function MeterReadingHistory({
   return (
     <>
       {historyFetched ? (
-        loadingGet ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            py={4}
-          >
-            <CircularProgress />
-          </Box>
-        ) : (
-          <List>
-            {[...currentMeterReadings].reverse().map((reading) => (
-              <ListItem
-                key={reading.id}
-                divider
-                secondaryAction={
-                  <Stack spacing={1} direction="row">
+        <SectionCard
+          title="history"
+          icon={<HistoryTwoToneIcon fontSize="small" />}
+          noPadding
+        >
+          {loadingGet ? (
+            <CardLoading />
+          ) : !currentMeterReadings.length ? (
+            <EmptyCardBody message={t('no_data')} />
+          ) : (
+            <Box>
+              {[...currentMeterReadings].reverse().map((reading) => (
+                <DetailRow key={reading.id}>
+                  <IconTile>
+                    <SpeedTwoToneIcon fontSize="small" />
+                  </IconTile>
+                  <DetailRowText
+                    primary={<bdi>{`${reading.value} ${meter.unit}`}</bdi>}
+                    secondary={getFormattedDate(reading.createdAt)}
+                  />
+                  <Stack spacing={0.5} direction="row">
                     {hasEditPermission(PermissionEntity.METERS, meter) && (
-                      <IconButton onClick={() => setEditingReading(reading)}>
-                        <EditTwoToneIcon color={'primary'} />
+                      <IconButton
+                        size="small"
+                        onClick={() => setEditingReading(reading)}
+                      >
+                        <EditTwoToneIcon fontSize="small" color={'primary'} />
                       </IconButton>
                     )}
                     {hasDeletePermission(PermissionEntity.METERS, meter) && (
-                      <IconButton onClick={() => setDeletingReading(reading)}>
-                        <DeleteTwoToneIcon color="error" />
+                      <IconButton
+                        size="small"
+                        onClick={() => setDeletingReading(reading)}
+                      >
+                        <DeleteTwoToneIcon fontSize="small" color="error" />
                       </IconButton>
                     )}
                   </Stack>
-                }
-              >
-                <ListItemText
-                  primary={`${reading.value} ${meter.unit}`}
-                  secondary={getFormattedDate(reading.createdAt)}
-                />
-              </ListItem>
-            ))}
-          </List>
-        )
+                </DetailRow>
+              ))}
+            </Box>
+          )}
+        </SectionCard>
       ) : null}
 
       <Dialog
@@ -127,11 +143,10 @@ export default function MeterReadingHistory({
         open={!!editingReading}
         onClose={() => setEditingReading(null)}
       >
-        <DialogTitle sx={{ p: 3 }}>
-          <Typography variant="h4" gutterBottom>
-            {t('edit_reading')}
-          </Typography>
-        </DialogTitle>
+        <FormDialogTitle
+          title={t('edit_reading')}
+          onClose={() => setEditingReading(null)}
+        />
         <DialogContent dividers sx={{ p: 3 }}>
           <Form
             fields={fields}

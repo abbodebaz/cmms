@@ -9,10 +9,13 @@ import {
   Select,
   Stack,
   TextField,
-  Typography
+  Typography,
+  useTheme
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import AccountTreeTwoToneIcon from '@mui/icons-material/AccountTreeTwoTone';
+import SettingsSection from '../../components/SettingsSection';
 import { useTranslation } from 'react-i18next';
-import SettingsLayout from '../../SettingsLayout';
 import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 import { useContext, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from '../../../../../store';
@@ -98,6 +101,7 @@ interface Field<T, C> {
 }
 function Workflows() {
   const { t }: { t: any } = useTranslation();
+  const theme = useTheme();
   const [view, setView] = useState<'list' | 'create' | 'update'>('list');
   const [currentMainCondition, setCurrentMainCondition] =
     useState<WFMainCondition>(mainConditions[0]);
@@ -911,94 +915,209 @@ function Workflows() {
     );
   };
   return (
-    <Box
-      sx={{
-        p: 4
-      }}
-    >
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Typography variant="h6">
+    <Box>
+      {view === 'list' && (
+        <SettingsSection
+          title="workflows"
+          description="settings_workflows_short_description"
+          icon={<AccountTreeTwoToneIcon fontSize="small" />}
+          actions={
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setView('create')}
+              disabled={
+                !hasFeature(PlanFeature.WORKFLOW) && workflows.length > 0
+              }
+              startIcon={<AddTwoToneIcon fontSize="small" />}
+              sx={{
+                borderRadius: '10px',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.28)}`
+              }}
+            >
+              {t('create_workflow')}
+            </Button>
+          }
+          noPadding
+        >
+          <Typography
+            sx={{
+              px: { xs: 2, sm: 2.5 },
+              py: 1.5,
+              fontSize: theme.typography.pxToRem(13),
+              color: theme.palette.text.secondary,
+              whiteSpace: 'pre-line',
+              backgroundColor: alpha(theme.palette.primary.main, 0.03),
+              borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`
+            }}
+          >
             {t('workflow_description', {
               shortBrandName: brandConfig.shortName
             })}
           </Typography>
-        </Grid>
-        <Grid item xs={12}>
-          {view === 'list' && (
-            <Grid container spacing={2}>
-              <Grid item xs={4}>
-                <Button
-                  sx={{
-                    mb: 2
+          {loadingGet ? (
+            <Stack
+              direction={'row'}
+              width={'100%'}
+              justifyContent={'center'}
+              alignItems={'center'}
+              py={5}
+            >
+              <CircularProgress />
+            </Stack>
+          ) : workflows.length === 0 ? (
+            <Box sx={{ py: 5, px: 2, textAlign: 'center' }}>
+              <Typography color="text.secondary">
+                {t('settings_no_workflows')}
+              </Typography>
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                '& > *:not(:last-of-type)': {
+                  borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`
+                }
+              }}
+            >
+              {workflows.map((workflow) => (
+                <Stack
+                  key={workflow.id}
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  spacing={2}
+                  onClick={() => {
+                    if (workflow.enabled) onEdit(workflow);
                   }}
-                  variant="contained"
-                  onClick={() => setView('create')}
-                  disabled={
-                    !hasFeature(PlanFeature.WORKFLOW) && workflows.length > 0
-                  }
-                  startIcon={<AddTwoToneIcon fontSize="small" />}
+                  sx={{
+                    px: { xs: 2, sm: 2.5 },
+                    py: 1.5,
+                    cursor: workflow.enabled ? 'pointer' : 'not-allowed',
+                    transition: theme.transitions.create('background-color'),
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.04)
+                    }
+                  }}
                 >
-                  {t('create_workflow')}
-                </Button>
-              </Grid>
-              <Grid item xs={12}>
-                {loadingGet ? (
-                  <Stack
-                    direction={'row'}
-                    width={'100%'}
-                    justifyContent={'center'}
-                    alignItems={'center'}
-                  >
-                    <CircularProgress />
-                  </Stack>
-                ) : (
-                  workflows.map((workflow) => (
-                    <Card
-                      sx={{ p: 2, mt: 1 }}
-                      style={{
-                        cursor: workflow.enabled ? 'pointer' : 'not-allowed'
-                      }}
-                      key={workflow.id}
-                      onClick={() => {
-                        if (workflow.enabled) onEdit(workflow);
+                  <Stack direction="row" spacing={1.5} alignItems="center" minWidth={0}>
+                    <Box
+                      sx={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: '10px',
+                        display: 'grid',
+                        placeItems: 'center',
+                        flexShrink: 0,
+                        color: workflow.enabled
+                          ? theme.palette.primary.main
+                          : theme.palette.text.disabled,
+                        backgroundColor: alpha(theme.palette.primary.main, 0.08)
                       }}
                     >
-                      <Stack direction="row" justifyContent="space-between">
-                        <Typography variant="h4">{workflow.title}</Typography>
-                        {workflow.enabled || (
-                          <Typography variant="h6">{t('disabled')}</Typography>
-                        )}
-                        <Button
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setCurrentWorkflowId(workflow.id);
-                            setOpenDelete(true);
+                      <AccountTreeTwoToneIcon fontSize="small" />
+                    </Box>
+                    <Box minWidth={0}>
+                      <Typography
+                        noWrap
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: 14,
+                          color: workflow.enabled
+                            ? theme.palette.text.primary
+                            : theme.palette.text.secondary
+                        }}
+                      >
+                        {workflow.title}
+                      </Typography>
+                      {workflow.enabled || (
+                        <Typography
+                          component="span"
+                          sx={{
+                            display: 'inline-block',
+                            mt: 0.5,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: '20px',
+                            color: theme.palette.text.secondary,
+                            backgroundColor: alpha(theme.palette.text.primary, 0.06)
                           }}
-                          color="error"
                         >
-                          {t('to_delete')}
-                        </Button>
-                      </Stack>
-                    </Card>
-                  ))
-                )}
-              </Grid>
-            </Grid>
+                          {t('disabled')}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Stack>
+                  <Button
+                    size="small"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setCurrentWorkflowId(workflow.id);
+                      setOpenDelete(true);
+                    }}
+                    color="error"
+                    startIcon={<DeleteTwoToneIcon fontSize="small" />}
+                    sx={{ borderRadius: '10px', flexShrink: 0 }}
+                  >
+                    {t('to_delete')}
+                  </Button>
+                </Stack>
+              ))}
+            </Box>
           )}
-          {['create', 'update'].includes(view) && (
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Typography variant="h6">{t('title')}</Typography>
-                <TextField
-                  value={currentTitle}
-                  onChange={(event) => setCurrentTitle(event.target.value)}
-                  placeholder={t('title')}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <Typography variant="h6">{t('if')}</Typography>
+        </SettingsSection>
+      )}
+      {['create', 'update'].includes(view) && (
+        <SettingsSection
+          title={view === 'create' ? 'create_workflow' : 'workflows'}
+          description="settings_workflows_short_description"
+          icon={<AccountTreeTwoToneIcon fontSize="small" />}
+        >
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label={t('title')}
+                value={currentTitle}
+                onChange={(event) => setCurrentTitle(event.target.value)}
+                placeholder={t('title')}
+              />
+            </Grid>
+            <Grid item xs={12} />
+            <Grid item xs={12} md={4}>
+              <Box sx={{
+                    height: '100%',
+                    p: 2,
+                    borderRadius: '12px',
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.14)}`,
+                    backgroundColor: alpha(theme.palette.primary.main, 0.025)
+                  }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
+                    <Box
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        display: 'grid',
+                        placeItems: 'center',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: theme.palette.primary.contrastText,
+                        backgroundColor: theme.palette.primary.main
+                      }}
+                    >
+                      1
+                    </Box>
+                    <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
+                      {t('if')}
+                    </Typography>
+                  </Stack>
                 <Select
+                  fullWidth
+                  size="small"
                   value={currentMainCondition}
                   onChange={(event) => {
                     setCurrentMainCondition(
@@ -1013,25 +1132,86 @@ function Workflows() {
                     </MenuItem>
                   ))}
                 </Select>
-              </Grid>
-              <Grid item xs={4}>
-                <Typography variant="h6">{t('and_optional')}</Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{
+                    height: '100%',
+                    p: 2,
+                    borderRadius: '12px',
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.14)}`,
+                    backgroundColor: alpha(theme.palette.primary.main, 0.025)
+                  }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
+                    <Box
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        display: 'grid',
+                        placeItems: 'center',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: theme.palette.primary.contrastText,
+                        backgroundColor: theme.palette.primary.main
+                      }}
+                    >
+                      2
+                    </Box>
+                    <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
+                      {t('and_optional')}
+                    </Typography>
+                  </Stack>
                 <Stack direction="column" spacing={2}>
                   {currentConditions.map((condition, index) =>
                     renderSingleCondition(condition, index)
                   )}
                   <Button
                     onClick={onNewCondition}
-                    color="success"
                     variant="outlined"
+                    startIcon={<AddTwoToneIcon fontSize="small" />}
+                    sx={{
+                      borderRadius: '10px',
+                      borderStyle: 'dashed',
+                      borderColor: alpha(theme.palette.primary.main, 0.35)
+                    }}
                   >
                     {t('add_condition')}
                   </Button>
                 </Stack>
-              </Grid>
-              <Grid item xs={4}>
-                <Typography variant="h6">{t('then')}</Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{
+                    height: '100%',
+                    p: 2,
+                    borderRadius: '12px',
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.14)}`,
+                    backgroundColor: alpha(theme.palette.primary.main, 0.025)
+                  }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
+                    <Box
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        display: 'grid',
+                        placeItems: 'center',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: theme.palette.primary.contrastText,
+                        backgroundColor: theme.palette.primary.main
+                      }}
+                    >
+                      3
+                    </Box>
+                    <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
+                      {t('then')}
+                    </Typography>
+                  </Stack>
                 <Select
+                  fullWidth
+                  size="small"
                   value={currentAction?.type}
                   onChange={(event) =>
                     handleActionTypeChange(
@@ -1047,37 +1227,47 @@ function Workflows() {
                     )
                   )}
                 </Select>
-                {renderActionField(currentAction)}
-              </Grid>
-              <Grid item xs={12}>
-                <Stack direction="row" spacing={1}>
-                  <Button variant="outlined" onClick={() => setView('list')}>
-                    {t('cancel')}
-                  </Button>
-                  <Button
-                    disabled={saving}
-                    startIcon={saving ? <CircularProgress size="1rem" /> : null}
-                    onClick={onSave}
-                    variant="contained"
-                  >
-                    {t('save')}
-                  </Button>
-                </Stack>
-              </Grid>
+                <Box sx={{ mt: 1.5 }}>{renderActionField(currentAction)}</Box>
+              </Box>
             </Grid>
-          )}
-        </Grid>
+            <Grid item xs={12}>
+              <Stack direction="row" spacing={1} justifyContent="flex-end">
+                <Button
+                  variant="outlined"
+                  onClick={() => setView('list')}
+                  sx={{ borderRadius: '12px', borderColor: alpha(theme.palette.primary.main, 0.35) }}
+                >
+                  {t('cancel')}
+                </Button>
+                <Button
+                  disabled={saving}
+                  startIcon={saving ? <CircularProgress size="1rem" /> : null}
+                  onClick={onSave}
+                  variant="contained"
+                  sx={{
+                    borderRadius: '12px',
+                    fontWeight: 700,
+                    px: 3,
+                    boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.28)}`
+                  }}
+                >
+                  {t('save')}
+                </Button>
+              </Stack>
+            </Grid>
+          </Grid>
+        </SettingsSection>
+      )}
 
-        <ConfirmDialog
-          open={openDelete}
-          onCancel={() => {
-            setOpenDelete(false);
-          }}
-          onConfirm={() => handleDelete(currentWorkflowId)}
-          confirmText={t('to_delete')}
-          question={t('confirm_delete_workflow')}
-        />
-      </Grid>
+      <ConfirmDialog
+        open={openDelete}
+        onCancel={() => {
+          setOpenDelete(false);
+        }}
+        onConfirm={() => handleDelete(currentWorkflowId)}
+        confirmText={t('to_delete')}
+        question={t('confirm_delete_workflow')}
+      />
     </Box>
   );
 }

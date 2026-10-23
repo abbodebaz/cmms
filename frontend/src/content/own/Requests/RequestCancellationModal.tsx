@@ -6,6 +6,7 @@ import { IField } from '../type';
 import { useContext } from 'react';
 import { cancelRequest } from 'src/slices/request';
 import { useDispatch } from 'src/store';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 
 interface SignatureProps {
     open: boolean;
@@ -37,15 +38,10 @@ export default function CompleteWOModal({
 
     return (
         <Dialog fullWidth maxWidth="sm" open={open} onClose={onClose}>
-            <DialogTitle
-                sx={{
-                    p: 3
-                }}
-            >
-                <Typography variant="h4" gutterBottom>
-                    {t('reject')}
-                </Typography>
-            </DialogTitle>
+            <FormDialogTitle
+              title={t('reject')}
+              onClose={onClose}
+            />
             <DialogContent
                 dividers
                 sx={{

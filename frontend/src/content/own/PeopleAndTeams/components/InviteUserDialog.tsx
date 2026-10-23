@@ -24,6 +24,7 @@ import { CustomSnackBarContext } from '../../../../contexts/CustomSnackBarContex
 import { useDispatch, useSelector } from '../../../../store';
 import { isEmailVerificationEnabled } from '../../../../config';
 import CreateUser from './CreateUser';
+import FormDialogTitle from '../../components/form/FormDialogTitle';
 import { Simulate } from 'react-dom/test-utils';
 
 export default function InviteUserDialog({
@@ -81,15 +82,7 @@ export default function InviteUserDialog({
 
   return (
     <Dialog fullWidth maxWidth="sm" open={open} onClose={onClose}>
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('invite_users')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle title={t('invite_users')} onClose={onClose} />
 
       <DialogContent
         dividers

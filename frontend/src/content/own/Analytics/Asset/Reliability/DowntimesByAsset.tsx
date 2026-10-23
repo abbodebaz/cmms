@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,7 +22,6 @@ import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
 import Loading from '../../Loading';
 import { getDowntimesByAsset } from '../../../../../slices/analytics/asset';
-import { getRandomColor } from '../../../../../utils/overall';
 
 interface WOStatusIncompleteProps {
   handleOpenModal: (
@@ -34,6 +38,9 @@ interface WOStatusIncompleteProps {
 function DowntimesByAsset({ handleOpenModal, start, end, assetColors, companyId }: WOStatusIncompleteProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const { downtimesByAsset, loading } = useSelector(
     (state) => state.assetAnalytics
   );
@@ -75,7 +82,7 @@ function DowntimesByAsset({ handleOpenModal, start, end, assetColors, companyId 
                  orientation="right" unit={'%'} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="count" fill="#8884d8" name={t('downtime_events')} yAxisId="left-axis">
+          <Bar dataKey="count" fill={chartPalette[0]} name={t('downtime_events')} yAxisId="left-axis">
             {formattedData.map((entry, index) => (
               <Cell
                 key={index}
@@ -90,7 +97,7 @@ function DowntimesByAsset({ handleOpenModal, start, end, assetColors, companyId 
             name={t('percent_downtime')}
             type="monotone"
             dataKey="percent"
-            stroke="#ff7300"
+            stroke={chartLineColor}
             yAxisId="right-axis"
           />
         </ComposedChart>

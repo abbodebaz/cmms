@@ -1,3 +1,9 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
+import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
   Bar,
@@ -15,7 +21,6 @@ import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
 import Loading from '../../Loading';
 import { getRepairTimeByAsset } from '../../../../../slices/analytics/asset';
-import { getRandomColor } from '../../../../../utils/overall';
 
 interface WOStatusPieProps {
   handleOpenModal: (
@@ -31,6 +36,10 @@ interface WOStatusPieProps {
 
 function RepairTimeByAsset({ handleOpenModal, start, end, assetColors, companyId }: WOStatusPieProps) {
   const { t }: { t: any } = useTranslation();
+  const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const dispatch = useDispatch();
   const { repairTimeByAsset, loading } = useSelector(
     (state) => state.assetAnalytics
@@ -70,7 +79,7 @@ function RepairTimeByAsset({ handleOpenModal, start, end, assetColors, companyId
           <Legend />
           <Bar
             dataKey="duration"
-            fill="#8884d8"
+            fill={chartPalette[0]}
             name={t('mean_time_to_repair_in_hours')}
           >
             {formattedData.map((entry, index) => (
@@ -87,7 +96,7 @@ function RepairTimeByAsset({ handleOpenModal, start, end, assetColors, companyId
             name={t('average')}
             type="monotone"
             dataKey="average"
-            stroke="#ff7300"
+            stroke={chartLineColor}
           />
         </ComposedChart>
       )}

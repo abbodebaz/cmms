@@ -1,4 +1,5 @@
-import { Grid, Stack, Typography, Link } from '@mui/material';
+import { Link } from '@mui/material';
+import { DetailItem } from './DetailsKit';
 import { getPriorityLabel } from '../../../utils/formatters';
 import { useTranslation } from 'react-i18next';
 import { HijriSuffix } from './DualDate';
@@ -56,45 +57,25 @@ const BasicField: React.FC<BasicFieldProps> = ({
   if (href) {
     const isExternal = isLink || (type === 'vendor' && id);
     return (
-      <Grid item xs={12} lg={6}>
-        <Typography
-          variant="h6"
-          sx={{ color: (theme: any) => theme.colors.alpha.black[70] }}
+      <DetailItem label={label}>
+        <Link
+          href={href}
+          underline="hover"
+          sx={{ fontWeight: 600 }}
+          target={isExternal && isLink ? '_blank' : undefined}
+          rel={isExternal && isLink ? 'noopener noreferrer' : undefined}
         >
-          {label}
-        </Typography>
-        {isExternal ? (
-          <Link
-            href={href}
-            variant="h6"
-            fontWeight="bold"
-            target={isLink ? '_blank' : undefined}
-            rel={isLink ? 'noopener noreferrer' : undefined}
-          >
-            {renderValue()}
-          </Link>
-        ) : (
-          <Link href={href} variant="h6" fontWeight="bold">
-            {renderValue()}
-          </Link>
-        )}
-      </Grid>
+          {renderValue()}
+        </Link>
+      </DetailItem>
     );
   }
 
   return (
-    <Grid item xs={12} lg={6}>
-      <Typography
-        variant="h6"
-        sx={{ color: (theme: any) => theme.colors.alpha.black[70] }}
-      >
-        {label}
-      </Typography>
-      <Typography variant="h6">
-        {renderValue()}
-        {hijriDate && <HijriSuffix date={hijriDate} />}
-      </Typography>
-    </Grid>
+    <DetailItem label={label}>
+      {renderValue()}
+      {hijriDate && <HijriSuffix date={hijriDate} />}
+    </DetailItem>
   );
 };
 

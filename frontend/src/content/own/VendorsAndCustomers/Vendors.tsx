@@ -18,7 +18,9 @@ import {
 } from '../../../slices/vendor';
 import { useDispatch, useSelector } from '../../../store';
 import { useTranslation } from 'react-i18next';
+import { ListToolbar } from '../components/ListPageShell';
 import Form from '../components/form';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 import * as Yup from 'yup';
 import {
   getCustomFieldsValues,
@@ -39,6 +41,18 @@ import {
   websiteRegExp
 } from '../../../utils/validators';
 import { Close } from '@mui/icons-material';
+import { Link } from '@mui/material';
+import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
+import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
+import ArrowBackTwoToneIcon from '@mui/icons-material/ArrowBackTwoTone';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import SectionCard from '../components/SectionCard';
+import { SoftChip } from '../components/StatusChip';
+import {
+  DetailGrid,
+  DetailItem,
+  DetailsHeader
+} from '../components/DetailsKit';
 import { Vendor } from '../../../models/owns/vendor';
 import { useParams } from 'react-router-dom';
 import useAuth from '../../../hooks/useAuth';
@@ -226,42 +240,17 @@ const Vendors = ({ openModal, handleCloseModal }: PropsType) => {
 
   let fields: Array<IField> = [
     {
+      name: 'details',
+      type: 'titleGroupField',
+      label: t('details'),
+      description: t('form_section_vendor_details_desc')
+    },
+    {
       name: 'companyName',
       type: 'text',
       label: t('company_name'),
       placeholder: brandConfig.shortName,
       required: true
-    },
-    {
-      name: 'address',
-      type: 'text',
-      label: t('address'),
-      placeholder: t('address')
-    },
-    {
-      name: 'phone',
-      type: 'text',
-      label: t('phone'),
-      placeholder: '+00212611223344'
-    },
-    {
-      name: 'website',
-      type: 'text',
-      label: t('website'),
-      placeholder: 'https://web-site.com'
-    },
-    {
-      name: 'name',
-      type: 'text',
-      label: t('name'),
-      placeholder: 'John Doe',
-      required: true
-    },
-    {
-      name: 'email',
-      type: 'text',
-      label: t('email'),
-      placeholder: 'john.doe@gmail.com'
     },
     {
       name: 'vendorType',
@@ -277,11 +266,60 @@ const Vendors = ({ openModal, handleCloseModal }: PropsType) => {
       placeholder: t('description')
     },
     {
+      name: 'contactGroup',
+      type: 'titleGroupField',
+      label: t('form_section_contact'),
+      description: t('form_section_vendor_contact_desc')
+    },
+    {
+      name: 'name',
+      type: 'text',
+      label: t('name'),
+      placeholder: 'John Doe',
+      required: true
+    },
+    {
+      name: 'phone',
+      type: 'text',
+      label: t('phone'),
+      placeholder: '+00212611223344'
+    },
+    {
+      name: 'email',
+      type: 'text',
+      label: t('email'),
+      placeholder: 'john.doe@gmail.com'
+    },
+    {
+      name: 'website',
+      type: 'text',
+      label: t('website'),
+      placeholder: 'https://web-site.com'
+    },
+    {
+      name: 'address',
+      type: 'text',
+      label: t('address'),
+      placeholder: t('address')
+    },
+    {
+      name: 'billingGroup',
+      type: 'titleGroupField',
+      label: t('billing_information'),
+      description: t('form_section_vendor_billing_desc'),
+      defaultCollapsed: true
+    },
+    {
       name: 'rate',
       type: 'number',
       label: t('hourly_rate'),
       placeholder: t('hourly_rate'),
       icon: '$'
+    },
+    {
+      name: 'customFieldsGroup',
+      type: 'titleGroupField',
+      label: t('custom_fields')
     },
     ...getCustomFieldsIFields(customFields, CustomFieldEntityType.VENDOR)
   ];
@@ -401,18 +439,11 @@ const Vendors = ({ openModal, handleCloseModal }: PropsType) => {
   };
   const RenderVendorsAddModal = () => (
     <Dialog fullWidth maxWidth="md" open={openModal} onClose={handleCloseModal}>
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('add_vendor')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('add_vendor_description')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('add_vendor')}
+        subtitle={t('add_vendor_description')}
+        onClose={handleCloseModal}
+      />
       <DialogContent
         dividers
         sx={{
@@ -482,69 +513,66 @@ const Vendors = ({ openModal, handleCloseModal }: PropsType) => {
       open={isVendorDetailsOpen}
       onClose={handleCloseDetails}
     >
-      <DialogTitle
-        sx={{
-          p: 3,
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between'
-        }}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-          {viewOrUpdate === 'view' ? (
-            hasEditPermission(
-              PermissionEntity.VENDORS_AND_CUSTOMERS,
-              currentVendor
-            ) && (
-              <Typography
-                onClick={() => setViewOrUpdate('update')}
-                style={{ cursor: 'pointer' }}
-                variant="subtitle1"
-                mr={2}
+      <DialogTitle component="div" sx={{ p: { xs: 2, sm: 3 }, pb: 0 }}>
+        <DetailsHeader
+          subtitle={t('vendor')}
+          title={currentVendor?.companyName}
+          chips={
+            currentVendor?.vendorType ? (
+              <SoftChip tone="neutral" size="medium" label={currentVendor.vendorType} />
+            ) : undefined
+          }
+          actions={
+            <>
+              {viewOrUpdate === 'view' ? (
+                hasEditPermission(
+                  PermissionEntity.VENDORS_AND_CUSTOMERS,
+                  currentVendor
+                ) && (
+                  <IconButton
+                    aria-label={t('edit')}
+                    onClick={() => setViewOrUpdate('update')}
+                  >
+                    <EditTwoToneIcon fontSize="small" color="primary" />
+                  </IconButton>
+                )
+              ) : (
+                <IconButton
+                  aria-label={t('go_back')}
+                  onClick={() => setViewOrUpdate('view')}
+                >
+                  <ArrowBackTwoToneIcon
+                    fontSize="small"
+                    sx={{ transform: (theme) =>
+                      theme.direction === 'rtl' ? 'scaleX(-1)' : 'none' }}
+                  />
+                </IconButton>
+              )}
+              {hasDeletePermission(
+                PermissionEntity.VENDORS_AND_CUSTOMERS,
+                currentVendor
+              ) && (
+                <IconButton
+                  aria-label={t('to_delete')}
+                  onClick={() => {
+                    setIsVendorDetailsOpen(false);
+                    setOpenDelete(true);
+                  }}
+                >
+                  <DeleteTwoToneIcon fontSize="small" color="error" />
+                </IconButton>
+              )}
+              <IconButton
+                aria-label="close"
+                onClick={() => {
+                  setIsVendorDetailsOpen(false);
+                }}
               >
-                {t('edit')}
-              </Typography>
-            )
-          ) : (
-            <Typography
-              onClick={() => setViewOrUpdate('view')}
-              style={{ cursor: 'pointer' }}
-              variant="subtitle1"
-              mr={2}
-            >
-              {t('go_back')}
-            </Typography>
-          )}
-          {hasDeletePermission(
-            PermissionEntity.VENDORS_AND_CUSTOMERS,
-            currentVendor
-          ) && (
-            <Typography
-              onClick={() => {
-                setIsVendorDetailsOpen(false);
-                setOpenDelete(true);
-              }}
-              variant="subtitle1"
-              style={{ cursor: 'pointer' }}
-            >
-              {t('to_delete')}
-            </Typography>
-          )}
-        </Box>
-        <IconButton
-          aria-label="close"
-          onClick={() => {
-            setIsVendorDetailsOpen(false);
-          }}
-          sx={{
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500]
-          }}
-        >
-          <Close />
-        </IconButton>
+                <Close fontSize="small" />
+              </IconButton>
+            </>
+          }
+        />
       </DialogTitle>
 
       <DialogContent
@@ -554,33 +582,53 @@ const Vendors = ({ openModal, handleCloseModal }: PropsType) => {
         }}
       >
         {viewOrUpdate === 'view' ? (
-          <Box>
-            <Typography variant="h4" sx={{ textAlign: 'center' }} gutterBottom>
-              {currentVendor?.companyName}
-            </Typography>
-            <Typography variant="subtitle1" sx={{ textAlign: 'center', mb: 3 }}>
-              {currentVendor?.description}
-            </Typography>
-            {fieldsToRender.map((field) =>
-              renderKeyAndValue(field.label, field.value)
+          <Stack spacing={2.5}>
+            {currentVendor?.description && (
+              <Typography
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-line',
+                  textAlign: 'start'
+                }}
+              >
+                {currentVendor.description}
+              </Typography>
             )}
-            {currentVendor?.website && (
-              <>
-                <Typography variant="subtitle1">{t('website')}</Typography>
-                <Typography variant="h5" sx={{ mb: 1 }}>
-                  <a
-                    href={
-                      currentVendor.website.toLowerCase().startsWith('https')
-                        ? currentVendor.website
-                        : `https://${currentVendor.website}`
-                    }
-                  >
-                    {currentVendor.website}
-                  </a>
-                </Typography>
-              </>
-            )}
-          </Box>
+            <SectionCard
+              title="details"
+              icon={<InfoTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid minColumnWidth={180}>
+                {fieldsToRender
+                  .filter((field) => field.label !== t('type'))
+                  .map((field) => (
+                    <DetailItem
+                      key={field.label}
+                      label={field.label}
+                      value={field.value}
+                    />
+                  ))}
+                <DetailItem label={t('website')}>
+                  {currentVendor?.website ? (
+                    <Link
+                      href={
+                        currentVendor.website.toLowerCase().startsWith('http')
+                          ? currentVendor.website
+                          : `https://${currentVendor.website}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      underline="hover"
+                    >
+                      {currentVendor.website}
+                    </Link>
+                  ) : null}
+                </DetailItem>
+              </DetailGrid>
+            </SectionCard>
+          </Stack>
         ) : (
           <Box>
             <Form
@@ -623,11 +671,11 @@ const Vendors = ({ openModal, handleCloseModal }: PropsType) => {
     >
       <ModalVendorDetails />
       <RenderVendorsAddModal />
-      <Stack direction="row" width="95%">
-        <Box sx={{ my: 0.5 }}>
+      <Box sx={{ width: '100%', px: 2 }}>
+        <ListToolbar bare>
           <SearchInput onChange={debouncedQueryChange} />
-        </Box>
-      </Stack>
+        </ListToolbar>
+      </Box>
       {RenderVendorsList()}
       <ConfirmDialog
         open={openDelete}

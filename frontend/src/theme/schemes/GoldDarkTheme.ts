@@ -147,6 +147,34 @@ const colors = {
   }
 };
 
+/** Design-system tokens used by the component overrides below (dark values). */
+const ds = {
+  primary: themeColors.primary,
+  accentText: colors.primary.light,
+  containedText: themeColors.bodyBg,
+  containedHover: darken(themeColors.primary, 0.12),
+  ink: themeColors.black,
+  inkSecondary: themeColors.secondary,
+  error: themeColors.error,
+  paper: themeColors.white,
+  divider: themeColors.divider,
+  inputBorder: 'rgba(255, 255, 255, 0.14)',
+  surfaceBorder: alpha(themeColors.primary, 0.16),
+  headBg: alpha(themeColors.primary, 0.07),
+  backdrop: 'rgba(0, 0, 0, 0.55)',
+  tooltipBg: '#2E2A24',
+  tooltipText: themeColors.black,
+  tooltipBorder: '1px solid ' + themeColors.divider,
+  cardShadow:
+    '0px 1px 2px rgba(0, 0, 0, 0.35), 0px 6px 18px rgba(0, 0, 0, 0.25)',
+  cardShadowSm: '0px 1px 2px rgba(0, 0, 0, 0.35)',
+  popupShadow:
+    '0px 14px 36px rgba(0, 0, 0, 0.5), 0px 2px 6px rgba(0, 0, 0, 0.35)',
+  overlayShadow:
+    '0px 24px 56px rgba(0, 0, 0, 0.6), 0px 4px 12px rgba(0, 0, 0, 0.4)',
+  alertText: (color: string) => lighten(color, 0.45)
+};
+
 export const GoldDarkTheme = createTheme({
   direction: i18n.dir(),
   colors: {
@@ -346,12 +374,12 @@ export const GoldDarkTheme = createTheme({
     MuiBackdrop: {
       styleOverrides: {
         root: {
-          backgroundColor: alpha(darken(themeColors.primaryAlt, 0.4), 0.2),
+          backgroundColor: ds.backdrop,
           backdropFilter: 'blur(2px)',
 
           '&.MuiBackdrop-invisible': {
             backgroundColor: 'transparent',
-            backdropFilter: 'blur(2px)'
+            backdropFilter: 'none'
           }
         }
       }
@@ -360,9 +388,12 @@ export const GoldDarkTheme = createTheme({
       styleOverrides: {
         root: {
           textTransform: 'none',
+          marginTop: 6,
           marginLeft: 8,
           marginRight: 8,
-          fontWeight: 'bold'
+          fontSize: 12.5,
+          fontWeight: 500,
+          lineHeight: 1.5
         }
       }
     },
@@ -477,17 +508,40 @@ export const GoldDarkTheme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
+          borderRadius: 10,
+          backgroundColor: ds.paper,
+          transition: 'box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
+
           '& .MuiInputAdornment-positionEnd.MuiInputAdornment-outlined': {
             paddingRight: 6
           },
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(255, 255, 255, 0.14)'
+            borderColor: ds.inputBorder,
+            transition: 'border-color .2s'
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: colors.alpha.black[50]
+            borderColor: alpha(ds.primary, 0.5)
           },
-          '&.Mui-focused:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: colors.primary.main
+          '&.Mui-focused': {
+            boxShadow: `0 0 0 4px ${alpha(ds.primary, 0.12)}`
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline, &.Mui-focused:hover .MuiOutlinedInput-notchedOutline':
+            {
+              borderColor: ds.primary,
+              borderWidth: '1.5px'
+            },
+          '&.Mui-error .MuiOutlinedInput-notchedOutline, &.Mui-error:hover .MuiOutlinedInput-notchedOutline':
+            {
+              borderColor: ds.error
+            },
+          '&.Mui-error.Mui-focused': {
+            boxShadow: `0 0 0 4px ${alpha(ds.error, 0.12)}`
+          },
+          '&.Mui-disabled': {
+            backgroundColor: alpha(ds.ink, 0.03)
+          },
+          '&.Mui-disabled .MuiOutlinedInput-notchedOutline': {
+            borderColor: alpha(ds.ink, 0.08)
           }
         }
       }
@@ -510,19 +564,35 @@ export const GoldDarkTheme = createTheme({
           marginBottom: -5
         },
         title: {
-          fontSize: 15
+          fontSize: 15,
+          fontWeight: 700,
+          color: ds.ink
+        },
+        subheader: {
+          fontSize: 13,
+          color: ds.inkSecondary
         }
       }
     },
     MuiRadio: {
       styleOverrides: {
         root: {
-          borderRadius: '50px'
+          borderRadius: '50px',
+          color: alpha(ds.ink, 0.4)
+        },
+        colorPrimary: {
+          '&.Mui-checked': {
+            color: ds.primary
+          }
         }
       }
     },
     MuiChip: {
       styleOverrides: {
+        root: {
+          borderRadius: 20,
+          fontWeight: 500
+        },
         colorSecondary: {
           background: colors.alpha.black[5],
           color: colors.alpha.black[100],
@@ -530,6 +600,9 @@ export const GoldDarkTheme = createTheme({
           '&:hover': {
             background: colors.alpha.black[10]
           }
+        },
+        outlined: {
+          borderColor: ds.inputBorder
         },
         deleteIcon: {
           color: colors.error.light,
@@ -544,12 +617,20 @@ export const GoldDarkTheme = createTheme({
       styleOverrides: {
         root: {
           boxShadow: 'none',
+          border: '1px solid ' + ds.surfaceBorder,
+          overflow: 'hidden',
 
+          '&, &:first-of-type, &:last-of-type': {
+            borderRadius: 14
+          },
           '&.Mui-expanded': {
             margin: 0
           },
           '&::before': {
             display: 'none'
+          },
+          '& + .MuiAccordion-root': {
+            marginTop: 12
           }
         }
       }
@@ -617,10 +698,13 @@ export const GoldDarkTheme = createTheme({
       },
       styleOverrides: {
         root: {
-          fontWeight: 'bold',
+          fontWeight: 600,
           textTransform: 'none',
+          borderRadius: 10,
           paddingLeft: 16,
           paddingRight: 16,
+          transition:
+            'background-color .2s, box-shadow .2s, border-color .2s, color .2s',
 
           '.MuiSvgIcon-root': {
             transition: 'all .2s'
@@ -629,10 +713,36 @@ export const GoldDarkTheme = createTheme({
         endIcon: {
           marginRight: -8
         },
+        containedPrimary: {
+          backgroundColor: ds.primary,
+          backgroundImage: 'none',
+          color: ds.containedText,
+          boxShadow: `0 4px 12px ${alpha(ds.primary, 0.22)}`,
+
+          '&:hover': {
+            backgroundColor: ds.containedHover,
+            boxShadow: `0 6px 16px ${alpha(ds.primary, 0.28)}`
+          },
+          '&:active': {
+            boxShadow: `0 2px 6px ${alpha(ds.primary, 0.22)}`
+          },
+          '&.Mui-disabled': {
+            boxShadow: 'none'
+          }
+        },
         containedSecondary: {
           backgroundColor: colors.secondary.main,
           color: colors.alpha.white[100],
           border: '1px solid ' + colors.alpha.black[30]
+        },
+        outlinedPrimary: {
+          color: ds.accentText,
+          borderColor: alpha(ds.primary, 0.35),
+
+          '&:hover': {
+            borderColor: ds.primary,
+            backgroundColor: alpha(ds.primary, 0.06)
+          }
         },
         outlinedSecondary: {
           backgroundColor: colors.alpha.white[100],
@@ -640,6 +750,13 @@ export const GoldDarkTheme = createTheme({
           '&:hover, &.MuiSelected': {
             backgroundColor: colors.alpha.black[5],
             color: colors.alpha.black[100]
+          }
+        },
+        textPrimary: {
+          color: ds.accentText,
+
+          '&:hover': {
+            backgroundColor: alpha(ds.primary, 0.08)
           }
         },
         sizeSmall: {
@@ -650,7 +767,9 @@ export const GoldDarkTheme = createTheme({
           padding: '8px 20px'
         },
         sizeLarge: {
-          padding: '11px 24px'
+          padding: '11px 24px',
+          borderRadius: 12,
+          fontWeight: 700
         },
         textSizeSmall: {
           padding: '7px 12px'
@@ -700,6 +819,11 @@ export const GoldDarkTheme = createTheme({
             borderRadius: 8
           }
         },
+        colorPrimary: {
+          '&:hover': {
+            backgroundColor: alpha(ds.primary, 0.08)
+          }
+        },
         sizeSmall: {
           padding: 4
         }
@@ -724,7 +848,7 @@ export const GoldDarkTheme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: {
-          background: themeColors.divider,
+          background: ds.divider,
           border: 0,
           height: 1
         },
@@ -746,12 +870,12 @@ export const GoldDarkTheme = createTheme({
         },
         wrapper: {
           background: colors.alpha.white[100],
-          fontWeight: 'bold',
+          fontWeight: 600,
           height: 24,
           lineHeight: '24px',
           marginTop: -12,
           color: 'inherit',
-          textTransform: 'uppercase'
+          textTransform: 'none'
         }
       }
     },
@@ -761,20 +885,27 @@ export const GoldDarkTheme = createTheme({
           padding: 0,
           backgroundImage: 'none'
         },
+        rounded: {
+          borderRadius: 14
+        },
         elevation0: {
           boxShadow: 'none'
         },
         elevation: {
-          boxShadow: colors.shadows.card
+          boxShadow: ds.cardShadow
+        },
+        elevation1: {
+          border: '1px solid ' + ds.surfaceBorder
         },
         elevation2: {
-          boxShadow: colors.shadows.cardSm
+          boxShadow: ds.cardShadowSm
         },
         elevation24: {
-          boxShadow: colors.shadows.cardLg
+          boxShadow: ds.overlayShadow
         },
         outlined: {
-          boxShadow: colors.shadows.card
+          borderColor: ds.surfaceBorder,
+          boxShadow: ds.cardShadowSm
         }
       }
     },
@@ -788,6 +919,15 @@ export const GoldDarkTheme = createTheme({
         root: {
           borderRadius: 6,
           height: 6
+        },
+        colorPrimary: {
+          backgroundColor: alpha(ds.primary, 0.15)
+        },
+        bar: {
+          borderRadius: 6
+        },
+        barColorPrimary: {
+          backgroundColor: ds.primary
         }
       }
     },
@@ -844,16 +984,13 @@ export const GoldDarkTheme = createTheme({
     MuiTabs: {
       styleOverrides: {
         root: {
-          height: 38,
-          minHeight: 38,
+          minHeight: 42,
           overflow: 'visible'
         },
         indicator: {
-          height: 38,
-          minHeight: 38,
-          borderRadius: 6,
-          border: '1px solid ' + colors.primary.dark,
-          boxShadow: '0px 2px 10px ' + colors.primary.light
+          height: 3,
+          borderRadius: '3px 3px 0 0',
+          backgroundColor: ds.primary
         },
         scrollableX: {
           overflow: 'visible !important'
@@ -864,24 +1001,26 @@ export const GoldDarkTheme = createTheme({
       styleOverrides: {
         root: {
           padding: 0,
-          height: 38,
-          minHeight: 38,
-          borderRadius: 6,
+          minHeight: 42,
+          borderRadius: 0,
+          fontWeight: 600,
+          fontSize: 14,
+          color: ds.inkSecondary,
           transition: 'color .2s',
-          textTransform: 'capitalize',
+          textTransform: 'none',
 
           '&.MuiButtonBase-root': {
             minWidth: 'auto',
-            paddingLeft: 20,
-            paddingRight: 20,
+            paddingLeft: 16,
+            paddingRight: 16,
             marginRight: 4
           },
           '&.Mui-selected, &.Mui-selected:hover': {
-            color: colors.alpha.white[100],
+            color: ds.accentText,
             zIndex: 5
           },
           '&:hover': {
-            color: colors.alpha.black[100]
+            color: ds.ink
           }
         }
       }
@@ -889,25 +1028,33 @@ export const GoldDarkTheme = createTheme({
     MuiMenu: {
       styleOverrides: {
         paper: {
-          padding: 12
+          padding: 0,
+          borderRadius: 12,
+          border: '1px solid ' + ds.surfaceBorder,
+          boxShadow: ds.popupShadow
         },
         list: {
-          padding: 12,
+          padding: 6,
 
           '& .MuiMenuItem-root.MuiButtonBase-root': {
             fontSize: 14,
             marginTop: 1,
             marginBottom: 1,
+            borderRadius: 8,
             transition: 'all .2s',
-            color: colors.alpha.black[70],
+            color: ds.inkSecondary,
 
             '& .MuiTouchRipple-root': {
               opacity: 0.2
             },
 
-            '&:hover, &:active, &.active, &.Mui-selected': {
-              color: colors.alpha.black[100],
-              background: alpha(colors.primary.lighter, 0.4)
+            '&:hover, &:active, &.active, &.Mui-focusVisible': {
+              color: ds.ink,
+              background: alpha(ds.primary, 0.08)
+            },
+            '&.Mui-selected, &.Mui-selected:hover': {
+              color: ds.ink,
+              background: alpha(ds.primary, 0.14)
             }
           }
         }
@@ -919,12 +1066,16 @@ export const GoldDarkTheme = createTheme({
           background: 'transparent',
           transition: 'all .2s',
 
-          '&:hover, &:active, &.active, &.Mui-selected': {
-            color: colors.alpha.black[100],
-            background: alpha(colors.primary.lighter, 0.4)
+          '&:hover, &:active, &.active': {
+            color: ds.ink,
+            background: alpha(ds.primary, 0.08)
+          },
+          '&.Mui-selected': {
+            color: ds.ink,
+            background: alpha(ds.primary, 0.14)
           },
           '&.Mui-selected:hover': {
-            background: alpha(colors.primary.lighter, 0.4)
+            background: alpha(ds.primary, 0.18)
           }
         }
       }
@@ -953,6 +1104,30 @@ export const GoldDarkTheme = createTheme({
             {
               right: 14
             }
+        },
+        paper: {
+          marginTop: 4,
+          borderRadius: 12,
+          border: '1px solid ' + ds.surfaceBorder,
+          boxShadow: ds.popupShadow
+        },
+        listbox: {
+          padding: 6,
+
+          '& .MuiAutocomplete-option': {
+            borderRadius: 8,
+            fontSize: 14,
+
+            '&.Mui-focused': {
+              backgroundColor: alpha(ds.primary, 0.08)
+            },
+            '&[aria-selected="true"]': {
+              backgroundColor: alpha(ds.primary, 0.14)
+            },
+            '&[aria-selected="true"].Mui-focused': {
+              backgroundColor: alpha(ds.primary, 0.18)
+            }
+          }
         },
         clearIndicator: {
           background: colors.error.lighter,
@@ -999,13 +1174,13 @@ export const GoldDarkTheme = createTheme({
     MuiTableRow: {
       styleOverrides: {
         head: {
-          background: colors.alpha.black[5]
+          background: ds.headBg
         },
         root: {
           transition: 'background-color .2s',
 
           '&.MuiTableRow-hover:hover': {
-            backgroundColor: colors.alpha.black[5]
+            backgroundColor: alpha(ds.primary, 0.04)
           }
         }
       }
@@ -1013,25 +1188,49 @@ export const GoldDarkTheme = createTheme({
     MuiTableCell: {
       styleOverrides: {
         root: {
-          borderBottomColor: themeColors.divider,
+          borderBottomColor: ds.divider,
           fontSize: 14
         },
         head: {
-          textTransform: 'uppercase',
+          textTransform: 'none',
           fontSize: 13,
-          fontWeight: 'bold',
-          color: colors.alpha.black[70]
+          fontWeight: 600,
+          color: ds.inkSecondary
         }
       }
     },
     MuiAlert: {
       styleOverrides: {
+        root: {
+          borderRadius: 12
+        },
         message: {
           lineHeight: 1.5,
           fontSize: 14
         },
+        standardSuccess: {
+          backgroundColor: alpha(colors.success.main, 0.1),
+          color: ds.alertText(colors.success.main),
+          border: '1px solid ' + alpha(colors.success.main, 0.2),
+          '& .MuiAlert-icon': { color: colors.success.main }
+        },
         standardInfo: {
-          color: colors.info.main
+          backgroundColor: alpha(colors.info.main, 0.1),
+          color: ds.alertText(colors.info.main),
+          border: '1px solid ' + alpha(colors.info.main, 0.2),
+          '& .MuiAlert-icon': { color: colors.info.main }
+        },
+        standardWarning: {
+          backgroundColor: alpha(colors.warning.main, 0.1),
+          color: ds.alertText(colors.warning.main),
+          border: '1px solid ' + alpha(colors.warning.main, 0.22),
+          '& .MuiAlert-icon': { color: colors.warning.main }
+        },
+        standardError: {
+          backgroundColor: alpha(colors.error.main, 0.1),
+          color: ds.alertText(colors.error.main),
+          border: '1px solid ' + alpha(colors.error.main, 0.2),
+          '& .MuiAlert-icon': { color: colors.error.main }
         },
         action: {
           color: colors.alpha.black[70]
@@ -1089,14 +1288,17 @@ export const GoldDarkTheme = createTheme({
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
-          backgroundColor: alpha('#2E2A24', 0.98),
-          color: themeColors.black,
-          border: '1px solid ' + themeColors.divider,
-          padding: '8px 16px',
-          fontSize: 13
+          backgroundColor: ds.tooltipBg,
+          color: ds.tooltipText,
+          border: ds.tooltipBorder,
+          borderRadius: 8,
+          padding: '6px 12px',
+          fontSize: 12,
+          fontWeight: 500,
+          lineHeight: 1.5
         },
         arrow: {
-          color: alpha('#2E2A24', 0.98)
+          color: ds.tooltipBg
         }
       }
     },
@@ -1116,7 +1318,9 @@ export const GoldDarkTheme = createTheme({
             borderRadius: 100
           },
           '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-            opacity: 0.3
+            opacity: 1,
+            backgroundColor: alpha(ds.primary, 0.4),
+            borderColor: alpha(ds.primary, 0.55)
           }
         },
         thumb: {
@@ -1158,6 +1362,131 @@ export const GoldDarkTheme = createTheme({
         root: {
           '&.MuiStepIcon-completed': {
             color: colors.success.main
+          }
+        }
+      }
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          color: ds.inkSecondary,
+          fontWeight: 500,
+
+          '&.Mui-focused': {
+            color: ds.accentText
+          },
+          '&.Mui-error': {
+            color: ds.error
+          },
+          '&.Mui-disabled': {
+            color: alpha(ds.ink, 0.4)
+          }
+        }
+      }
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 14
+        }
+      }
+    },
+    MuiCheckbox: {
+      styleOverrides: {
+        root: {
+          color: alpha(ds.ink, 0.4)
+        },
+        colorPrimary: {
+          '&.Mui-checked, &.MuiCheckbox-indeterminate': {
+            color: ds.primary
+          }
+        }
+      }
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 16,
+          border: '1px solid ' + ds.surfaceBorder,
+          boxShadow: ds.overlayShadow
+        },
+        paperFullScreen: {
+          borderRadius: 0,
+          border: 0
+        }
+      }
+    },
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: {
+          padding: '20px 24px',
+          fontSize: 18,
+          fontWeight: 700,
+          lineHeight: 1.4,
+          color: ds.ink
+        }
+      }
+    },
+    MuiDialogContent: {
+      styleOverrides: {
+        root: {
+          padding: '20px 24px'
+        },
+        dividers: {
+          borderTopColor: ds.divider,
+          borderBottomColor: ds.divider
+        }
+      }
+    },
+    MuiDialogActions: {
+      styleOverrides: {
+        root: {
+          padding: '16px 24px',
+          gap: 8,
+          borderTop: '1px solid ' + ds.divider,
+
+          '& > :not(:first-of-type)': {
+            marginLeft: 0
+          }
+        }
+      }
+    },
+    MuiPopover: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 12,
+          border: '1px solid ' + ds.surfaceBorder,
+          boxShadow: ds.popupShadow
+        }
+      }
+    },
+    MuiTableHead: {
+      styleOverrides: {
+        root: {
+          '& .MuiTableCell-root': {
+            backgroundColor: ds.headBg
+          }
+        }
+      }
+    },
+    MuiBreadcrumbs: {
+      styleOverrides: {
+        root: {
+          fontSize: 13,
+          color: ds.inkSecondary
+        },
+        separator: {
+          color: alpha(ds.ink, 0.35),
+          marginLeft: 6,
+          marginRight: 6
+        },
+        li: {
+          '& a': {
+            color: ds.inkSecondary,
+            transition: 'color .2s'
+          },
+          '& a:hover': {
+            color: ds.accentText
           }
         }
       }

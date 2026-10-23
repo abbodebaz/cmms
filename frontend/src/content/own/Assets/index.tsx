@@ -17,6 +17,15 @@ import {
   useTheme
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import {
+  filterPillSx,
+  ListCard,
+  ListCardBody,
+  ListPage,
+  ListPageHeader,
+  ListToolbar,
+  SoftIconButton
+} from '../components/ListPageShell';
 import { IField } from '../type';
 import {
   addAsset,
@@ -85,6 +94,7 @@ import Inventory2TwoToneIcon from '@mui/icons-material/Inventory2TwoTone';
 import { getCustomFields } from '../../../slices/customField';
 import { CustomFieldEntityType } from '../../../models/owns/customField';
 import { getCustomFieldsRequiredShape } from '../type';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 
 const PAGE_SIZE = 40;
 
@@ -848,18 +858,18 @@ function Assets() {
         }
       }}
     >
-      <DialogTitle
-        sx={{
-          p: 3
+      <FormDialogTitle
+        title={t('add_asset')}
+        subtitle={t('add_asset_description')}
+        onClose={() => {
+          if (isFormDirty) {
+            setOpenDiscardDialog(true);
+          } else {
+            setOpenAddModal(false);
+            setInitialAssetName('');
+          }
         }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('add_asset')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('add_asset_description')}
-        </Typography>
-      </DialogTitle>
+      />
       <DialogContent
         dividers
         sx={{
@@ -1051,58 +1061,59 @@ function Assets() {
         <Helmet>
           <title>{t('assets')}</title>
         </Helmet>
-        <Box justifyContent="center" alignItems="stretch" paddingX={4}>
-          <Box
-            my={1}
-            display="flex"
-            flexDirection="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <SearchInput onChange={debouncedQueryChange} />
-            <Stack direction="row" spacing={1}>
-              <IconButton onClick={() => handleReset(true)} color="primary">
-                <ReplayTwoToneIcon />
-              </IconButton>
-              <IconButton onClick={handleOpenMenu} color="primary">
-                <MoreVertTwoToneIcon />
-              </IconButton>
-              {view === 'list' && (
-                <Button variant={'outlined'} onClick={onResetFilters}>
-                  {t('reset_filters')}
-                </Button>
-              )}
-              {hasCreatePermission(PermissionEntity.ASSETS) && (
-                <SplitButton
-                  onMainClick={() => setOpenAddModal(true)}
-                  startIcon={<AddTwoToneIcon />}
-                  sx={{ mx: 6, my: 1 }}
-                  label={t('asset')}
-                  menuItems={
-                    hasViewPermission(PermissionEntity.SETTINGS) &&
-                    hasFeature(PlanFeature.IMPORT_CSV)
-                      ? [
-                          {
-                            label: t('import_from_spreadsheet'),
-                            onClick: () => navigate('/app/imports/assets')
-                          }
-                        ]
-                      : []
-                  }
-                />
-              )}
-            </Stack>
-          </Box>
-          <Card
-            sx={{
-              py: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Box sx={{ width: '95%' }}>
+        <ListPage>
+          <ListPageHeader
+            title={t('assets')}
+            count={view === 'list' ? assets.totalElements : undefined}
+            actions={
+              <>
+                <SoftIconButton
+                  title={t('lists.refresh')}
+                  onClick={() => handleReset(true)}
+                >
+                  <ReplayTwoToneIcon />
+                </SoftIconButton>
+                <SoftIconButton title={t('more')} onClick={handleOpenMenu}>
+                  <MoreVertTwoToneIcon />
+                </SoftIconButton>
+                {hasCreatePermission(PermissionEntity.ASSETS) && (
+                  <SplitButton
+                    onMainClick={() => setOpenAddModal(true)}
+                    startIcon={<AddTwoToneIcon />}
+                    label={t('asset')}
+                    menuItems={
+                      hasViewPermission(PermissionEntity.SETTINGS) &&
+                      hasFeature(PlanFeature.IMPORT_CSV)
+                        ? [
+                            {
+                              label: t('import_from_spreadsheet'),
+                              onClick: () => navigate('/app/imports/assets')
+                            }
+                          ]
+                        : []
+                    }
+                  />
+                )}
+              </>
+            }
+          />
+          <ListCard>
+            <ListToolbar
+              end={
+                view === 'list' ? (
+                  <Button
+                    variant="outlined"
+                    onClick={onResetFilters}
+                    sx={filterPillSx(false)}
+                  >
+                    {t('reset_filters')}
+                  </Button>
+                ) : undefined
+              }
+            >
+              <SearchInput onChange={debouncedQueryChange} />
+            </ListToolbar>
+            <ListCardBody>
               <CustomDatagrid2
                 columns={view === 'hierarchy' ? columns : columns.slice(1)}
                 data={tableData}
@@ -1148,9 +1159,9 @@ function Assets() {
                   navigate(getAssetUrl(row.id));
                 }}
               />
-            </Box>
-          </Card>
-        </Box>
+            </ListCardBody>
+          </ListCard>
+        </ListPage>
         {renderMenu()}
         <Drawer
           anchor="left"

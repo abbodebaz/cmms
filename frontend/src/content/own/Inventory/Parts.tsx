@@ -21,6 +21,11 @@ import {
   useTheme
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import {
+  ListToolbar,
+  SegmentedTabs,
+  SoftIconButton
+} from '../components/ListPageShell';
 import CustomDatagrid2, {
   CustomDatagridColumn2
 } from '../components/CustomDatagrid2';
@@ -39,6 +44,7 @@ import * as React from 'react';
 import { ChangeEvent, useContext, useEffect, useMemo, useState } from 'react';
 import * as Yup from 'yup';
 import Form from '../components/form';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 import { getCustomFieldsValues, IField } from '../type';
 import PartDetails from './PartDetails';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -404,13 +410,6 @@ const Parts = ({ setAction }: PropsType) => {
       required: true
     },
     {
-      name: 'description',
-      type: 'text',
-      label: t('description'),
-      placeholder: t('description'),
-      multiple: true
-    },
-    {
       name: 'category',
       type: 'select',
       type2: 'category',
@@ -419,10 +418,23 @@ const Parts = ({ setAction }: PropsType) => {
       placeholder: t('enter_part_category')
     },
     {
-      name: 'cost',
-      type: 'number',
-      label: t('cost'),
-      placeholder: t('enter_part_cost')
+      name: 'image',
+      type: 'file',
+      label: t('image'),
+      fileType: 'image'
+    },
+    {
+      name: 'description',
+      type: 'text',
+      label: t('description'),
+      placeholder: t('description'),
+      multiple: true
+    },
+    {
+      name: 'inventoryGroup',
+      type: 'titleGroupField',
+      label: t('form_section_inventory'),
+      description: t('form_section_inventory_desc')
     },
     {
       name: 'quantity',
@@ -431,21 +443,22 @@ const Parts = ({ setAction }: PropsType) => {
       placeholder: t('enter_part_quantity')
     },
     {
-      name: 'unit',
-      type: 'text',
-      label: t('unit'),
-      placeholder: t('unit_of_measurement')
-    },
-    {
       name: 'minQuantity',
       type: 'number',
       label: t('minimum_quantity'),
       placeholder: t('enter_part_minimum_quantity')
     },
     {
-      name: 'nonStock',
-      type: 'checkbox',
-      label: t('non_stock')
+      name: 'unit',
+      type: 'text',
+      label: t('unit'),
+      placeholder: t('unit_of_measurement')
+    },
+    {
+      name: 'cost',
+      type: 'number',
+      label: t('cost'),
+      placeholder: t('enter_part_cost')
     },
     {
       name: 'barcode',
@@ -460,11 +473,16 @@ const Parts = ({ setAction }: PropsType) => {
       placeholder: t('enter_part_area')
     },
     {
-      name: 'additionalInfos',
-      type: 'text',
-      label: t('additional_part_details'),
-      placeholder: t('additional_part_details'),
-      multiple: true
+      name: 'nonStock',
+      type: 'checkbox',
+      label: t('non_stock')
+    },
+    {
+      name: 'assignmentGroup',
+      type: 'titleGroupField',
+      label: t('form_section_assignment'),
+      description: t('form_section_part_assignment_desc'),
+      defaultCollapsed: true
     },
     {
       name: 'assignedTo',
@@ -499,16 +517,29 @@ const Parts = ({ setAction }: PropsType) => {
       placeholder: 'Select Customers'
     },
     {
-      name: 'image',
-      type: 'file',
-      label: t('image'),
-      fileType: 'image'
+      name: 'attachmentsGroup',
+      type: 'titleGroupField',
+      label: t('form_section_attachments_notes'),
+      description: t('form_section_attachments_notes_desc'),
+      defaultCollapsed: true
+    },
+    {
+      name: 'additionalInfos',
+      type: 'text',
+      label: t('additional_part_details'),
+      placeholder: t('additional_part_details'),
+      multiple: true
     },
     {
       name: 'files',
       type: 'file',
       multiple: true,
       label: t('files')
+    },
+    {
+      name: 'customFieldsGroup',
+      type: 'titleGroupField',
+      label: t('custom_fields')
     },
     ...getCustomFieldsIFields(customFields, CustomFieldEntityType.PART)
   ];
@@ -526,20 +557,16 @@ const Parts = ({ setAction }: PropsType) => {
         setCopyPartData(null);
       }}
     >
-      <DialogTitle
-        sx={{
-          p: 3
+      <FormDialogTitle
+        title={copyPartData ? t('copy_part') : t('add_part')}
+        subtitle={
+          copyPartData ? t('copy_part_description') : t('add_part_description')
+        }
+        onClose={() => {
+          setOpenAddModal(false);
+          setCopyPartData(null);
         }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {copyPartData ? t('copy_part') : t('add_part')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {copyPartData
-            ? t('copy_part_description')
-            : t('add_part_description')}
-        </Typography>
-      </DialogTitle>
+      />
       <DialogContent
         dividers
         sx={{
@@ -637,18 +664,11 @@ const Parts = ({ setAction }: PropsType) => {
       open={openUpdateModal}
       onClose={() => setOpenUpdateModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('update_part')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('update_part_description')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('update_part')}
+        subtitle={t('update_part_description')}
+        onClose={() => setOpenUpdateModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -741,29 +761,30 @@ const Parts = ({ setAction }: PropsType) => {
       {renderPartAddModal()}
       {renderPartUpdateModal()}
       {renderMenu()}
-      <Stack
-        mb={1}
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
+      <ListToolbar
+        bare
+        end={
+          <>
+            <SegmentedTabs
+              onChange={handleTabsChange}
+              value={currentTab}
+              variant="scrollable"
+              scrollButtons="auto"
+              textColor="primary"
+              indicatorColor="primary"
+            >
+              {tabs.map((tab) => (
+                <Tab key={tab.value} label={tab.label} value={tab.value} />
+              ))}
+            </SegmentedTabs>
+            <SoftIconButton title={t('more')} onClick={handleOpenMenu}>
+              <MoreVertTwoToneIcon />
+            </SoftIconButton>
+          </>
+        }
       >
-        <Tabs
-          onChange={handleTabsChange}
-          value={currentTab}
-          variant="scrollable"
-          scrollButtons="auto"
-          textColor="primary"
-          indicatorColor="primary"
-        >
-          {tabs.map((tab) => (
-            <Tab key={tab.value} label={tab.label} value={tab.value} />
-          ))}
-        </Tabs>
         <SearchInput onChange={debouncedQueryChange} />
-        <IconButton onClick={handleOpenMenu} color="primary">
-          <MoreVertTwoToneIcon />
-        </IconButton>
-      </Stack>
+      </ListToolbar>
       {currentTab === 'list' && (
         <CustomDatagrid2
           columns={columns}

@@ -1,17 +1,5 @@
-import {
-  Box,
-  Button,
-  Card,
-  Checkbox,
-  CircularProgress,
-  Container,
-  Divider,
-  FormControl,
-  FormControlLabel,
-  FormGroup,
-  styled,
-  Typography
-} from '@mui/material';
+import PersonAddAlt1TwoToneIcon from '@mui/icons-material/PersonAddAlt1TwoTone';
+import UsersSelection from '../UsersSelection';
 import { Helmet } from 'react-helmet-async';
 
 import { useTranslation } from 'react-i18next';
@@ -25,17 +13,6 @@ import { useNavigate } from 'react-router-dom';
 import PermissionErrorMessage from '../../components/PermissionErrorMessage';
 import { useBrand } from '../../../../hooks/useBrand';
 
-const MainContent = styled(Box)(
-  () => `
-    height: 100%;
-    display: flex;
-    flex: 1;
-    overflow: auto;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-`
-);
 
 function Upgrade() {
   const { t }: { t: any } = useTranslation();
@@ -91,78 +68,21 @@ function Upgrade() {
         <Helmet>
           <title>{t('upgrade')}</title>
         </Helmet>
-        <MainContent>
-          <Container maxWidth="md">
-            <Box textAlign="center">
-              <Typography
-                variant="h2"
-                sx={{
-                  my: 2
-                }}
-              >
-                {t('enable_users')}
-              </Typography>
-              <Typography
-                variant="h4"
-                color="text.secondary"
-                fontWeight="normal"
-                sx={{
-                  mb: 4
-                }}
-              >
-                {t('upgrade_description', {
-                  shortBrandName: brandConfig.shortName
-                })}
-              </Typography>
-            </Box>
-            <Container maxWidth="sm">
-              <Card
-                sx={{
-                  textAlign: 'center',
-                  mt: 3,
-                  p: 4
-                }}
-              >
-                <FormControl variant="outlined" fullWidth>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      mb: 1
-                    }}
-                  >
-                    {t('max_users_description', { maxUsers })}
-                  </Typography>
-                  <FormGroup>
-                    {disabledUsersMini.map((user) => (
-                      <FormControlLabel
-                        key={user.id}
-                        control={
-                          <Checkbox
-                            checked={selectedUsers[user.id]}
-                            onChange={(event) => {
-                              onChange(event.target.checked, user.id);
-                            }}
-                          />
-                        }
-                        label={`${user.firstName} ${user.lastName}`}
-                      />
-                    ))}
-                  </FormGroup>
-                </FormControl>
-                <Divider />
-                <Button
-                  disabled={upgrading}
-                  startIcon={upgrading && <CircularProgress size={'1rem'} />}
-                  sx={{ mt: 2 }}
-                  onClick={onUpgrade}
-                  variant="contained"
-                >
-                  {t('enable_users')}
-                </Button>
-              </Card>
-            </Container>
-          </Container>
-        </MainContent>
+        <UsersSelection
+          icon={<PersonAddAlt1TwoToneIcon />}
+          title={t('enable_users')}
+          description={t('upgrade_description', {
+            shortBrandName: brandConfig.shortName
+          })}
+          listTitle="users"
+          hint={t('max_users_description', { maxUsers })}
+          users={disabledUsersMini}
+          selectedUsers={selectedUsers}
+          onChange={onChange}
+          submitting={upgrading}
+          onSubmit={onUpgrade}
+          submitLabel={t('enable_users')}
+        />
       </>
     );
   else return <PermissionErrorMessage message={'no_access_page'} />;

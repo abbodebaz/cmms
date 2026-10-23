@@ -21,6 +21,16 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
+  filterPillSx,
+  ListCard,
+  ListCardBody,
+  ListPage,
+  ListPageHeader,
+  ListToolbar,
+  SegmentedTabs,
+  SoftIconButton
+} from '../components/ListPageShell';
+import {
   getCustomFieldsIFields,
   getCustomFieldsRequiredShape,
   IField
@@ -105,6 +115,7 @@ import { getCustomFields } from '../../../slices/customField';
 import { CustomFieldEntityType } from '../../../models/owns/customField';
 import { randomInt } from '../../../utils/generators';
 import type { Paths } from 'type-fest';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 
 const fieldMapping: Record<string, string> = {
   customId: 'customId',
@@ -846,16 +857,18 @@ function WorkOrders() {
         }
       }}
     >
-      <DialogTitle
-        sx={{
-          p: 3
+      <FormDialogTitle
+        title={copyWorkOrderData ? t('copy_wo') : t('add_wo')}
+        subtitle={t('add_wo_description')}
+        onClose={() => {
+          if (isFormDirty) {
+            setOpenDiscardDialog(true);
+          } else {
+            setOpenAddModal(false);
+            setCopyWorkOrderData(null);
+          }
         }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {copyWorkOrderData ? t('copy_wo') : t('add_wo')}
-        </Typography>
-        <Typography variant="subtitle2">{t('add_wo_description')}</Typography>
-      </DialogTitle>
+      />
       <DialogContent
         dividers
         sx={{
@@ -949,18 +962,11 @@ function WorkOrders() {
       open={openUpdateModal}
       onClose={() => setOpenUpdateModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('Edit Work Order')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('Fill in the fields below to update the Work Order')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('Edit Work Order')}
+        subtitle={t('Fill in the fields below to update the Work Order')}
+        onClose={() => setOpenUpdateModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -1067,103 +1073,93 @@ function WorkOrders() {
       <Helmet>
         <title>{t('work_orders')}</title>
       </Helmet>
-      <Box justifyContent="center" alignItems="stretch" paddingX={4}>
-        <Box
-          my={1}
-          display="flex"
-          flexDirection="row"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Tabs
-            onChange={handleTabsChange}
-            value={currentTab}
-            variant="scrollable"
-            scrollButtons="auto"
-            textColor="primary"
-            indicatorColor="primary"
-          >
-            {tabs
-              .filter((tab) => !tab.hidden)
-              .map((tab) =>
-                tab.disabled ? (
-                  <Tooltip
-                    title={
-                      tab.requiresUpgrade ? t('upgrade_now') : t('Coming Soon')
-                    }
-                    placement="top"
-                  >
-                    <span>
+      <ListPage>
+        <ListPageHeader
+          title={t('work_orders')}
+          count={currentTab === 'list' ? workOrders.totalElements : undefined}
+          actions={
+            <>
+              <SegmentedTabs
+                onChange={handleTabsChange}
+                value={currentTab}
+                variant="scrollable"
+                scrollButtons="auto"
+                textColor="primary"
+                indicatorColor="primary"
+              >
+                {tabs
+                  .filter((tab) => !tab.hidden)
+                  .map((tab) =>
+                    tab.disabled ? (
+                      <Tooltip
+                        key={tab.value}
+                        title={
+                          tab.requiresUpgrade
+                            ? t('upgrade_now')
+                            : t('Coming Soon')
+                        }
+                        placement="top"
+                      >
+                        <span>
+                          <Tab
+                            key={tab.value}
+                            label={tab.label}
+                            value={tab.value}
+                            disabled={tab.disabled}
+                          />
+                        </span>
+                      </Tooltip>
+                    ) : (
                       <Tab
                         key={tab.value}
                         label={tab.label}
                         value={tab.value}
-                        disabled={tab.disabled}
                       />
-                    </span>
-                  </Tooltip>
-                ) : (
-                  <Tab key={tab.value} label={tab.label} value={tab.value} />
-                )
+                    )
+                  )}
+              </SegmentedTabs>
+              <SoftIconButton title={t('more')} onClick={handleOpenMenu}>
+                <MoreVertTwoToneIcon />
+              </SoftIconButton>
+              {hasCreatePermission(PermissionEntity.WORK_ORDERS) && (
+                <SplitButton
+                  onMainClick={() => setOpenAddModal(true)}
+                  startIcon={<AddTwoToneIcon />}
+                  label={t('work_order')}
+                  menuItems={
+                    hasViewPermission(PermissionEntity.SETTINGS) &&
+                    hasFeature(PlanFeature.IMPORT_CSV)
+                      ? [
+                          {
+                            label: t('import_from_spreadsheet'),
+                            onClick: () => navigate('/app/imports/work-orders')
+                          }
+                        ]
+                      : []
+                  }
+                />
               )}
-          </Tabs>
-          <Stack direction={'row'} alignItems="center" spacing={1}>
-            <IconButton onClick={handleOpenMenu} color="primary">
-              <MoreVertTwoToneIcon />
-            </IconButton>
-            {hasCreatePermission(PermissionEntity.WORK_ORDERS) && (
-              <SplitButton
-                onMainClick={() => setOpenAddModal(true)}
-                startIcon={<AddTwoToneIcon />}
-                sx={{ mx: 6, my: 1 }}
-                label={t('work_order')}
-                menuItems={
-                  hasViewPermission(PermissionEntity.SETTINGS) &&
-                  hasFeature(PlanFeature.IMPORT_CSV)
-                    ? [
-                        {
-                          label: t('import_from_spreadsheet'),
-                          onClick: () => navigate('/app/imports/work-orders')
-                        }
-                      ]
-                    : []
-                }
-              />
-            )}
-          </Stack>
-        </Box>
-        <Card
-          sx={{
-            py: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center'
-          }}
-        >
+            </>
+          }
+        />
+        <ListCard>
           {currentTab === 'list' && (
-            <Stack
-              sx={{ ml: 1 }}
-              direction="row"
-              spacing={1}
-              justifyContent={'flex-start'}
-              width={'95%'}
-            >
-              <Button
-                onClick={() => setOpenFilterDrawer(true)}
-                sx={{
-                  '& .MuiButton-startIcon': { margin: '0px' },
-                  minWidth: 0
-                }}
-                variant={
-                  _.isEqual(
-                    normalizeFields(criteria.filterFields),
-                    normalizeFields(DEFAULT_FILTER_FIELDS)
-                  )
-                    ? 'outlined'
-                    : 'contained'
-                }
-                startIcon={<FilterAltTwoToneIcon />}
-              />
+            <ListToolbar>
+              <Tooltip title={t('more_filters')} arrow>
+                <Button
+                  onClick={() => setOpenFilterDrawer(true)}
+                  aria-label={t('more_filters')}
+                  sx={filterPillSx(
+                    !_.isEqual(
+                      normalizeFields(criteria.filterFields),
+                      normalizeFields(DEFAULT_FILTER_FIELDS)
+                    ),
+                    true
+                  )}
+                  variant="outlined"
+                  startIcon={<FilterAltTwoToneIcon />}
+                />
+              </Tooltip>
               <EnumFilter
                 filterFields={criteria.filterFields}
                 onChange={onFilterChange}
@@ -1187,10 +1183,9 @@ function WorkOrders() {
                 />
               )}
               <SearchInput onChange={debouncedQueryChange} />
-            </Stack>
+            </ListToolbar>
           )}
-          <Divider sx={{ mt: 1 }} />
-          <Box sx={{ width: '95%' }}>
+          <ListCardBody>
             {currentTab === 'list' ? (
               <CustomDatagrid2
                 columns={columns}
@@ -1246,9 +1241,9 @@ function WorkOrders() {
                 }}
               />
             )}
-          </Box>
-        </Card>
-      </Box>
+          </ListCardBody>
+        </ListCard>
+      </ListPage>
       {renderWorkOrderAddModal()}
       {renderWorkOrderUpdateModal()}
       <Drawer

@@ -12,6 +12,7 @@ import {
   useTheme
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { ListToolbar } from '../components/ListPageShell';
 import CustomDatagrid2, {
   CustomDatagridColumn2
 } from '../components/CustomDatagrid2';
@@ -40,6 +41,7 @@ import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import useAuth from '../../../hooks/useAuth';
 import Form from '../components/form';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 import * as Yup from 'yup';
 import { IField } from '../type';
 import { formatSelect } from '../../../utils/formatters';
@@ -232,18 +234,11 @@ const People = ({ openModal, handleCloseModal, initialEmail }: PropsType) => {
       open={openUpdateModal}
       onClose={() => setOpenUpdateModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('edit_user')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('edit_user_description')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('edit_user')}
+        subtitle={t('edit_user_description')}
+        onClose={() => setOpenUpdateModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -497,18 +492,24 @@ const People = ({ openModal, handleCloseModal, initialEmail }: PropsType) => {
         p: 2
       }}
     >
-      <Stack direction="row" width="100%" justifyContent="space-between">
-        <Box sx={{ my: 0.5 }}>
-          <SearchInput onChange={debouncedQueryChange} />
-        </Box>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Typography>Enabled Only</Typography>
-          <Switch
-            checked={enabledOnly}
-            onChange={() => setEnabledOnly((prevState) => !prevState)}
-          />
-        </Stack>
-      </Stack>
+      <ListToolbar
+        bare
+        end={
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Typography
+              sx={{ fontSize: 13.5, fontWeight: 500, color: 'text.secondary' }}
+            >
+              {t('lists.enabled_only')}
+            </Typography>
+            <Switch
+              checked={enabledOnly}
+              onChange={() => setEnabledOnly((prevState) => !prevState)}
+            />
+          </Stack>
+        }
+      >
+        <SearchInput onChange={debouncedQueryChange} />
+      </ListToolbar>
       {lastWeekInvitations.length > 0 && (
         <Box
           sx={{

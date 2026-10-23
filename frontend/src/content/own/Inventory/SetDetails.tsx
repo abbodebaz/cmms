@@ -20,6 +20,16 @@ import { useContext } from 'react';
 import { CompanySettingsContext } from '../../../contexts/CompanySettingsContext';
 import useAuth from '../../../hooks/useAuth';
 import { PermissionEntity } from '../../../models/owns/role';
+import { alpha } from '@mui/material/styles';
+import SectionCard from '../components/SectionCard';
+import { SoftChip } from '../components/StatusChip';
+import {
+  DetailRow,
+  DetailRowText,
+  DetailsHeader,
+  DetailsPage,
+  EmptyCardBody
+} from '../components/DetailsKit';
 
 interface PartDetailsProps {
   set: SetType;
@@ -34,78 +44,87 @@ export default function SetDetails(props: PartDetailsProps) {
   const { getFormattedCurrency } = useContext(CompanySettingsContext);
   const { getFormattedDate } = useContext(CompanySettingsContext);
 
+  const canEditSet = hasEditPermission(PermissionEntity.PARTS_AND_MULTIPARTS, set);
+  const canDeleteSet = hasDeletePermission(
+    PermissionEntity.PARTS_AND_MULTIPARTS,
+    set
+  );
   return (
-    <Grid
-      container
-      justifyContent="center"
-      alignItems="stretch"
-      spacing={2}
-      padding={4}
-    >
-      <Grid
-        item
-        xs={12}
-        display="flex"
-        flexDirection="row"
-        justifyContent="space-between"
+    <DetailsPage>
+      <DetailsHeader
+        subtitle={set?.createdAt ? getFormattedDate(set?.createdAt) : undefined}
+        title={set?.name}
+        chips={
+          <SoftChip
+            tone="primary"
+            size="medium"
+            label={`${set?.parts.length ?? 0} ${t('parts')}`}
+          />
+        }
+        actions={
+          canEditSet || canDeleteSet ? (
+            <>
+              {canEditSet && (
+                <IconButton aria-label={t('edit')} onClick={handleOpenUpdate}>
+                  <EditTwoToneIcon fontSize="small" color="primary" />
+                </IconButton>
+              )}
+              {canDeleteSet && (
+                <IconButton aria-label={t('delete')} onClick={handleOpenDelete}>
+                  <DeleteTwoToneIcon fontSize="small" color="error" />
+                </IconButton>
+              )}
+            </>
+          ) : undefined
+        }
+      />
+      <SectionCard
+        title="parts"
+        icon={<HandymanTwoToneIcon fontSize="small" />}
+        noPadding
       >
-        <Box>
-          <Typography variant="h2">{set?.name}</Typography>
-          <Typography variant="h6">
-            {getFormattedDate(set?.createdAt)}
-          </Typography>
-        </Box>
-        <Box>
-          {hasEditPermission(PermissionEntity.PARTS_AND_MULTIPARTS, set) && (
-            <IconButton onClick={handleOpenUpdate} style={{ marginRight: 10 }}>
-              <EditTwoToneIcon color="primary" />
-            </IconButton>
-          )}
-          {hasDeletePermission(PermissionEntity.PARTS_AND_MULTIPARTS, set) && (
-            <IconButton onClick={handleOpenDelete}>
-              <DeleteTwoToneIcon color="error" />
-            </IconButton>
-          )}
-        </Box>
-      </Grid>
-      <Divider />
-      <Grid item xs={12}>
-        <Box display="flex" flexDirection="row">
-          <HandymanTwoToneIcon />
-          <Typography sx={{ mb: 1, ml: 1 }} variant="h4">
-            {`${set?.parts.length} ${t('parts')}`}
-          </Typography>
-        </Box>
-        <List sx={{ width: '100%' }}>
-          {set?.parts.map((part) => (
-            <ListItemButton key={part.id} divider>
-              <ListItem
-                secondaryAction={
-                  <Typography>{getFormattedCurrency(part.cost)}</Typography>
-                }
-              >
-                <ListItemText
+        {set?.parts.length ? (
+          <Box>
+            {set?.parts.map((part) => (
+              <DetailRow key={part.id}>
+                <DetailRowText
                   primary={part.name}
                   secondary={part.description}
                 />
-              </ListItem>
-            </ListItemButton>
-          ))}
-        </List>
-        <Box display="flex" flexDirection="row" justifyContent="space-between">
-          <Box display="flex" flexDirection="row">
-            <AttachMoneyTwoToneIcon />
-            <Typography sx={{ mb: 1, ml: 1 }} variant="h4">
-              {t('total_cost')}
-            </Typography>
+                <Typography
+                  sx={{ fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap' }}
+                >
+                  {getFormattedCurrency(part.cost)}
+                </Typography>
+              </DetailRow>
+            ))}
+            <DetailRow
+              sx={{ backgroundColor: alpha(theme.palette.primary.main, 0.04) }}
+            >
+              <Box
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <AttachMoneyTwoToneIcon fontSize="small" color="primary" />
+                <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
+                  {t('total_cost')}
+                </Typography>
+              </Box>
+              <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
+                {getFormattedCurrency(
+                  set?.parts.reduce((acc, part) => acc + part.cost, 0)
+                )}
+              </Typography>
+            </DetailRow>
           </Box>
-          <Typography variant="h6" sx={{ pr: 2 }}>
-            {getFormattedCurrency(
-              set?.parts.reduce((acc, part) => acc + part.cost, 0)
-            )}
-          </Typography>
-        </Box>
-      </Grid>
-    </Grid>
+        ) : (
+          <EmptyCardBody message="—" />
+        )}
+      </SectionCard>
+    </DetailsPage>
   );
 }

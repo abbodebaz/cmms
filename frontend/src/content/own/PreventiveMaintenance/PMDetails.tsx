@@ -52,6 +52,21 @@ import { getCustomFieldValuesForDetails } from '../type';
 import { getErrorMessage } from '../../../utils/api';
 import { ContentCopyTwoTone } from '@mui/icons-material';
 import { WorkOrderMini } from '../../../models/owns/workOrder';
+import SectionCard from '../components/SectionCard';
+import { SoftChip } from '../components/StatusChip';
+import PriorityWrapper from '../components/PriorityWrapper';
+import {
+  DetailGrid,
+  DetailItem,
+  DetailsHeader,
+  DetailsPage,
+  DetailsTabs,
+  DetailThumb
+} from '../components/DetailsKit';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import EventRepeatTwoToneIcon from '@mui/icons-material/EventRepeatTwoTone';
+import PeopleAltTwoToneIcon from '@mui/icons-material/PeopleAltTwoTone';
+import AttachFileTwoToneIcon from '@mui/icons-material/AttachFileTwoTone';
 
 interface RequestDetailsProps {
   preventiveMaintenance: PreventiveMaintenance;
@@ -164,283 +179,200 @@ export default function PMDetails({
       getFormattedDate
     )
   ];
+  const pm = preventiveMaintenance;
+  const canEditPM = hasEditPermission(PermissionEntity.PREVENTIVE_MAINTENANCES, pm);
+  const canDeletePM = hasDeletePermission(
+    PermissionEntity.PREVENTIVE_MAINTENANCES,
+    pm
+  );
+  const canUseMenu =
+    hasCreatePermission(PermissionEntity.PREVENTIVE_MAINTENANCES) ||
+    hasCreatePermission(PermissionEntity.WORK_ORDERS);
   return (
-    <Grid
-      container
-      justifyContent="center"
-      alignItems="stretch"
-      spacing={2}
-      padding={4}
-    >
-      <Grid
-        item
-        xs={12}
-        display="flex"
-        flexDirection="row"
-        justifyContent="space-between"
-      >
-        <Box>
-          <Typography variant="h2">{preventiveMaintenance?.name}</Typography>
-          {preventiveMaintenance?.schedule.disabled && (
-            <Typography variant="h5">{t('paused')}</Typography>
-          )}
-        </Box>
-        <Box>
-          {(hasCreatePermission(PermissionEntity.PREVENTIVE_MAINTENANCES) ||
-            hasCreatePermission(PermissionEntity.WORK_ORDERS)) && (
-            <IconButton style={{ marginRight: 10 }} onClick={handleOpenMenu}>
-              <MoreVertTwoToneIcon />
-            </IconButton>
-          )}
-          {hasEditPermission(
-            PermissionEntity.PREVENTIVE_MAINTENANCES,
-            preventiveMaintenance
-          ) && (
-            <IconButton style={{ marginRight: 10 }} onClick={handleOpenUpdate}>
-              <EditTwoToneIcon color="primary" />
-            </IconButton>
-          )}
-          {hasDeletePermission(
-            PermissionEntity.PREVENTIVE_MAINTENANCES,
-            preventiveMaintenance
-          ) && (
-            <IconButton onClick={handleOpenDelete}>
-              <DeleteTwoToneIcon color="error" />
-            </IconButton>
-          )}
-        </Box>
-      </Grid>
-      <Divider />
-      <Grid item xs={12}>
-        <Tabs value={tab} onChange={handleChange}>
-          <Tab label={t('details')} />
-          <Tab label={t('recent_work_orders')} />
-        </Tabs>
-      </Grid>
+    <DetailsPage>
+      <DetailsHeader
+        subtitle={pm?.customId ? <bdi>{`#${pm.customId}`}</bdi> : undefined}
+        title={pm?.name}
+        media={
+          pm.image ? (
+            <DetailThumb
+              src={pm.image.url}
+              alt={pm?.name}
+              size={80}
+              onClick={() => setIsImageViewerOpen(true)}
+            />
+          ) : undefined
+        }
+        chips={
+          <>
+            {pm?.schedule.disabled ? (
+              <SoftChip tone="warning" size="medium" label={t('paused')} />
+            ) : (
+              <SoftChip tone="success" size="medium" label={t('active')} />
+            )}
+            {pm.priority && pm.priority !== 'NONE' && (
+              <PriorityWrapper priority={pm.priority} withSuffix size="medium" />
+            )}
+          </>
+        }
+        actions={
+          canUseMenu || canEditPM || canDeletePM ? (
+            <>
+              {canUseMenu && (
+                <IconButton aria-label={t('more')} onClick={handleOpenMenu}>
+                  <MoreVertTwoToneIcon fontSize="small" />
+                </IconButton>
+              )}
+              {canEditPM && (
+                <IconButton aria-label={t('edit')} onClick={handleOpenUpdate}>
+                  <EditTwoToneIcon fontSize="small" color="primary" />
+                </IconButton>
+              )}
+              {canDeletePM && (
+                <IconButton aria-label={t('delete')} onClick={handleOpenDelete}>
+                  <DeleteTwoToneIcon fontSize="small" color="error" />
+                </IconButton>
+              )}
+            </>
+          ) : undefined
+        }
+      />
+      <DetailsTabs value={tab} onChange={handleChange}>
+        <Tab label={t('details')} />
+        <Tab label={t('recent_work_orders')} />
+      </DetailsTabs>
       {tab === 0 ? (
-        <Grid item xs={12}>
-          <Box>
-            <Typography sx={{ mt: 2, mb: 1 }} variant="h4">
-              {t('trigger_details')}
-            </Typography>
-            <Grid container spacing={2}>
-              {preventiveMaintenance.schedule?.recurrenceBasedOn && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('based_on')}
-                  </Typography>
-                  <Typography variant="h6">
-                    {preventiveMaintenance.schedule.recurrenceBasedOn ===
-                    'SCHEDULED_DATE'
-                      ? t('scheduled_date')
-                      : t('completed_on')}
-                  </Typography>
-                </Grid>
+        <Stack spacing={2.5}>
+          <SectionCard
+            title="trigger_details"
+            icon={<EventRepeatTwoToneIcon fontSize="small" />}
+          >
+            <DetailGrid>
+              {pm.schedule?.frequency && (
+                <DetailItem label={t('frequency')} fullWidth>
+                  {getScheduleDescription(pm.schedule, dateLocale, t)}
+                </DetailItem>
               )}
-              {preventiveMaintenance.schedule?.startsOn && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('starts_on')}
-                  </Typography>
-                  <Typography variant="h6">
-                    <DualDate date={preventiveMaintenance.schedule.startsOn} />
-                  </Typography>
-                </Grid>
+              {pm.schedule?.recurrenceBasedOn && (
+                <DetailItem label={t('based_on')}>
+                  {pm.schedule.recurrenceBasedOn === 'SCHEDULED_DATE'
+                    ? t('scheduled_date')
+                    : t('completed_on')}
+                </DetailItem>
               )}
-              {preventiveMaintenance.schedule?.endsOn && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('ends_on')}
-                  </Typography>
-                  <Typography variant="h6">
-                    <DualDate date={preventiveMaintenance.schedule.endsOn} />
-                  </Typography>
-                </Grid>
-              )}
-              {preventiveMaintenance.schedule.frequency && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('frequency')}
-                  </Typography>
-                  <Typography variant="h6">
-                    {getScheduleDescription(
-                      preventiveMaintenance.schedule,
-                      dateLocale,
-                      t
-                    )}
-                  </Typography>
-                </Grid>
-              )}
-              {preventiveMaintenance?.createdBy && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('created_by')}
-                  </Typography>
-                  <Link
-                    variant="h6"
-                    href={getUserUrl(preventiveMaintenance.createdBy)}
-                  >
-                    {getUserNameById(preventiveMaintenance.createdBy)}
+              <DetailItem label={t('starts_on')}>
+                {pm.schedule?.startsOn ? (
+                  <DualDate date={pm.schedule.startsOn} />
+                ) : null}
+              </DetailItem>
+              <DetailItem label={t('ends_on')}>
+                {pm.schedule?.endsOn ? (
+                  <DualDate date={pm.schedule.endsOn} />
+                ) : null}
+              </DetailItem>
+              {pm?.createdBy && (
+                <DetailItem label={t('created_by')}>
+                  <Link href={getUserUrl(pm.createdBy)} underline="hover">
+                    {getUserNameById(pm.createdBy)}
                   </Link>
-                </Grid>
+                </DetailItem>
               )}
-            </Grid>
-          </Box>
-          <Box>
-            <Typography sx={{ mt: 2, mb: 1 }} variant="h4">
-              {t('wo_details')}
-            </Typography>
-            <Grid container spacing={2}>
-              <>
-                {preventiveMaintenance.image && (
-                  <Grid
-                    item
-                    xs={12}
-                    lg={12}
-                    display="flex"
-                    justifyContent="center"
-                  >
-                    <img
-                      src={preventiveMaintenance.image.url}
-                      style={{
-                        borderRadius: 5,
-                        height: 250,
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => setIsImageViewerOpen(true)}
-                    />
-                  </Grid>
-                )}
-                {fieldsToRender(preventiveMaintenance).map((field) => (
+            </DetailGrid>
+          </SectionCard>
+          <SectionCard
+            title="wo_details"
+            icon={<InfoTwoToneIcon fontSize="small" />}
+          >
+            <DetailGrid>
+              {fieldsToRender(pm)
+                .filter(
+                  (field) =>
+                    field.label !== t('description') &&
+                    field.label !== t('priority')
+                )
+                .map((field) => (
                   <BasicField
                     key={field.label}
                     isPriority={field.label === t('priority')}
                     {...field}
                   />
                 ))}
-                {preventiveMaintenance?.asset && (
-                  <Grid item xs={12} lg={6}>
-                    <Typography
-                      variant="h6"
-                      sx={{ color: theme.colors.alpha.black[70] }}
-                    >
-                      {t('asset')}
-                    </Typography>
-                    <Link
-                      variant="h6"
-                      href={getAssetUrl(preventiveMaintenance.asset.id)}
-                    >
-                      {preventiveMaintenance.asset.name}
+              {pm.description && (
+                <DetailItem label={t('description')} fullWidth>
+                  <Box sx={{ whiteSpace: 'pre-line', fontWeight: 500 }}>
+                    {pm.description}
+                  </Box>
+                </DetailItem>
+              )}
+            </DetailGrid>
+          </SectionCard>
+          {(pm?.asset || pm?.location || pm?.primaryUser || pm?.team) && (
+            <SectionCard
+              title="details_assignment"
+              icon={<PeopleAltTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid>
+                {pm?.asset && (
+                  <DetailItem label={t('asset')}>
+                    <Link href={getAssetUrl(pm.asset.id)} underline="hover">
+                      {pm.asset.name}
                     </Link>
-                  </Grid>
+                  </DetailItem>
                 )}
-                {preventiveMaintenance?.location && (
-                  <Grid item xs={12} lg={6}>
-                    <Typography
-                      variant="h6"
-                      sx={{ color: theme.colors.alpha.black[70] }}
-                    >
-                      {t('location')}
-                    </Typography>
-                    <Link
-                      variant="h6"
-                      href={getLocationUrl(preventiveMaintenance.location.id)}
-                    >
-                      {preventiveMaintenance.location.name}
+                {pm?.location && (
+                  <DetailItem label={t('location')}>
+                    <Link href={getLocationUrl(pm.location.id)} underline="hover">
+                      {pm.location.name}
                     </Link>
-                  </Grid>
+                  </DetailItem>
                 )}
-                {preventiveMaintenance?.primaryUser && (
-                  <Grid item xs={12} lg={6}>
-                    <Typography
-                      variant="h6"
-                      sx={{ color: theme.colors.alpha.black[70] }}
-                    >
-                      {t('assigned_to')}
-                    </Typography>
-                    <Link
-                      variant="h6"
-                      href={getUserUrl(preventiveMaintenance.primaryUser.id)}
-                    >
-                      {`${preventiveMaintenance.primaryUser.firstName} ${preventiveMaintenance.primaryUser.lastName}`}
+                {pm?.primaryUser && (
+                  <DetailItem label={t('assigned_to')}>
+                    <Link href={getUserUrl(pm.primaryUser.id)} underline="hover">
+                      {`${pm.primaryUser.firstName} ${pm.primaryUser.lastName}`}
                     </Link>
-                  </Grid>
+                  </DetailItem>
                 )}
-                {preventiveMaintenance?.team && (
-                  <Grid item xs={12} lg={6}>
-                    <Typography
-                      variant="h6"
-                      sx={{ color: theme.colors.alpha.black[70] }}
-                    >
-                      {t('team')}
-                    </Typography>
-                    <Link
-                      variant="h6"
-                      href={getTeamUrl(preventiveMaintenance.team.id)}
-                    >
-                      {preventiveMaintenance.team.name}
+                {pm?.team && (
+                  <DetailItem label={t('team')}>
+                    <Link href={getTeamUrl(pm.team.id)} underline="hover">
+                      {pm.team.name}
                     </Link>
-                  </Grid>
+                  </DetailItem>
                 )}
-                {!!preventiveMaintenance.files.length && (
-                  <Grid item xs={12} lg={12}>
-                    <Typography
-                      variant="h6"
-                      sx={{ color: theme.colors.alpha.black[70] }}
-                    >
-                      {t('files')}
-                    </Typography>
-                    <FilesList
-                      confirmMessage={t('confirm_delete_file')}
-                      removeDisabled={
-                        !hasEditPermission(
-                          PermissionEntity.PREVENTIVE_MAINTENANCES,
-                          preventiveMaintenance
-                        )
-                      }
-                      files={preventiveMaintenance.files}
-                      onRemove={(id: number) => {
-                        dispatch(
-                          editPreventiveMaintenance(preventiveMaintenance.id, {
-                            ...preventiveMaintenance,
-                            files: preventiveMaintenance.files.filter(
-                              (f) => f.id !== id
-                            )
-                          })
-                        );
-                      }}
-                    />
-                  </Grid>
-                )}
-                {!!tasks.length && (
-                  <Grid item xs={12} lg={12}>
-                    <Tasks
-                      tasksProps={tasks}
-                      workOrderId={null}
-                      handleZoomImage={null}
-                      disabled={true}
-                    />
-                  </Grid>
-                )}
-              </>
-            </Grid>
-          </Box>
-        </Grid>
+              </DetailGrid>
+            </SectionCard>
+          )}
+          {!!tasks.length && (
+            <Tasks
+              tasksProps={tasks}
+              workOrderId={null}
+              handleZoomImage={null}
+              disabled={true}
+            />
+          )}
+          {!!pm.files.length && (
+            <SectionCard
+              title="files"
+              icon={<AttachFileTwoToneIcon fontSize="small" />}
+              noPadding
+            >
+              <FilesList
+                confirmMessage={t('confirm_delete_file')}
+                removeDisabled={!canEditPM}
+                files={pm.files}
+                onRemove={(id: number) => {
+                  dispatch(
+                    editPreventiveMaintenance(pm.id, {
+                      ...pm,
+                      files: pm.files.filter((f) => f.id !== id)
+                    })
+                  );
+                }}
+              />
+            </SectionCard>
+          )}
+        </Stack>
       ) : (
         <RecentWorkOrders pmId={preventiveMaintenance.id} />
       )}
@@ -481,6 +413,6 @@ export default function PMDetails({
           </Stack>
         </MenuItem>
       </Menu>
-    </Grid>
+    </DetailsPage>
   );
 }

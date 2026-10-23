@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Cell, Legend, Pie, PieChart, Tooltip } from 'recharts';
@@ -22,6 +27,9 @@ interface OwnProps {
 function RequestStatsByPriority({ handleOpenModal, start, end, companyId }: OwnProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const dispatch = useDispatch();
   const { requestStatsByPriority, loading } = useSelector(
     (state) => state.requestAnalytics
@@ -79,7 +87,7 @@ function RequestStatsByPriority({ handleOpenModal, start, end, companyId }: OwnP
             cy="50%"
             outerRadius={100}
             innerRadius={50}
-            fill="#8884d8"
+            fill={chartPalette[0]}
           >
             {formattedData.map((entry, index) => (
               <Cell

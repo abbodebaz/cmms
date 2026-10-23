@@ -2,7 +2,9 @@ import { useContext, useEffect } from 'react';
 
 import { Helmet } from 'react-helmet-async';
 
-import { Box, Grid } from '@mui/material';
+import { Box, Stack } from '@mui/material';
+import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
+import PageHeading from '../Settings/components/PageHeading';
 import CompanyCover from './CompanyCover';
 import CompanyDetails from './CompanyDetails';
 import CompanyPlan from './CompanyPlan';
@@ -27,33 +29,19 @@ function CompanyProfile() {
       <Helmet>
         <title>{company.name} - Company Details</title>
       </Helmet>
-      <Box
-        sx={{
-          mt: 3
-        }}
-      >
-        <Grid
-          sx={{
-            px: 4
-          }}
-          container
-          direction="row"
-          justifyContent="center"
-          alignItems="stretch"
-          spacing={1}
-        >
-          <Grid item xs={12}>
-            <CompanyCover image={company.logo?.url} />
-          </Grid>
-          <Grid item xs={12}>
-            <CompanyDetails company={company} />
-          </Grid>
+      <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+        <PageHeading
+          title={company.name || t('company')}
+          description={t('company_details_description')}
+          icon={<BusinessTwoToneIcon />}
+        />
+        <Stack spacing={{ xs: 2, md: 2.5 }}>
+          <CompanyCover image={company.logo?.url} />
+          <CompanyDetails company={company} />
           {user.ownsCompany && (
-            <Grid item xs={12}>
-              <CompanyPlan plan={company.subscription.subscriptionPlan} />
-            </Grid>
+            <CompanyPlan plan={company.subscription.subscriptionPlan} />
           )}
-        </Grid>
+        </Stack>
       </Box>
     </>
   );

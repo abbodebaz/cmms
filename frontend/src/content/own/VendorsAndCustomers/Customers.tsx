@@ -9,7 +9,9 @@ import {
   Typography
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { ListToolbar } from '../components/ListPageShell';
 import Form from '../components/form';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 import * as Yup from 'yup';
 import {
   getCustomFieldsValues,
@@ -28,6 +30,18 @@ import {
   websiteRegExp
 } from '../../../utils/validators';
 import { Close } from '@mui/icons-material';
+import { Link } from '@mui/material';
+import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
+import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
+import ArrowBackTwoToneIcon from '@mui/icons-material/ArrowBackTwoTone';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import SectionCard from '../components/SectionCard';
+import { SoftChip } from '../components/StatusChip';
+import {
+  DetailGrid,
+  DetailItem,
+  DetailsHeader
+} from '../components/DetailsKit';
 import { Customer } from '../../../models/owns/customer';
 import { useParams } from 'react-router-dom';
 import {
@@ -238,7 +252,8 @@ const Customers = ({ openModal, handleCloseModal }: PropsType) => {
     {
       name: 'details',
       type: 'titleGroupField',
-      label: t('details')
+      label: t('details'),
+      description: t('form_section_customer_details_desc')
     },
     {
       name: 'name',
@@ -246,31 +261,6 @@ const Customers = ({ openModal, handleCloseModal }: PropsType) => {
       label: t('customer_name'),
       placeholder: 'John Doe',
       required: true
-    },
-    {
-      name: 'address',
-      type: 'text',
-      label: t('address'),
-      placeholder: t('address')
-    },
-    {
-      name: 'phone',
-      type: 'text',
-      label: t('phone'),
-      placeholder: '+212611223344',
-      required: true
-    },
-    {
-      name: 'website',
-      type: 'text',
-      label: t('website'),
-      placeholder: 'https://web-site.com'
-    },
-    {
-      name: 'email',
-      type: 'text',
-      label: t('email'),
-      placeholder: 'john.doe@gmail.com'
     },
     {
       name: 'customerType',
@@ -286,6 +276,44 @@ const Customers = ({ openModal, handleCloseModal }: PropsType) => {
       placeholder: t('customer_description_description')
     },
     {
+      name: 'contactGroup',
+      type: 'titleGroupField',
+      label: t('form_section_contact'),
+      description: t('form_section_contact_desc')
+    },
+    {
+      name: 'phone',
+      type: 'text',
+      label: t('phone'),
+      placeholder: '+212611223344',
+      required: true
+    },
+    {
+      name: 'email',
+      type: 'text',
+      label: t('email'),
+      placeholder: 'john.doe@gmail.com'
+    },
+    {
+      name: 'website',
+      type: 'text',
+      label: t('website'),
+      placeholder: 'https://web-site.com'
+    },
+    {
+      name: 'address',
+      type: 'text',
+      label: t('address'),
+      placeholder: t('address')
+    },
+    {
+      name: 'billingGroup',
+      type: 'titleGroupField',
+      label: t('billing_information'),
+      description: t('form_section_billing_desc'),
+      defaultCollapsed: true
+    },
+    {
       name: 'rate',
       type: 'number',
       label: t('hourly_rate'),
@@ -294,9 +322,10 @@ const Customers = ({ openModal, handleCloseModal }: PropsType) => {
       // helperText: 'Changes will only apply to Work Orders created in the future'
     },
     {
-      name: 'details',
-      type: 'titleGroupField',
-      label: t('billing_information')
+      name: 'billingName',
+      type: 'text',
+      label: t('billing_name'),
+      placeholder: t('billing_name')
     },
     {
       name: 'billingAddress',
@@ -311,10 +340,9 @@ const Customers = ({ openModal, handleCloseModal }: PropsType) => {
       placeholder: t('address_line_2')
     },
     {
-      name: 'billingName',
-      type: 'text',
-      label: t('billing_name'),
-      placeholder: t('billing_name')
+      name: 'customFieldsGroup',
+      type: 'titleGroupField',
+      label: t('custom_fields')
     },
     // {
     //   name: 'billingCurrency',
@@ -414,18 +442,11 @@ const Customers = ({ openModal, handleCloseModal }: PropsType) => {
   ];
   const RenderCustomersAddModal = () => (
     <Dialog fullWidth maxWidth="md" open={openModal} onClose={handleCloseModal}>
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('add_customer')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('add_customer_description')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('add_customer')}
+        subtitle={t('add_customer_description')}
+        onClose={handleCloseModal}
+      />
       <DialogContent
         dividers
         sx={{
@@ -527,69 +548,66 @@ const Customers = ({ openModal, handleCloseModal }: PropsType) => {
       open={isCustomerDetailsOpen}
       onClose={handleCloseDetails}
     >
-      <DialogTitle
-        sx={{
-          p: 3,
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between'
-        }}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-          {viewOrUpdate === 'view' ? (
-            hasEditPermission(
-              PermissionEntity.VENDORS_AND_CUSTOMERS,
-              currentCustomer
-            ) && (
-              <Typography
-                onClick={() => setViewOrUpdate('update')}
-                style={{ cursor: 'pointer' }}
-                variant="subtitle1"
-                mr={2}
+      <DialogTitle component="div" sx={{ p: { xs: 2, sm: 3 }, pb: 0 }}>
+        <DetailsHeader
+          subtitle={t('customer')}
+          title={currentCustomer?.name}
+          chips={
+            currentCustomer?.customerType ? (
+              <SoftChip tone="neutral" size="medium" label={currentCustomer.customerType} />
+            ) : undefined
+          }
+          actions={
+            <>
+              {viewOrUpdate === 'view' ? (
+                hasEditPermission(
+                  PermissionEntity.VENDORS_AND_CUSTOMERS,
+                  currentCustomer
+                ) && (
+                  <IconButton
+                    aria-label={t('edit')}
+                    onClick={() => setViewOrUpdate('update')}
+                  >
+                    <EditTwoToneIcon fontSize="small" color="primary" />
+                  </IconButton>
+                )
+              ) : (
+                <IconButton
+                  aria-label={t('go_back')}
+                  onClick={() => setViewOrUpdate('view')}
+                >
+                  <ArrowBackTwoToneIcon
+                    fontSize="small"
+                    sx={{ transform: (theme) =>
+                      theme.direction === 'rtl' ? 'scaleX(-1)' : 'none' }}
+                  />
+                </IconButton>
+              )}
+              {hasDeletePermission(
+                PermissionEntity.VENDORS_AND_CUSTOMERS,
+                currentCustomer
+              ) && (
+                <IconButton
+                  aria-label={t('to_delete')}
+                  onClick={() => {
+                    setIsCustomerDetailsOpen(false);
+                    setOpenDelete(true);
+                  }}
+                >
+                  <DeleteTwoToneIcon fontSize="small" color="error" />
+                </IconButton>
+              )}
+              <IconButton
+                aria-label="close"
+                onClick={() => {
+                  setIsCustomerDetailsOpen(false);
+                }}
               >
-                {t('edit')}
-              </Typography>
-            )
-          ) : (
-            <Typography
-              onClick={() => setViewOrUpdate('view')}
-              style={{ cursor: 'pointer' }}
-              variant="subtitle1"
-              mr={2}
-            >
-              {t('go_back')}
-            </Typography>
-          )}
-          {hasDeletePermission(
-            PermissionEntity.VENDORS_AND_CUSTOMERS,
-            currentCustomer
-          ) && (
-            <Typography
-              onClick={() => {
-                setIsCustomerDetailsOpen(false);
-                setOpenDelete(true);
-              }}
-              variant="subtitle1"
-              style={{ cursor: 'pointer' }}
-            >
-              {t('to_delete')}
-            </Typography>
-          )}
-        </Box>
-        <IconButton
-          aria-label="close"
-          onClick={() => {
-            setIsCustomerDetailsOpen(false);
-          }}
-          sx={{
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500]
-          }}
-        >
-          <Close />
-        </IconButton>
+                <Close fontSize="small" />
+              </IconButton>
+            </>
+          }
+        />
       </DialogTitle>
 
       <DialogContent
@@ -599,34 +617,53 @@ const Customers = ({ openModal, handleCloseModal }: PropsType) => {
         }}
       >
         {viewOrUpdate === 'view' ? (
-          <Box>
-            <Typography variant="h4" sx={{ textAlign: 'center' }} gutterBottom>
-              {currentCustomer?.name}
-            </Typography>
-            <Typography variant="subtitle1" sx={{ textAlign: 'center', mb: 3 }}>
-              {currentCustomer?.description}
-            </Typography>
-            {fieldsToRender.map((field) =>
-              renderKeyAndValue(field.label, field.value)
+          <Stack spacing={2.5}>
+            {currentCustomer?.description && (
+              <Typography
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-line',
+                  textAlign: 'start'
+                }}
+              >
+                {currentCustomer.description}
+              </Typography>
             )}
-            {currentCustomer?.website && (
-              <>
-                <Typography variant="subtitle1">{t('website')}</Typography>
-
-                <Typography variant="h5" sx={{ mb: 1 }}>
-                  <a
-                    href={
-                      currentCustomer.website.toLowerCase().startsWith('https')
-                        ? currentCustomer.website
-                        : `https://${currentCustomer.website}`
-                    }
-                  >
-                    {currentCustomer?.website}
-                  </a>
-                </Typography>
-              </>
-            )}
-          </Box>
+            <SectionCard
+              title="details"
+              icon={<InfoTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid minColumnWidth={180}>
+                {fieldsToRender
+                  .filter((field) => field.label !== t('type'))
+                  .map((field) => (
+                    <DetailItem
+                      key={field.label}
+                      label={field.label}
+                      value={field.value}
+                    />
+                  ))}
+                <DetailItem label={t('website')}>
+                  {currentCustomer?.website ? (
+                    <Link
+                      href={
+                        currentCustomer.website.toLowerCase().startsWith('http')
+                          ? currentCustomer.website
+                          : `https://${currentCustomer.website}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      underline="hover"
+                    >
+                      {currentCustomer.website}
+                    </Link>
+                  ) : null}
+                </DetailItem>
+              </DetailGrid>
+            </SectionCard>
+          </Stack>
         ) : (
           <Box>
             <Form
@@ -671,11 +708,11 @@ const Customers = ({ openModal, handleCloseModal }: PropsType) => {
     >
       <ModalCustomerDetails />
       <RenderCustomersAddModal />
-      <Stack direction="row" width="95%">
-        <Box sx={{ my: 0.5 }}>
+      <Box sx={{ width: '100%', px: 2 }}>
+        <ListToolbar bare>
           <SearchInput onChange={debouncedQueryChange} />
-        </Box>
-      </Stack>
+        </ListToolbar>
+      </Box>
       {RenderCustomersList()}
       <ConfirmDialog
         open={openDelete}

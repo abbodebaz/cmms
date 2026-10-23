@@ -18,6 +18,14 @@ import {
   Typography
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import {
+  ListCard,
+  ListCardBody,
+  ListPage,
+  ListPageHeader,
+  ListToolbar,
+  SoftIconButton
+} from '../components/ListPageShell';
 import * as React from 'react';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { TitleContext } from '../../../contexts/TitleContext';
@@ -44,6 +52,7 @@ import {
 import { loadFilterFields, saveFilterFields } from '../../../utils/filter';
 import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 import Form from '../components/form';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 import * as Yup from 'yup';
 import { IField } from '../type';
 import PMDetails from './PMDetails';
@@ -468,11 +477,22 @@ function PMs() {
     })
   ];
 
+  const woBaseFields = getWOBaseFields(
+    t,
+    customFields.filter((cf) => cf.copyOnRepeat),
+    { delay: true }
+  );
+  const pickWOBaseFields = (names: string[]): IField[] =>
+    names.flatMap((name) => woBaseFields.filter((field) => field.name === name));
+  const woBaseCustomFields = woBaseFields.filter((field) =>
+    field.name.startsWith('customField_')
+  );
   const defaultFields: Array<IField> = [
     {
       name: 'triggerConfiguration',
       type: 'titleGroupField',
-      label: t('trigger_configuration')
+      label: t('trigger_configuration'),
+      description: t('form_section_pm_trigger_desc')
     },
     {
       name: 'name',
@@ -541,17 +561,34 @@ function PMs() {
     {
       name: 'titleGroup',
       type: 'titleGroupField',
-      label: 'wo_configuration'
+      label: 'wo_configuration',
+      description: t('form_section_pm_wo_desc')
     },
-    ...getWOBaseFields(
-      t,
-      customFields.filter((cf) => cf.copyOnRepeat),
-      { delay: true }
-    ),
+    ...pickWOBaseFields([
+      'title',
+      'description',
+      'priority',
+      'category',
+      'location',
+      'asset',
+      'dueDateDelay',
+      'estimatedStartDate',
+      'estimatedDuration'
+    ]),
     {
-      name: 'requiredSignature',
-      type: 'switch',
-      label: t('requires_signature')
+      name: 'assignmentGroup',
+      type: 'titleGroupField',
+      label: t('form_section_assignment'),
+      description: t('form_section_wo_assignment_desc'),
+      defaultCollapsed: true
+    },
+    ...pickWOBaseFields(['primaryUser', 'team']),
+    {
+      name: 'attachmentsGroup',
+      type: 'titleGroupField',
+      label: t('form_section_tasks_attachments'),
+      description: t('form_section_tasks_attachments_desc'),
+      defaultCollapsed: true
     },
     {
       name: 'tasks',
@@ -559,7 +596,23 @@ function PMs() {
       type2: 'task',
       label: t('tasks'),
       placeholder: t('select_tasks')
-    }
+    },
+    ...pickWOBaseFields(['image', 'files']),
+    {
+      name: 'requiredSignature',
+      type: 'switch',
+      label: t('requires_signature')
+    },
+    ...(woBaseCustomFields.length
+      ? ([
+          {
+            name: 'customFieldsGroup',
+            type: 'titleGroupField',
+            label: t('custom_fields')
+          },
+          ...woBaseCustomFields
+        ] as IField[])
+      : [])
   ];
   const defaultShape = {
     name: Yup.string().required(t('required_trigger_name')),
@@ -612,18 +665,18 @@ function PMs() {
         }
       }}
     >
-      <DialogTitle
-        sx={{
-          p: 3
+      <FormDialogTitle
+        title={copyPmData ? t('copy_pm') : t('schedule_wo')}
+        subtitle={t('schedule_wo_description')}
+        onClose={() => {
+          if (isFormDirty) {
+            setOpenDiscardDialog(true);
+          } else {
+            setOpenAddModal(false);
+            setCopyPmData(null);
+          }
         }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {copyPmData ? t('copy_pm') : t('schedule_wo')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('schedule_wo_description')}
-        </Typography>
-      </DialogTitle>
+      />
       <DialogContent
         dividers
         sx={{
@@ -696,18 +749,11 @@ function PMs() {
       open={openUpdateModal}
       onClose={() => setOpenUpdateModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('edit_wo_trigger')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('edit_wo_trigger_description')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('edit_wo_trigger')}
+        subtitle={t('edit_wo_trigger_description')}
+        onClose={() => setOpenUpdateModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -782,72 +828,59 @@ function PMs() {
         </Helmet>
         {renderAddModal()}
         {renderUpdateModal()}
-        <Stack
-          justifyContent="center"
-          alignItems="stretch"
-          spacing={1}
-          paddingX={4}
-        >
-          <Stack direction={'row'} alignSelf={'flex-end'} spacing={1} mt={1}>
-            <IconButton onClick={handleOpenMenu} color="primary">
-              <MoreVertTwoToneIcon />
-            </IconButton>
-            {hasCreatePermission(PermissionEntity.PREVENTIVE_MAINTENANCES) && (
-              <SplitButton
-                label={t('create_trigger')}
-                startIcon={<AddTwoToneIcon />}
-                onMainClick={() => setOpenAddModal(true)}
-                sx={{ mt: 1, alignSelf: 'flex-end' }}
-                menuItems={
-                  hasViewPermission(PermissionEntity.SETTINGS) &&
-                  hasFeature(PlanFeature.IMPORT_CSV)
-                    ? [
-                        {
-                          label: t('import_from_spreadsheet'),
-                          onClick: () =>
-                            navigate('/app/imports/preventive-maintenances')
-                        }
-                      ]
-                    : []
-                }
-              />
-            )}
-          </Stack>
-          <Box>
-            <Card
-              sx={{
-                py: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Stack
-                sx={{ ml: 1, mb: 1 }}
-                direction="row"
-                spacing={1}
-                justifyContent={'flex-start'}
-                width={'95%'}
-              >
-                <EnumFilter
-                  filterFields={criteria.filterFields}
-                  onChange={onFilterChange}
-                  completeOptions={['NONE', 'LOW', 'MEDIUM', 'HIGH']}
-                  fieldName="priority"
-                  icon={<SignalCellularAltTwoToneIcon />}
-                />
-                {user?.superAccountRelations?.length > 0 && (
-                  <CompanyFilter
-                    filterFields={criteria.filterFields}
-                    onChange={onFilterChange}
-                    superAccountRelations={user.superAccountRelations}
-                    icon={<BusinessTwoToneIcon />}
+        <ListPage>
+          <ListPageHeader
+            title={t('preventive_maintenance')}
+            count={preventiveMaintenances.totalElements}
+            actions={
+              <>
+                <SoftIconButton title={t('more')} onClick={handleOpenMenu}>
+                  <MoreVertTwoToneIcon />
+                </SoftIconButton>
+                {hasCreatePermission(
+                  PermissionEntity.PREVENTIVE_MAINTENANCES
+                ) && (
+                  <SplitButton
+                    label={t('create_trigger')}
+                    startIcon={<AddTwoToneIcon />}
+                    onMainClick={() => setOpenAddModal(true)}
+                    menuItems={
+                      hasViewPermission(PermissionEntity.SETTINGS) &&
+                      hasFeature(PlanFeature.IMPORT_CSV)
+                        ? [
+                            {
+                              label: t('import_from_spreadsheet'),
+                              onClick: () =>
+                                navigate('/app/imports/preventive-maintenances')
+                            }
+                          ]
+                        : []
+                    }
                   />
                 )}
-                <SearchInput onChange={debouncedQueryChange} />
-              </Stack>
-              <Box sx={{ width: '95%' }}>
+              </>
+            }
+          />
+          <ListCard>
+            <ListToolbar>
+              <EnumFilter
+                filterFields={criteria.filterFields}
+                onChange={onFilterChange}
+                completeOptions={['NONE', 'LOW', 'MEDIUM', 'HIGH']}
+                fieldName="priority"
+                icon={<SignalCellularAltTwoToneIcon />}
+              />
+              {user?.superAccountRelations?.length > 0 && (
+                <CompanyFilter
+                  filterFields={criteria.filterFields}
+                  onChange={onFilterChange}
+                  superAccountRelations={user.superAccountRelations}
+                  icon={<BusinessTwoToneIcon />}
+                />
+              )}
+              <SearchInput onChange={debouncedQueryChange} />
+            </ListToolbar>
+            <ListCardBody>
                 <CustomDatagrid2
                   columns={columns}
                   data={preventiveMaintenances.content}
@@ -872,10 +905,9 @@ function PMs() {
                   pinnedColumns={pinnedColumns}
                   onPinnedColumnsChange={setPinnedColumns}
                 />
-              </Box>
-            </Card>
-          </Box>
-        </Stack>
+            </ListCardBody>
+          </ListCard>
+        </ListPage>
         <Drawer
           anchor="right"
           open={openDrawer}

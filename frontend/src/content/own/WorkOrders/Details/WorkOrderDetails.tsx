@@ -98,17 +98,25 @@ import CloseIcon from '@mui/icons-material/Close';
 import CheckTwoToneIcon from '@mui/icons-material/CheckTwoTone';
 import EmailTwoToneIcon from '@mui/icons-material/EmailTwoTone';
 import { ContentCopyTwoTone } from '@mui/icons-material';
-
-const LabelWrapper = styled(Box)(
-  ({ theme }) => `
-    font-size: ${theme.typography.pxToRem(10)};
-    font-weight: bold;
-    text-transform: uppercase;
-    border-radius: ${theme.general.borderRadiusSm};
-    padding: ${theme.spacing(0.9, 1.5, 0.7)};
-    line-height: 1;
-  `
-);
+import { alpha } from '@mui/material/styles';
+import SectionCard from '../../components/SectionCard';
+import StatusChip, { statusTone } from '../../components/StatusChip';
+import {
+  CardBody,
+  DetailGrid,
+  DetailItem,
+  DetailRow,
+  DetailsHeader,
+  DetailsPage,
+  DetailThumb,
+  MutedText
+} from '../../components/DetailsKit';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import PeopleAltTwoToneIcon from '@mui/icons-material/PeopleAltTwoTone';
+import CheckCircleTwoToneIcon from '@mui/icons-material/CheckCircleTwoTone';
+import HandymanTwoToneIcon from '@mui/icons-material/HandymanTwoTone';
+import AttachFileTwoToneIcon from '@mui/icons-material/AttachFileTwoTone';
+import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 
 interface WorkOrderDetailsProps {
   workOrder: WorkOrder;
@@ -445,31 +453,27 @@ export default function WorkOrderDetails(props: WorkOrderDetailsProps) {
         ? value.toString()
         : `https://${value}`;
       return (
-        <Grid item xs={12} lg={6}>
-          <Typography variant="h6" sx={{ color: theme.colors.alpha.black[70] }}>
-            {label}
-          </Typography>
+        <DetailItem label={label}>
           {type ? (
-            <Link href={getPath(type, id)} variant="h6" fontWeight="bold">
+            <Link href={getPath(type, id)} underline="hover">
               {value}
             </Link>
           ) : isLink ? (
             <Link
-              variant="h6"
-              fontWeight="bold"
               href={href}
+              underline="hover"
               target="_blank"
               rel="noopener noreferrer"
             >
               {value}
             </Link>
           ) : (
-            <Typography variant="h6">
+            <>
               {value}
               {hijriDate && <HijriSuffix date={hijriDate} />}
-            </Typography>
+            </>
           )}
-        </Grid>
+        </DetailItem>
       );
     } else return null;
   };
@@ -537,56 +541,93 @@ export default function WorkOrderDetails(props: WorkOrderDetailsProps) {
       getFormattedDate
     )
   ];
+  const canEditWO = hasEditPermission(PermissionEntity.WORK_ORDERS, workOrder);
+  const canDeleteWO = hasDeletePermission(
+    PermissionEntity.WORK_ORDERS,
+    workOrder
+  );
+  const statusPalette = theme.colors[
+    statusTone(workOrder.status) === 'neutral'
+      ? 'primary'
+      : (statusTone(workOrder.status) as 'info' | 'primary' | 'warning' | 'success')
+  ];
+  const softActionSx = {
+    borderRadius: '10px',
+    fontWeight: 700,
+    color: theme.palette.primary.dark,
+    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+    '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.16) }
+  };
+  const hasAssignment =
+    !!workOrder.primaryUser ||
+    !!workOrder.assignedTo.length ||
+    !!workOrder.customers.length ||
+    !!workOrder.team ||
+    !!primaryTime;
   return (
-    <Grid
-      container
-      justifyContent="center"
-      alignItems="stretch"
-      spacing={2}
-      padding={4}
-    >
-      <Grid
-        item
-        xs={12}
-        display="flex"
-        flexDirection="row"
-        justifyContent="space-between"
-      >
-        <Box>
-          <Box sx={{ mb: 2 }}>
-            {workOrder?.priority !== 'NONE' && (
-              <PriorityWrapper priority={workOrder?.priority} withSuffix />
-            )}
-          </Box>
-          <Typography variant="h2">{workOrder?.title}</Typography>
-          <Typography variant="h6">{workOrder?.description}</Typography>
-        </Box>
-        <Box>
-          {hasEditPermission(PermissionEntity.WORK_ORDERS, workOrder) && (
-            <IconButton style={{ marginRight: 10 }} onClick={handleOpenMenu}>
-              <MoreVertTwoToneIcon />
-            </IconButton>
-          )}
-          {hasEditPermission(PermissionEntity.WORK_ORDERS, workOrder) && (
-            <IconButton
-              onClick={() => onEdit(workOrder.id)}
-              style={{ marginRight: 10 }}
-            >
-              <EditTwoToneIcon color="primary" />
-            </IconButton>
-          )}
-          {hasDeletePermission(PermissionEntity.WORK_ORDERS, workOrder) && (
-            <IconButton>
-              <DeleteTwoToneIcon
-                color="error"
-                onClick={() => onDelete(workOrder.id)}
-              />
-            </IconButton>
-          )}
-        </Box>
-      </Grid>
-      <Divider />
+    <Grid container sx={{ p: { xs: 2, sm: 3 } }}>
       <Grid item xs={12}>
+        <DetailsHeader
+          subtitle={
+            workOrder?.customId ? (
+              <bdi>{`#${workOrder.customId}`}</bdi>
+            ) : undefined
+          }
+          title={workOrder?.title}
+          media={
+            workOrder.image ? (
+              <DetailThumb
+                src={workOrder.image.url}
+                size={72}
+                onClick={() => {
+                  setImageState([workOrder.image.url], workOrder.image.url);
+                }}
+              />
+            ) : undefined
+          }
+          chips={
+            <>
+              <StatusChip status={workOrder.status} size="medium" />
+              {workOrder?.priority && workOrder?.priority !== 'NONE' && (
+                <PriorityWrapper
+                  priority={workOrder?.priority}
+                  withSuffix
+                  size="medium"
+                />
+              )}
+            </>
+          }
+          actions={
+            canEditWO || canDeleteWO ? (
+              <>
+                {canEditWO && (
+                  <IconButton aria-label={t('more')} onClick={handleOpenMenu}>
+                    <MoreVertTwoToneIcon fontSize="small" />
+                  </IconButton>
+                )}
+                {canEditWO && (
+                  <IconButton
+                    aria-label={t('edit')}
+                    onClick={() => onEdit(workOrder.id)}
+                  >
+                    <EditTwoToneIcon fontSize="small" color="primary" />
+                  </IconButton>
+                )}
+                {canDeleteWO && (
+                  <IconButton
+                    aria-label={t('delete')}
+                    onClick={() => onDelete(workOrder.id)}
+                  >
+                    <DeleteTwoToneIcon fontSize="small" color="error" />
+                  </IconButton>
+                )}
+              </>
+            ) : undefined
+          }
+          description={workOrder?.description}
+        />
+      </Grid>
+      <Grid item xs={12} sx={{ mt: 1 }}>
         <Tabs
           onChange={handleTabsChange}
           value={currentTab}
@@ -594,260 +635,342 @@ export default function WorkOrderDetails(props: WorkOrderDetailsProps) {
           scrollButtons="auto"
           textColor="primary"
           indicatorColor="primary"
+          sx={{
+            minHeight: 44,
+            borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
+            '& .MuiTab-root': { minHeight: 44, fontWeight: 600 }
+          }}
         >
           {tabs.map((tab) => (
             <Tab key={tab.value} label={tab.label} value={tab.value} />
           ))}
         </Tabs>
       </Grid>
-      <Grid item xs={12}>
+      <Grid item xs={12} sx={{ mt: 2.5 }}>
         {currentTab === 'details' && (
-          <Box>
-            <Grid container spacing={2}>
-              <Grid
-                item
-                xs={12}
-                display="flex"
-                flexDirection="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Box>
-                  {changingStatus ? (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        width: 100,
-                        height: 30
-                      }}
-                    >
-                      <CircularProgress size={'1rem'} />
-                    </Box>
-                  ) : (
-                    <Select
-                      onChange={(event) => {
-                        if (event.target.value === 'COMPLETE') {
-                          if (canComplete()) {
-                            if (
-                              generalPreferences.askFeedBackOnWOClosed ||
-                              workOrder.requiredSignature
-                            ) {
-                              let error;
-                              if (workOrder.requiredSignature) {
-                                if (!hasFeature(PlanFeature.SIGNATURE)) {
-                                  error =
-                                    'Signature on Work Order completion is not available in your current subscription plan.';
-                                }
-                              }
-                              if (error) {
-                                showSnackBar(t(error), 'error');
-                              } else {
-                                setOpenCompleteModal(true);
-                                return;
-                              }
-                            }
-                          } else return;
-                        }
-                        setChangingStatus(true);
-                        dispatch(
-                          changeWorkOrderStatus(workOrder?.id, {
-                            status: event.target.value
-                          })
-                        ).finally(() => setChangingStatus(false));
-                      }}
-                      disabled={
-                        !hasEditPermission(
-                          PermissionEntity.WORK_ORDERS,
-                          workOrder
-                        )
-                      }
-                      value={workOrder.status}
-                      sx={
-                        workOrder.status === 'OPEN'
-                          ? {}
-                          : {
-                              backgroundColor:
-                                workOrder.status === 'IN_PROGRESS'
-                                  ? theme.colors.success.main
-                                  : workOrder.status === 'ON_HOLD'
-                                  ? theme.colors.warning.main
-                                  : theme.colors.alpha.black[30],
-                              color: 'white',
-                              fontWeight: 'bold',
-                              '.MuiSvgIcon-root ': {
-                                fill: 'white !important'
-                              }
-                            }
-                      }
-                    >
-                      {workOrderStatuses.map((workOrderStatus, index) => (
-                        <MenuItem key={index} value={workOrderStatus}>
-                          {t(workOrderStatus)}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                </Box>
-                <Box>
-                  <Button
-                    startIcon={
-                      controllingTime ? (
-                        <CircularProgress size="1rem" />
-                      ) : (
-                        <TimerTwoToneIcon />
-                      )
-                    }
-                    disabled={
-                      controllingTime ||
-                      !hasEditPermission(
-                        PermissionEntity.WORK_ORDERS,
-                        workOrder
-                      )
-                    }
-                    onClick={() => {
-                      setControllingTime(true);
-                      dispatch(controlTimer(!runningTimer, workOrder.id))
-                        .catch((err) =>
-                          showSnackBar(getErrorMessage(err), 'error')
-                        )
-                        .finally(() => setControllingTime(false));
-                    }}
-                    variant={runningTimer ? 'contained' : 'outlined'}
-                  >
-                    {runningTimer
-                      ? t('timer_running')
-                      : t('run_timer') +
-                        ' - ' +
-                        durationToHours(primaryTime?.duration)}
-                  </Button>
-                </Box>
-              </Grid>
-              {workOrder.image && (
-                <Grid
-                  item
-                  xs={12}
-                  lg={12}
-                  display="flex"
-                  justifyContent="center"
+          <DetailsPage dense>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 1.5,
+                p: 1.5,
+                borderRadius: '14px',
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
+                backgroundColor: alpha(theme.palette.primary.main, 0.035)
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Typography
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: 13,
+                    fontWeight: 500
+                  }}
                 >
-                  <img
-                    src={workOrder.image.url}
-                    style={{ borderRadius: 5, height: 250, cursor: 'pointer' }}
-                    onClick={() => {
-                      setImageState([workOrder.image.url], workOrder.image.url);
+                  {t('status')}
+                </Typography>
+                {changingStatus ? (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      width: 100,
+                      height: 36
                     }}
-                  />
-                </Grid>
-              )}
-              {detailsFieldsToRender(workOrder).map((field, index) => (
-                <BasicField key={index} {...field} />
-              ))}
-              {workOrder.primaryUser && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
                   >
-                    {t('primary_worker')}
-                  </Typography>
-                  <Link
-                    variant="h6"
-                    href={getUserUrl(workOrder.primaryUser.id)}
+                    <CircularProgress size={'1rem'} />
+                  </Box>
+                ) : (
+                  <Select
+                    size="small"
+                    onChange={(event) => {
+                      if (event.target.value === 'COMPLETE') {
+                        if (canComplete()) {
+                          if (
+                            generalPreferences.askFeedBackOnWOClosed ||
+                            workOrder.requiredSignature
+                          ) {
+                            let error;
+                            if (workOrder.requiredSignature) {
+                              if (!hasFeature(PlanFeature.SIGNATURE)) {
+                                error =
+                                  'Signature on Work Order completion is not available in your current subscription plan.';
+                              }
+                            }
+                            if (error) {
+                              showSnackBar(t(error), 'error');
+                            } else {
+                              setOpenCompleteModal(true);
+                              return;
+                            }
+                          }
+                        } else return;
+                      }
+                      setChangingStatus(true);
+                      dispatch(
+                        changeWorkOrderStatus(workOrder?.id, {
+                          status: event.target.value
+                        })
+                      ).finally(() => setChangingStatus(false));
+                    }}
+                    disabled={!canEditWO}
+                    value={workOrder.status}
+                    sx={{
+                      minWidth: 150,
+                      borderRadius: '10px',
+                      fontWeight: 700,
+                      fontSize: 14,
+                      color: statusPalette.dark,
+                      backgroundColor: statusPalette.lighter,
+                      '.MuiOutlinedInput-notchedOutline': {
+                        borderColor: alpha(statusPalette.main, 0.35)
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: statusPalette.main
+                      },
+                      '.MuiSvgIcon-root': { color: statusPalette.dark }
+                    }}
                   >
-                    {getUserNameById(workOrder.primaryUser.id)}
-                  </Link>
-                </Grid>
-              )}
-              {(workOrder.parentRequest || workOrder.createdBy) && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
+                    {workOrderStatuses.map((workOrderStatus, index) => (
+                      <MenuItem key={index} value={workOrderStatus}>
+                        {t(workOrderStatus)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+              </Box>
+              <Button
+                startIcon={
+                  controllingTime ? (
+                    <CircularProgress size="1rem" />
+                  ) : (
+                    <TimerTwoToneIcon />
+                  )
+                }
+                disabled={controllingTime || !canEditWO}
+                onClick={() => {
+                  setControllingTime(true);
+                  dispatch(controlTimer(!runningTimer, workOrder.id))
+                    .catch((err) => showSnackBar(getErrorMessage(err), 'error'))
+                    .finally(() => setControllingTime(false));
+                }}
+                variant={runningTimer ? 'contained' : 'outlined'}
+                sx={{
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                  ...(runningTimer
+                    ? {
+                        boxShadow: `0 6px 16px ${alpha(
+                          theme.palette.primary.main,
+                          0.28
+                        )}`
+                      }
+                    : { borderColor: alpha(theme.palette.primary.main, 0.35) })
+                }}
+              >
+                {runningTimer
+                  ? t('timer_running')
+                  : t('run_timer') +
+                    ' - ' +
+                    durationToHours(primaryTime?.duration)}
+              </Button>
+            </Box>
+            <SectionCard
+              title="details"
+              icon={<InfoTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid>
+                {detailsFieldsToRender(workOrder).map((field, index) => (
+                  <BasicField key={index} {...field} />
+                ))}
+                {(workOrder.parentRequest || workOrder.createdBy) && (
+                  <DetailItem
+                    label={
+                      workOrder.parentRequest
+                        ? t('approved_by')
+                        : t('created_by')
+                    }
                   >
-                    {workOrder.parentRequest
-                      ? t('approved_by')
-                      : t('created_by')}
-                  </Typography>
-                  <Link variant="h6" href={getUserUrl(workOrder.createdBy)}>
-                    {getUserNameById(workOrder.createdBy)}
-                  </Link>
-                </Grid>
-              )}
-              {workOrder.parentPreventiveMaintenance && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('preventive_maintenance')}
-                  </Typography>
-                  <Link
-                    variant="h6"
-                    href={getPreventiveMaintenanceUrl(
-                      workOrder.parentPreventiveMaintenance.id
-                    )}
-                  >
-                    {workOrder.parentPreventiveMaintenance.name}
-                  </Link>
-                </Grid>
-              )}
-              {workOrder.status === 'COMPLETE' && (
-                <>
-                  {workOrder.completedBy && (
-                    <Grid item xs={12} lg={6}>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: theme.colors.alpha.black[70] }}
-                      >
-                        {t('completed_by')}
-                      </Typography>
+                    <Link href={getUserUrl(workOrder.createdBy)} underline="hover">
+                      {getUserNameById(workOrder.createdBy)}
+                    </Link>
+                  </DetailItem>
+                )}
+                {workOrder.parentRequest && (
+                  <DetailItem label={t('requested_by')}>
+                    <Link
+                      href={getUserUrl(workOrder.parentRequest.createdBy)}
+                      underline="hover"
+                    >
+                      {getUserNameById(workOrder.parentRequest.createdBy)}
+                    </Link>
+                  </DetailItem>
+                )}
+                {workOrder.parentPreventiveMaintenance && (
+                  <DetailItem label={t('preventive_maintenance')}>
+                    <Link
+                      href={getPreventiveMaintenanceUrl(
+                        workOrder.parentPreventiveMaintenance.id
+                      )}
+                      underline="hover"
+                    >
+                      {workOrder.parentPreventiveMaintenance.name}
+                    </Link>
+                  </DetailItem>
+                )}
+              </DetailGrid>
+            </SectionCard>
+            {hasAssignment && (
+              <SectionCard
+                title="details_assignment"
+                icon={<PeopleAltTwoToneIcon fontSize="small" />}
+              >
+                <DetailGrid>
+                  {workOrder.primaryUser && (
+                    <DetailItem label={t('primary_worker')}>
                       <Link
-                        variant="h6"
+                        href={getUserUrl(workOrder.primaryUser.id)}
+                        underline="hover"
+                      >
+                        {getUserNameById(workOrder.primaryUser.id)}
+                      </Link>
+                    </DetailItem>
+                  )}
+                  {!!workOrder.assignedTo.length && (
+                    <DetailItem label={t('assigned_to')}>
+                      <Stack spacing={0.5}>
+                        {workOrder.assignedTo.map((user) => (
+                          <Link
+                            key={user.id}
+                            href={getUserUrl(user.id)}
+                            underline="hover"
+                          >{`${user.firstName} ${user.lastName}`}</Link>
+                        ))}
+                      </Stack>
+                    </DetailItem>
+                  )}
+                  {!!workOrder.customers.length && (
+                    <DetailItem label={t('customers')}>
+                      <Stack spacing={0.5}>
+                        {workOrder.customers.map((customer) => (
+                          <Link
+                            key={customer.id}
+                            href={`/app/vendors-customers/customers/${customer.id}`}
+                            underline="hover"
+                          >
+                            {customer.name}
+                          </Link>
+                        ))}
+                      </Stack>
+                    </DetailItem>
+                  )}
+                  {primaryTime && (
+                    <DetailItem label={t('time')}>
+                      {openEditPrimaryTime ? (
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <TextField
+                            size="small"
+                            value={primaryTimeHours}
+                            type="number"
+                            sx={{ width: 76 }}
+                            onChange={(event) =>
+                              setPrimaryTimeHours(Number(event.target.value))
+                            }
+                          />
+                          <Typography>h</Typography>
+                          <TextField
+                            size="small"
+                            value={primaryTimeMinutes}
+                            type="number"
+                            sx={{ width: 76 }}
+                            InputProps={{ inputProps: { min: 0, max: 59 } }}
+                            onChange={(event) =>
+                              setPrimaryTimeMinutes(Number(event.target.value))
+                            }
+                          />
+                          <Typography>m</Typography>
+                          {savingPrimaryTime ? (
+                            <CircularProgress size="1rem" />
+                          ) : (
+                            <IconButton
+                              size="small"
+                              disabled={savingPrimaryTime}
+                              onClick={onSavePrimaryTime}
+                            >
+                              <CheckTwoToneIcon
+                                fontSize="small"
+                                color={'primary'}
+                              />
+                            </IconButton>
+                          )}
+                          <IconButton
+                            size="small"
+                            onClick={() => setOpenEditPrimaryTime(false)}
+                          >
+                            <CloseIcon fontSize="small" color={'error'} />
+                          </IconButton>
+                        </Stack>
+                      ) : (
+                        <Box
+                          component="span"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setOpenEditPrimaryTime(true)}
+                          sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 0.75,
+                            cursor: 'pointer',
+                            color: 'primary.main'
+                          }}
+                        >
+                          {durationToHours(primaryTime?.duration)}
+                          <EditTwoToneIcon sx={{ fontSize: 16 }} />
+                        </Box>
+                      )}
+                    </DetailItem>
+                  )}
+                </DetailGrid>
+              </SectionCard>
+            )}
+            {workOrder.status === 'COMPLETE' && (
+              <SectionCard
+                title="details_completion"
+                icon={<CheckCircleTwoToneIcon fontSize="small" />}
+              >
+                <DetailGrid>
+                  {workOrder.completedBy && (
+                    <DetailItem label={t('completed_by')}>
+                      <Link
                         href={getUserUrl(workOrder.completedBy.id)}
+                        underline="hover"
                       >
                         {`${workOrder.completedBy.firstName} ${workOrder.completedBy.lastName}`}
                       </Link>
-                    </Grid>
+                    </DetailItem>
                   )}
-                  <Grid item xs={12} lg={6}>
-                    <Typography
-                      variant="h6"
-                      sx={{ color: theme.colors.alpha.black[70] }}
-                    >
-                      {t('completed_on')}
-                    </Typography>
-                    <Typography variant="h6">
+                  <DetailItem label={t('completed_on')}>
+                    {workOrder.completedOn ? (
                       <DualDate date={workOrder.completedOn} />
-                    </Typography>
-                  </Grid>
+                    ) : null}
+                  </DetailItem>
                   {workOrder.feedback && (
-                    <Grid item xs={12} lg={6}>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: theme.colors.alpha.black[70] }}
-                      >
-                        {t('feedback')}
-                      </Typography>
-                      <Typography variant="h6">{workOrder.feedback}</Typography>
-                    </Grid>
+                    <DetailItem label={t('feedback')} fullWidth>
+                      <Box sx={{ whiteSpace: 'pre-line', fontWeight: 500 }}>
+                        {workOrder.feedback}
+                      </Box>
+                    </DetailItem>
                   )}
                   {workOrder.signature && (
-                    <Grid item xs={12} lg={6}>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: theme.colors.alpha.black[70] }}
-                      >
-                        {t('signature')}
-                      </Typography>
-                      <img
+                    <DetailItem label={t('signature')}>
+                      <DetailThumb
                         src={workOrder.signature}
-                        style={{
-                          borderRadius: 5,
-                          height: 100,
-                          cursor: 'pointer'
-                        }}
+                        size={180}
+                        height={96}
                         onClick={() => {
                           setImageState(
                             [workOrder.signature],
@@ -855,174 +978,49 @@ export default function WorkOrderDetails(props: WorkOrderDetailsProps) {
                           );
                         }}
                       />
-                    </Grid>
+                    </DetailItem>
                   )}
-                </>
-              )}
-              {workOrder.parentRequest && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('requested_by')}
-                  </Typography>
-                  <Link
-                    variant="h6"
-                    href={getUserUrl(workOrder.parentRequest.createdBy)}
-                  >
-                    {getUserNameById(workOrder.parentRequest.createdBy)}
-                  </Link>
-                </Grid>
-              )}
-              {primaryTime && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('time')}
-                  </Typography>
-                  {openEditPrimaryTime ? (
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <TextField
-                        value={primaryTimeHours}
-                        type="number"
-                        onChange={(event) =>
-                          setPrimaryTimeHours(Number(event.target.value))
-                        }
-                      />
-                      <Typography variant="h6">h</Typography>
-                      <TextField
-                        value={primaryTimeMinutes}
-                        type="number"
-                        InputProps={{ inputProps: { min: 0, max: 59 } }}
-                        onChange={(event) =>
-                          setPrimaryTimeMinutes(Number(event.target.value))
-                        }
-                      />
-                      <Typography variant="h6">m</Typography>
-                      {savingPrimaryTime ? (
-                        <CircularProgress size="1rem" />
-                      ) : (
-                        <IconButton
-                          disabled={savingPrimaryTime}
-                          onClick={onSavePrimaryTime}
-                        >
-                          <CheckTwoToneIcon color={'primary'} />
-                        </IconButton>
-                      )}
-                      <IconButton onClick={() => setOpenEditPrimaryTime(false)}>
-                        <CloseIcon color={'error'} />
-                      </IconButton>
-                    </Stack>
-                  ) : (
-                    <Typography
-                      variant="h6"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => setOpenEditPrimaryTime(true)}
-                      color="primary"
-                    >
-                      {durationToHours(primaryTime?.duration)}
-                    </Typography>
-                  )}
-                </Grid>
-              )}
-              {!!workOrder.assignedTo.length && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('assigned_to')}
-                  </Typography>
-                  {workOrder.assignedTo.map((user, index) => (
-                    <Box key={user.id}>
-                      <Link
-                        href={getUserUrl(user.id)}
-                        variant="h6"
-                        fontWeight="bold"
-                      >{`${user.firstName} ${user.lastName}`}</Link>
-                    </Box>
-                  ))}
-                </Grid>
-              )}
-              {!!workOrder.customers.length && (
-                <Grid item xs={12} lg={6}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: theme.colors.alpha.black[70] }}
-                  >
-                    {t('customers')}
-                  </Typography>
-                  {workOrder.customers.map((customer, index) => (
-                    <Box key={customer.id}>
-                      <Link
-                        href={`/app/vendors-customers/customers/${customer.id}`}
-                        variant="h6"
-                        fontWeight="bold"
-                      >
-                        {customer.name}
-                      </Link>
-                    </Box>
-                  ))}
-                </Grid>
-              )}
-            </Grid>
-            {!!tasks.length && (
-              <Box>
-                <Divider sx={{ mt: 2 }} />
-                <Tasks
-                  tasksProps={tasks}
-                  workOrderId={workOrder?.id}
-                  handleZoomImage={setImageState}
-                  disabled={
-                    !hasEditPermission(PermissionEntity.WORK_ORDERS, workOrder)
-                  }
-                />
-              </Box>
+                </DetailGrid>
+              </SectionCard>
             )}
-            <Box>
-              <Divider sx={{ mt: 2 }} />
-              <TimeSection
-                workOrder={workOrder}
-                labors={labors}
-                loading={loadingLabors[workOrder.id]}
+            {!!tasks.length && (
+              <Tasks
+                tasksProps={tasks}
+                workOrderId={workOrder?.id}
+                handleZoomImage={setImageState}
+                disabled={!canEditWO}
               />
-            </Box>
-            <Box>
-              <Divider sx={{ mt: 2 }} />
-              <CostSection
-                workOrder={workOrder}
-                additionalCosts={additionalCosts}
-                loading={loadingCosts[workOrder.id]}
-              />
-            </Box>
-            <Box>
-              <Divider sx={{ mt: 2 }} />
-              <Typography sx={{ mt: 2, mb: 1 }} variant="h3">
-                {t('parts')}
-              </Typography>
+            )}
+            <TimeSection
+              workOrder={workOrder}
+              labors={labors}
+              loading={loadingLabors[workOrder.id]}
+            />
+            <CostSection
+              workOrder={workOrder}
+              additionalCosts={additionalCosts}
+              loading={loadingCosts[workOrder.id]}
+            />
+            <SectionCard
+              title="parts"
+              icon={<HandymanTwoToneIcon fontSize="small" />}
+            >
               {loadingPartQuantities[workOrder.id] ? (
                 <Stack width={'100%'} alignItems={'center'}>
-                  <CircularProgress />
+                  <CircularProgress size={28} />
                 </Stack>
               ) : (
                 <Fragment>
-                  <PartQuantitiesList
-                    partQuantities={partQuantities}
-                    disabled={
-                      !hasEditPermission(
-                        PermissionEntity.WORK_ORDERS,
-                        workOrder
-                      )
-                    }
-                    onChange={debouncedPartQuantityChange}
-                  />
-                  {hasEditPermission(
-                    PermissionEntity.WORK_ORDERS,
-                    workOrder
-                  ) && (
+                  {!!partQuantities.length && (
+                    <Box sx={{ mx: { xs: -2, sm: -2.5 }, mt: -1.5 }}>
+                      <PartQuantitiesList
+                        partQuantities={partQuantities}
+                        disabled={!canEditWO}
+                        onChange={debouncedPartQuantityChange}
+                      />
+                    </Box>
+                  )}
+                  {canEditWO && (
                     <SelectParts
                       selected={partQuantities.map(
                         (partQuantity) => partQuantity.part.id
@@ -1041,153 +1039,156 @@ export default function WorkOrderDetails(props: WorkOrderDetailsProps) {
                   )}
                 </Fragment>
               )}
-            </Box>
-            <Box>
-              <Divider sx={{ mt: 2 }} />
-              <Typography sx={{ mt: 2, mb: 1 }} variant="h3">
-                {t('links')}
-              </Typography>
+            </SectionCard>
+            <SectionCard
+              title="links"
+              icon={<LinkTwoToneIcon fontSize="small" />}
+              noPadding
+              actions={
+                canEditWO ? (
+                  <Button
+                    size="small"
+                    startIcon={<AddTwoToneIcon />}
+                    onClick={() => setOpenLinkModal(true)}
+                    sx={softActionSx}
+                  >
+                    {t('link_wo')}
+                  </Button>
+                ) : undefined
+              }
+            >
               {loadingRelations[workOrder.id] ? (
-                <Stack width={'100%'} alignItems={'center'}>
-                  <CircularProgress />
-                </Stack>
+                <CardBody>
+                  <Stack width={'100%'} alignItems={'center'}>
+                    <CircularProgress size={28} />
+                  </Stack>
+                </CardBody>
+              ) : !currentWorkOrderRelations.length ? (
+                <CardBody>
+                  <MutedText>—</MutedText>
+                </CardBody>
               ) : (
-                <Fragment>
-                  <List>
-                    {Object.entries(
-                      groupRelations(currentWorkOrderRelations)
-                    ).map(
-                      ([relationType, relations]) =>
-                        !!relations.length && (
-                          <Box key={relationType}>
-                            <ListSubheader
-                              sx={{ fontWeight: 'bold', fontSize: 20 }}
-                            >
-                              {t(relationType)}
-                            </ListSubheader>
-                            {relations.map((relation) => (
-                              <ListItem
-                                key={relation.id}
-                                secondaryAction={
-                                  <Box
+                <Box>
+                  {Object.entries(
+                    groupRelations(currentWorkOrderRelations)
+                  ).map(
+                    ([relationType, relations]) =>
+                      !!relations.length && (
+                        <Box key={relationType}>
+                          <Typography
+                            sx={{
+                              px: { xs: 2, sm: 2.5 },
+                              pt: 1.5,
+                              pb: 0.5,
+                              fontSize: 12.5,
+                              fontWeight: 600,
+                              color: 'text.secondary',
+                              textAlign: 'start'
+                            }}
+                          >
+                            {t(relationType)}
+                          </Typography>
+                          {relations.map((relation) => (
+                            <DetailRow key={relation.id}>
+                              <Box
+                                onClick={() =>
+                                  navigate(
+                                    getWorkOrderUrl(relation.workOrder.id)
+                                  )
+                                }
+                                sx={{
+                                  flex: 1,
+                                  minWidth: 0,
+                                  cursor: 'pointer',
+                                  textAlign: 'start'
+                                }}
+                              >
+                                <Stack
+                                  direction="row"
+                                  spacing={1}
+                                  alignItems="center"
+                                  sx={{ minWidth: 0 }}
+                                >
+                                  <Typography
+                                    noWrap
                                     sx={{
-                                      display: 'flex',
-                                      flexDirection: 'row',
-                                      alignItems: 'center',
-                                      justifyContent: 'flex-end'
+                                      fontWeight: 600,
+                                      fontSize: 14,
+                                      color: 'primary.main'
                                     }}
                                   >
-                                    <IconButton
-                                      sx={{ ml: 1 }}
-                                      onClick={() =>
-                                        dispatch(
-                                          deleteRelation(
-                                            workOrder.id,
-                                            relation.id
-                                          )
-                                        )
-                                      }
-                                    >
-                                      <DeleteTwoToneIcon
-                                        fontSize="small"
-                                        color="error"
-                                      />
-                                    </IconButton>
-                                  </Box>
-                                }
-                              >
-                                <ListItemText
-                                  primary={
-                                    <Stack
-                                      direction={'row'}
-                                      spacing={1}
-                                      onClick={() =>
-                                        navigate(
-                                          getWorkOrderUrl(relation.workOrder.id)
-                                        )
-                                      }
-                                      sx={{ cursor: 'pointer' }}
-                                    >
-                                      <Typography variant="h6">
-                                        {relation.workOrder.title}
-                                      </Typography>
-                                      <LabelWrapper
-                                        sx={{
-                                          background:
-                                            relation.workOrder.status ===
-                                            'IN_PROGRESS'
-                                              ? theme.colors.success.main
-                                              : relation.workOrder.status ===
-                                                'ON_HOLD'
-                                              ? theme.colors.warning.main
-                                              : relation.workOrder.status ===
-                                                'COMPLETE'
-                                              ? theme.colors.primary.main
-                                              : theme.colors.alpha.black[30],
-                                          color: 'white'
-                                        }}
-                                      >
-                                        {t(relation.workOrder.status)}
-                                      </LabelWrapper>
-                                    </Stack>
-                                  }
-                                  secondary={getFormattedDate(
+                                    {relation.workOrder.title}
+                                  </Typography>
+                                  <StatusChip
+                                    status={relation.workOrder.status}
+                                  />
+                                </Stack>
+                                <Typography
+                                  sx={{
+                                    color: 'text.secondary',
+                                    fontSize: 12.5,
+                                    mt: 0.25
+                                  }}
+                                >
+                                  {getFormattedDate(
                                     relation.workOrder.createdAt
                                   )}
+                                </Typography>
+                              </Box>
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  dispatch(
+                                    deleteRelation(workOrder.id, relation.id)
+                                  )
+                                }
+                              >
+                                <DeleteTwoToneIcon
+                                  fontSize="small"
+                                  color="error"
                                 />
-                              </ListItem>
-                            ))}
-                          </Box>
-                        )
-                    )}
-                  </List>
-                  {hasEditPermission(
-                    PermissionEntity.WORK_ORDERS,
-                    workOrder
-                  ) && (
-                    <Button
-                      onClick={() => setOpenLinkModal(true)}
-                      variant="outlined"
-                      sx={{ mt: 1 }}
-                    >
-                      {t('link_wo')}
-                    </Button>
+                              </IconButton>
+                            </DetailRow>
+                          ))}
+                        </Box>
+                      )
                   )}
-                </Fragment>
+                </Box>
               )}
-            </Box>
-            <Box>
-              <Divider sx={{ mt: 2 }} />
-              <Typography sx={{ mt: 2, mb: 1 }} variant="h3">
-                {t('files')}
-              </Typography>
+            </SectionCard>
+            <SectionCard
+              title="files"
+              icon={<AttachFileTwoToneIcon fontSize="small" />}
+              noPadding
+              actions={
+                canEditWO ? (
+                  <Button
+                    size="small"
+                    startIcon={<AddTwoToneIcon />}
+                    onClick={() => setOpenAddFileModal(true)}
+                    sx={softActionSx}
+                  >
+                    {t('add_file')}
+                  </Button>
+                ) : undefined
+              }
+            >
               {!!workOrder.files.length ? (
                 <FilesList
                   confirmMessage={t('confirm_delete_file_wo')}
-                  removeDisabled={
-                    !hasEditPermission(PermissionEntity.WORK_ORDERS, workOrder)
-                  }
+                  removeDisabled={!canEditWO}
                   files={workOrder.files}
                   onRemove={(id: number) => {
                     dispatch(removeFileFromWorkOrder(workOrder.id, id));
                   }}
                 />
               ) : (
-                <Typography sx={{ color: theme.colors.alpha.black[70] }}>
-                  {t('no_file_linked_to_wo')}
-                </Typography>
+                <CardBody>
+                  <MutedText>{t('no_file_linked_to_wo')}</MutedText>
+                </CardBody>
               )}
-              {hasEditPermission(PermissionEntity.WORK_ORDERS, workOrder) && (
-                <Button
-                  onClick={() => setOpenAddFileModal(true)}
-                  variant="outlined"
-                  sx={{ mt: 1 }}
-                >
-                  {t('add_file')}
-                </Button>
-              )}
-            </Box>
-          </Box>
+            </SectionCard>
+          </DetailsPage>
         )}
         {currentTab == 'comments' && (
           <CommentsSection

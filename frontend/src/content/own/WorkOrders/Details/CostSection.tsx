@@ -3,9 +3,6 @@ import {
   Button,
   CircularProgress,
   IconButton,
-  List,
-  ListItem,
-  ListItemText,
   Stack,
   Typography,
   useTheme
@@ -25,6 +22,11 @@ import WorkOrder from '../../../../models/owns/workOrder';
 import AdditionalCost from '../../../../models/owns/additionalCost';
 import AddCostModal from './AddCostModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import SectionCard from '../../components/SectionCard';
+import { CardBody, DetailRow, MutedText } from '../../components/DetailsKit';
+import { alpha } from '@mui/material/styles';
+import PaymentsTwoToneIcon from '@mui/icons-material/PaymentsTwoTone';
+import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 interface CostSectionProps {
   workOrder: WorkOrder;
   additionalCosts: AdditionalCost[];
@@ -73,67 +75,98 @@ export default function CostSection({
 
   return (
     <Box>
-      <Typography sx={{ mt: 2, mb: 1 }} variant="h3">
-        {t('additional_costs')}
-      </Typography>
-      {loading ? (
-        <Stack width={'100%'} alignItems={'center'}>
-          <CircularProgress />
-        </Stack>
-      ) : (
-        <Fragment>
-          {!additionalCosts.length ? (
-            <Typography sx={{ color: theme.colors.alpha.black[70] }}>
-              {t('no_additional_cost')}
-            </Typography>
-          ) : (
-            <List>
-              {additionalCosts.map((additionalCost) => (
-                <ListItem
-                  key={additionalCost.id}
-                  secondaryAction={
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                        gap: 1
-                      }}
-                    >
-                      <Typography variant="h6">
-                        {getFormattedCurrency(additionalCost.cost)}
-                      </Typography>
-                      {canEdit && (
-                        <>
-                          <IconButton
-                            onClick={() => handleEdit(additionalCost)}
-                          >
-                            <EditTwoToneIcon fontSize="small" color="primary" />
-                          </IconButton>
-                          <IconButton
-                            onClick={() => handleDelete(additionalCost)}
-                          >
-                            <DeleteTwoToneIcon fontSize="small" color="error" />
-                          </IconButton>
-                        </>
-                      )}
-                    </Box>
-                  }
-                >
-                  <ListItemText
-                    primary={
-                      <Typography variant="h6">
+      <SectionCard
+        title="additional_costs"
+        icon={<PaymentsTwoToneIcon fontSize="small" />}
+        noPadding
+        actions={
+          canEdit ? (
+            <Button
+              size="small"
+              startIcon={<AddTwoToneIcon />}
+              onClick={() => {
+                setSelectedCost(null);
+                setOpenAddCostModal(true);
+              }}
+              sx={{
+                borderRadius: '10px',
+                fontWeight: 700,
+                color: theme.palette.primary.dark,
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.16)
+                }
+              }}
+            >
+              {t('add_additional_cost')}
+            </Button>
+          ) : undefined
+        }
+      >
+        {loading ? (
+          <CardBody>
+            <Stack width={'100%'} alignItems={'center'}>
+              <CircularProgress size={28} />
+            </Stack>
+          </CardBody>
+        ) : (
+          <Fragment>
+            {!additionalCosts.length ? (
+              <CardBody>
+                <MutedText>{t('no_additional_cost')}</MutedText>
+              </CardBody>
+            ) : (
+              <Box>
+                {additionalCosts.map((additionalCost) => (
+                  <DetailRow key={additionalCost.id}>
+                    <Box sx={{ flex: 1, minWidth: 0, textAlign: 'start' }}>
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: 14,
+                          wordBreak: 'break-word'
+                        }}
+                      >
                         {additionalCost.description}
                       </Typography>
-                    }
-                    secondary={getFormattedDate(additionalCost.createdAt)}
-                  />
-                </ListItem>
-              ))}
-              <ListItem
-                secondaryAction={
-                  <Typography variant="h6" fontWeight="bold">
+                      <Typography
+                        sx={{ color: 'text.secondary', fontSize: 12.5, mt: 0.25 }}
+                      >
+                        {getFormattedDate(additionalCost.createdAt)}
+                      </Typography>
+                    </Box>
+                    <Typography
+                      sx={{ fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap' }}
+                    >
+                      {getFormattedCurrency(additionalCost.cost)}
+                    </Typography>
+                    {canEdit && (
+                      <Stack direction="row" spacing={0.5}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleEdit(additionalCost)}
+                        >
+                          <EditTwoToneIcon fontSize="small" color="primary" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDelete(additionalCost)}
+                        >
+                          <DeleteTwoToneIcon fontSize="small" color="error" />
+                        </IconButton>
+                      </Stack>
+                    )}
+                  </DetailRow>
+                ))}
+                <DetailRow
+                  sx={{
+                    backgroundColor: alpha(theme.palette.primary.main, 0.04)
+                  }}
+                >
+                  <Typography sx={{ flex: 1, fontWeight: 700, fontSize: 14 }}>
+                    {t('total')}
+                  </Typography>
+                  <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
                     {getFormattedCurrency(
                       additionalCosts.reduce(
                         (acc, additionalCost) =>
@@ -144,32 +177,12 @@ export default function CostSection({
                       )
                     )}
                   </Typography>
-                }
-              >
-                <ListItemText
-                  primary={
-                    <Typography variant="h6" fontWeight="bold">
-                      {t('total')}
-                    </Typography>
-                  }
-                />
-              </ListItem>
-            </List>
-          )}
-        </Fragment>
-      )}
-      {canEdit && (
-        <Button
-          onClick={() => {
-            setSelectedCost(null);
-            setOpenAddCostModal(true);
-          }}
-          variant="outlined"
-          sx={{ mt: 1 }}
-        >
-          {t('add_additional_cost')}
-        </Button>
-      )}
+                </DetailRow>
+              </Box>
+            )}
+          </Fragment>
+        )}
+      </SectionCard>
       <AddCostModal
         open={openAddCostModal}
         onClose={() => {

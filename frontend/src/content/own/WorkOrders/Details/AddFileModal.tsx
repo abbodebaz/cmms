@@ -14,6 +14,7 @@ import { createWorkOrderMeterTrigger } from '../../../../slices/workOrderMeterTr
 import { useContext } from 'react';
 import { CompanySettingsContext } from '../../../../contexts/CompanySettingsContext';
 import { addFilesToWorkOrder } from '../../../../slices/workOrder';
+import FormDialogTitle from '../../components/form/FormDialogTitle';
 
 interface AddFileProps {
   open: boolean;
@@ -46,15 +47,10 @@ export default function AddFileModal({
   };
   return (
     <Dialog fullWidth maxWidth="sm" open={open} onClose={onClose}>
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('add_file')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('add_file')}
+        onClose={onClose}
+      />
       <DialogContent
         dividers
         sx={{

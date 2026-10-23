@@ -4,9 +4,6 @@ import {
   CircularProgress,
   IconButton,
   Link,
-  List,
-  ListItem,
-  ListItemText,
   Stack,
   Typography,
   useTheme
@@ -29,6 +26,11 @@ import Labor from '../../../../models/owns/labor';
 import { useBrand } from '../../../../hooks/useBrand';
 import AddTimeModal from './AddTimeModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import SectionCard from '../../components/SectionCard';
+import { CardBody, DetailRow, MutedText } from '../../components/DetailsKit';
+import { alpha } from '@mui/material/styles';
+import TimerTwoToneIcon from '@mui/icons-material/TimerTwoTone';
+import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 
 interface TimeSectionProps {
   workOrder: WorkOrder;
@@ -80,119 +82,115 @@ export default function TimeSection({
 
   const canEdit = hasEditPermission(PermissionEntity.WORK_ORDERS, workOrder);
 
+  const unloggedLabors = labors.filter((labor) => !labor.logged);
+
   return (
     <Box>
-      <Typography sx={{ mt: 2, mb: 1 }} variant="h3">
-        {t('labors')}
-      </Typography>
-      {loading ? (
-        <Stack width={'100%'} alignItems="center">
-          <CircularProgress />
-        </Stack>
-      ) : !labors.filter((labor) => !labor.logged).length ? (
-        <Typography sx={{ color: theme.colors.alpha.black[70] }}>
-          {t('no_labor', { shortBrandName: brandConfig.shortName })}
-        </Typography>
-      ) : (
-        <List>
-          {labors
-            .filter((labor) => !labor.logged)
-            .map((labor) => (
-              <ListItem
-                key={labor.id}
-                secondaryAction={
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'flex-end'
-                    }}
-                  >
-                    <Typography variant="h6">
-                      {getFormattedCurrency(getLaborCost(labor))}
-                    </Typography>
-                    {canEdit && (
-                      <>
-                        <IconButton
-                          sx={{ ml: 1 }}
-                          onClick={() => handleEdit(labor)}
-                        >
-                          <EditTwoToneIcon fontSize="small" color="primary" />
-                        </IconButton>
-                        <IconButton
-                          sx={{ ml: 1 }}
-                          onClick={() => handleDelete(labor)}
-                        >
-                          <DeleteTwoToneIcon fontSize="small" color="error" />
-                        </IconButton>
-                      </>
-                    )}
-                  </Box>
+      <SectionCard
+        title="labors"
+        icon={<TimerTwoToneIcon fontSize="small" />}
+        noPadding
+        actions={
+          canEdit ? (
+            <Button
+              size="small"
+              startIcon={<AddTwoToneIcon />}
+              onClick={() => {
+                setSelectedLabor(null);
+                setOpenAddTimeModal(true);
+              }}
+              sx={{
+                borderRadius: '10px',
+                fontWeight: 700,
+                color: theme.palette.primary.dark,
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.16)
                 }
-              >
-                <ListItemText
-                  primary={
-                    <>
-                      {labor.assignedTo ? (
-                        <Link
-                          href={getUserUrl(labor.assignedTo.id)}
-                          variant="h6"
-                        >
-                          {`${labor.assignedTo.firstName} ${labor.assignedTo.lastName}`}
-                        </Link>
-                      ) : (
-                        <Typography>{t('not_assigned')}</Typography>
-                      )}
-                    </>
-                  }
-                  secondary={`${
-                    getHoursAndMinutesAndSeconds(labor.duration)[0]
-                  }h ${getHoursAndMinutesAndSeconds(labor.duration)[1]}m`}
-                />
-              </ListItem>
-            ))}
-          <ListItem
-            secondaryAction={
-              <Box>
-                <Typography variant="h6" fontWeight="bold">
-                  {getFormattedCurrency(
-                    labors
-                      .filter((labor) => !labor.logged)
-                      .reduce(
-                        (acc, labor) =>
-                          labor.includeToTotalTime
-                            ? acc + getLaborCost(labor)
-                            : acc,
-                        0
-                      )
+              }}
+            >
+              {t('add_time')}
+            </Button>
+          ) : undefined
+        }
+      >
+        {loading ? (
+          <CardBody>
+            <Stack width={'100%'} alignItems="center">
+              <CircularProgress size={28} />
+            </Stack>
+          </CardBody>
+        ) : !unloggedLabors.length ? (
+          <CardBody>
+            <MutedText>
+              {t('no_labor', { shortBrandName: brandConfig.shortName })}
+            </MutedText>
+          </CardBody>
+        ) : (
+          <Box>
+            {unloggedLabors.map((labor) => (
+              <DetailRow key={labor.id}>
+                <Box sx={{ flex: 1, minWidth: 0, textAlign: 'start' }}>
+                  {labor.assignedTo ? (
+                    <Link
+                      href={getUserUrl(labor.assignedTo.id)}
+                      underline="hover"
+                      sx={{ fontWeight: 600, fontSize: 14 }}
+                    >
+                      {`${labor.assignedTo.firstName} ${labor.assignedTo.lastName}`}
+                    </Link>
+                  ) : (
+                    <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
+                      {t('not_assigned')}
+                    </Typography>
                   )}
+                  <Typography
+                    sx={{ color: 'text.secondary', fontSize: 12.5, mt: 0.25 }}
+                  >
+                    <bdi>{`${
+                      getHoursAndMinutesAndSeconds(labor.duration)[0]
+                    }h ${getHoursAndMinutesAndSeconds(labor.duration)[1]}m`}</bdi>
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{ fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap' }}
+                >
+                  {getFormattedCurrency(getLaborCost(labor))}
                 </Typography>
-              </Box>
-            }
-          >
-            <ListItemText
-              primary={
-                <Typography variant="h6" fontWeight="bold">
-                  {t('total')}
-                </Typography>
-              }
-            />
-          </ListItem>
-        </List>
-      )}
-      {canEdit && (
-        <Button
-          onClick={() => {
-            setSelectedLabor(null);
-            setOpenAddTimeModal(true);
-          }}
-          variant="outlined"
-          sx={{ mt: 1 }}
-        >
-          {t('add_time')}
-        </Button>
-      )}
+                {canEdit && (
+                  <Stack direction="row" spacing={0.5}>
+                    <IconButton size="small" onClick={() => handleEdit(labor)}>
+                      <EditTwoToneIcon fontSize="small" color="primary" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDelete(labor)}
+                    >
+                      <DeleteTwoToneIcon fontSize="small" color="error" />
+                    </IconButton>
+                  </Stack>
+                )}
+              </DetailRow>
+            ))}
+            <DetailRow
+              sx={{ backgroundColor: alpha(theme.palette.primary.main, 0.04) }}
+            >
+              <Typography sx={{ flex: 1, fontWeight: 700, fontSize: 14 }}>
+                {t('total')}
+              </Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
+                {getFormattedCurrency(
+                  unloggedLabors.reduce(
+                    (acc, labor) =>
+                      labor.includeToTotalTime ? acc + getLaborCost(labor) : acc,
+                    0
+                  )
+                )}
+              </Typography>
+            </DetailRow>
+          </Box>
+        )}
+      </SectionCard>
       <AddTimeModal
         open={openAddTimeModal}
         onClose={() => {

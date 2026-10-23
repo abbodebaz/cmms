@@ -16,6 +16,8 @@ import { deleteRole, getRoles } from '../../../../slices/role';
 import { useDispatch, useSelector } from '../../../../store';
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
 import PageHeader from './PageHeader';
+import SettingsSection from '../components/SettingsSection';
+import AdminPanelSettingsTwoToneIcon from '@mui/icons-material/AdminPanelSettingsTwoTone';
 import { useTranslation } from 'react-i18next';
 import {
   PermissionEntity,
@@ -32,6 +34,7 @@ import {
   useState
 } from 'react';
 import { TransitionProps } from '@mui/material/transitions';
+import { alpha } from '@mui/material/styles';
 import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
 import {
   GridActionsCellItem,
@@ -86,12 +89,11 @@ const ButtonError = styled(Button)(
 );
 const LabelWrapper = styled(Box)(
   ({ theme }) => `
-    font-size: ${theme.typography.pxToRem(10)};
-    font-weight: bold;
-    text-transform: uppercase;
-    border-radius: ${theme.general.borderRadiusSm};
-    padding: ${theme.spacing(0.9, 1.5, 0.7)};
-    line-height: 1;
+    font-size: ${theme.typography.pxToRem(12)};
+    font-weight: 600;
+    border-radius: 20px;
+    padding: ${theme.spacing(0.5, 1.25)};
+    line-height: 1.2;
   `
 );
 function Roles() {
@@ -285,11 +287,11 @@ function Roles() {
         <LabelWrapper
           sx={{
             background: params.value
-              ? `${theme.colors.info.main}`
-              : `${theme.colors.success.main}`,
-            color: `${theme.palette.getContrastText(
-              params.value ? theme.colors.info.dark : theme.colors.success.dark
-            )}`
+              ? alpha(theme.palette.primary.main, 0.12)
+              : alpha(theme.palette.success.main, 0.12),
+            color: params.value
+              ? theme.palette.primary.dark
+              : theme.palette.success.dark
           }}
         >
           {params.value ? t('paid') : t('free')}
@@ -336,36 +338,64 @@ function Roles() {
 
   return (
     <>
-      <Grid item xs={12}>
-        <Box p={4}>
-          <PageHeader rolesNumber={roles.length} formatValues={formatValues} />
-          <EditRole
-            open={openUpdateModal}
-            role={currentRole}
-            onClose={() => setOpenUpdateModal(false)}
-            formatValues={formatValues}
-          />
-          {renderDeleteModal()}
-          <Box sx={{ mt: 4, width: '95%' }}>
-            <CustomDatagrid
-              rows={roles}
-              columns={columns}
-              loading={loadingGet}
-              components={{
-                Toolbar: GridToolbar
-                // Toolbar: GridToolbarColumnsButton,
-                // Toolbar: GridToolbarDensitySelector
-              }}
-              onRowClick={(params) => handleOpenDetails(Number(params.id))}
-              initialState={{
-                columns: {
-                  columnVisibilityModel: {}
-                }
-              }}
-            />
+      <SettingsSection
+        title="roles_management"
+        description="settings_roles_description"
+        badge={
+          <Box
+            component="span"
+            sx={{
+              display: { xs: 'none', sm: 'inline-flex' },
+              px: 1.25,
+              py: 0.4,
+              borderRadius: '20px',
+              fontSize: 12,
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              color: theme.palette.primary.dark,
+              backgroundColor: alpha(theme.palette.primary.main, 0.1)
+            }}
+          >
+            {t('roles_number', { count: roles.length })}
           </Box>
+        }
+        icon={<AdminPanelSettingsTwoToneIcon fontSize="small" />}
+        actions={
+          <PageHeader rolesNumber={roles.length} formatValues={formatValues} />
+        }
+        noPadding
+      >
+        <EditRole
+          open={openUpdateModal}
+          role={currentRole}
+          onClose={() => setOpenUpdateModal(false)}
+          formatValues={formatValues}
+        />
+        {renderDeleteModal()}
+        <Box
+          sx={{
+            width: '100%',
+            '& .MuiDataGrid-root': { border: 0, borderRadius: 0 }
+          }}
+        >
+          <CustomDatagrid
+            rows={roles}
+            columns={columns}
+            loading={loadingGet}
+            components={{
+              Toolbar: GridToolbar
+              // Toolbar: GridToolbarColumnsButton,
+              // Toolbar: GridToolbarDensitySelector
+            }}
+            onRowClick={(params) => handleOpenDetails(Number(params.id))}
+            initialState={{
+              columns: {
+                columnVisibilityModel: {}
+              }
+            }}
+          />
         </Box>
-      </Grid>
+      </SettingsSection>
       <Drawer
         anchor="right"
         open={openDrawer}

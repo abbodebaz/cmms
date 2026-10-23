@@ -1,11 +1,8 @@
 import {
-  Card,
-  CardContent,
-  CardHeader,
+  Box,
   Dialog,
   DialogContent,
   DialogTitle,
-  Divider,
   FormControl,
   Typography
 } from '@mui/material';
@@ -21,6 +18,9 @@ import Form from '../../components/form';
 import * as Yup from 'yup';
 import { addFiles } from '../../../../slices/file';
 import { IField } from '../../type';
+import SectionCard from '../../components/SectionCard';
+import { alpha } from '@mui/material/styles';
+import FormDialogTitle from '../../components/form/FormDialogTitle';
 
 interface TasksProps {
   tasksProps: Task[];
@@ -124,15 +124,10 @@ export default function Tasks({
         open={openSelectImages}
         onClose={() => setOpenSelectImages(false)}
       >
-        <DialogTitle
-          sx={{
-            p: 3
-          }}
-        >
-          <Typography variant="h4" gutterBottom>
-            {t('add_images')}
-          </Typography>
-        </DialogTitle>
+        <FormDialogTitle
+          title={t('add_images')}
+          onClose={() => setOpenSelectImages(false)}
+        />
         <DialogContent
           dividers
           sx={{
@@ -164,10 +159,27 @@ export default function Tasks({
     );
   };
   return (
-    <Card>
-      <CardHeader title={t('tasks')} avatar={<TaskAltTwoToneIcon />} />
-      <Divider />
-      <CardContent>
+    <>
+      <SectionCard
+        title="tasks"
+        icon={<TaskAltTwoToneIcon fontSize="small" />}
+        badge={
+          <Box
+            component="span"
+            sx={{
+              px: 1.25,
+              py: 0.25,
+              borderRadius: '999px',
+              fontSize: 12.5,
+              fontWeight: 700,
+              color: 'primary.dark',
+              backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1)
+            }}
+          >
+            <bdi>{tasks.length}</bdi>
+          </Box>
+        }
+      >
         <FormControl fullWidth>
           {tasks.map((task) => (
             <SingleTask
@@ -184,8 +196,8 @@ export default function Tasks({
             />
           ))}
         </FormControl>
-      </CardContent>
+      </SectionCard>
       {renderSelectImages()}
-    </Card>
+    </>
   );
 }

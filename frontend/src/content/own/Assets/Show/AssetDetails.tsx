@@ -39,6 +39,20 @@ import useAuth from '../../../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { getCustomFieldValuesForDetails } from '../../type';
 import { QRCodeSVG } from 'qrcode.react';
+import { alpha } from '@mui/material/styles';
+import SectionCard from '../../components/SectionCard';
+import { SoftChip } from '../../components/StatusChip';
+import {
+  DetailGrid,
+  DetailItem,
+  DetailsHeader,
+  DetailsPage,
+  DetailThumb
+} from '../../components/DetailsKit';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import PeopleAltTwoToneIcon from '@mui/icons-material/PeopleAltTwoTone';
+import NotesTwoToneIcon from '@mui/icons-material/NotesTwoTone';
+import QrCode2TwoToneIcon from '@mui/icons-material/QrCode2TwoTone';
 
 interface PropsType {
   asset: AssetDTO;
@@ -119,39 +133,12 @@ const AssetDetails = ({ asset, loading, onCopy }: PropsType) => {
   ];
   const BasicField = ({
     label,
-    value,
-    barcode
+    value
   }: {
     label: string | number;
     value: string | number;
     barcode?: boolean;
-  }) => {
-    return value ? (
-      <Grid item xs={12}>
-        <Stack spacing={5} direction="row">
-          <Typography variant="h6" fontWeight="bold">
-            {label}
-          </Typography>
-          <Box>
-            <Typography variant="h6">{value}</Typography>
-            {barcode && value && (
-              <QRCodeSVG
-                id={`qr-code-${value}`}
-                value={value.toString()}
-                size={120}
-                level="H"
-                onClick={() => {
-                  downloadQRCode(value.toString());
-                }}
-                style={{ marginTop: theme.spacing(1), cursor: 'pointer' }}
-              />
-            )}
-          </Box>
-        </Stack>
-        <Divider sx={{ mt: 1 }} />
-      </Grid>
-    ) : null;
-  };
+  }) => <DetailItem label={label} value={value} />;
   const ListField = <T extends { id: number }>({
     values,
     label,
@@ -164,28 +151,33 @@ const AssetDetails = ({ asset, loading, onCopy }: PropsType) => {
     getValueLabel: (value: T) => string;
   }) => {
     return (
-      !!values?.length && (
-        <Grid item xs={12}>
-          <Stack spacing={5} direction="row">
-            <Typography variant="h6" fontWeight="bold">
-              {label}
-            </Typography>
-            <Stack spacing={1} direction="row">
-              {values.map((value, index) => (
-                <Stack key={value.id} spacing={1} direction="row">
-                  <Link href={getHref(value)} variant="h6">
-                    {getValueLabel(value)}
-                  </Link>
-                  {index !== values.length - 1 && (
-                    <Typography variant="h6">,</Typography>
-                  )}
-                </Stack>
-              ))}
-            </Stack>
-          </Stack>
-          <Divider sx={{ mt: 1 }} />
-        </Grid>
-      )
+      <DetailItem label={label}>
+        {values?.length ? (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+            {values.map((value) => (
+              <Link
+                key={value.id}
+                href={getHref(value)}
+                underline="none"
+                sx={{
+                  px: 1.25,
+                  py: 0.25,
+                  borderRadius: '20px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: theme.palette.primary.dark,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.16)
+                  }
+                }}
+              >
+                {getValueLabel(value)}
+              </Link>
+            ))}
+          </Box>
+        ) : null}
+      </DetailItem>
     );
   };
   if (loading)
@@ -201,126 +193,203 @@ const AssetDetails = ({ asset, loading, onCopy }: PropsType) => {
         <Loading />
       </Box>
     );
+  const barcodeValue = asset?.barCode;
   return (
-    <Box sx={{ px: 4 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Card sx={{ p: 2 }}>
-            <Grid container spacing={2} padding={2}>
-              {asset?.image && (
-                <Grid item xs={12}>
-                  <img width="auto" height="300px" src={asset.image.url} />
-                </Grid>
-              )}
-              <Grid item xs={12}>
-                <Stack direction={'row'} justifyContent={'space-between'}>
-                  <Stack direction={'row'} spacing={2} alignItems={'center'}>
-                    <Typography variant="h3">
-                      {t('asset_information')}
-                    </Typography>
-                    {asset && (
-                      <AssetStatusSelect
-                        value={asset.status}
-                        onChange={(status) =>
-                          dispatch(editAsset(asset.id, { ...asset, status }))
-                        }
-                        disabled={
-                          !hasEditPermission(PermissionEntity.ASSETS, asset)
-                        }
-                      />
-                    )}
-                    {hasCreatePermission(PermissionEntity.ASSETS) && (
-                      <IconButton onClick={onCopy}>
-                        <ContentCopyIcon />
-                      </IconButton>
-                    )}
-                  </Stack>
-                  {hasCreatePermission(PermissionEntity.WORK_ORDERS) && (
-                    <Button
-                      onClick={() =>
-                        navigate(`/app/work-orders?asset=${asset.id}`)
-                      }
-                      startIcon={<AddTwoToneIcon />}
-                      variant={'contained'}
-                    >
-                      {t('work_order')}
-                    </Button>
-                  )}
-                </Stack>
-              </Grid>
-              {informationFields.map((field) => (
-                <BasicField key={field.label} {...field} />
-              ))}
-              <Grid item xs={12}>
-                <Typography variant="h3">{t('more_informations')}</Typography>
-              </Grid>
-              {moreInfosFields.map((field) => (
-                <BasicField key={field.label} {...field} />
-              ))}
-              {asset?.primaryUser && (
-                <Grid item xs={12}>
-                  <Stack spacing={5} direction="row">
-                    <Typography variant="h6" fontWeight="bold">
-                      {t('primary_worker')}
-                    </Typography>
-                    <Link
-                      key={asset.primaryUser.id}
-                      href={`/app/people-teams/people/${asset.primaryUser.id}`}
-                      variant="h6"
-                    >
-                      {`${asset.primaryUser.firstName} ${asset.primaryUser.lastName}`}
-                    </Link>
-                  </Stack>
-                  <Divider sx={{ mt: 1 }} />
-                </Grid>
-              )}
-              {asset?.location && (
-                <Grid item xs={12}>
-                  <Stack spacing={5} direction="row">
-                    <Typography variant="h6" fontWeight="bold">
-                      {t('location')}
-                    </Typography>
+    <DetailsPage dense>
+      <Box
+        sx={{
+          p: { xs: 2, sm: 2.5 },
+          borderRadius: '14px',
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.18)}`,
+          backgroundColor: theme.palette.background.paper,
+          boxShadow: `0 6px 18px ${alpha(theme.palette.primary.main, 0.06)}`,
+          '& > div': { pb: 0, borderBottom: 'none' }
+        }}
+      >
+        <DetailsHeader
+          subtitle={
+            asset?.customId ? <bdi>{`#${asset.customId}`}</bdi> : undefined
+          }
+          title={asset?.name}
+          media={
+            asset?.image ? (
+              <DetailThumb
+                src={asset.image.url}
+                alt={asset?.name}
+                size={88}
+                onClick={() => window.open(asset.image.url, '_blank')}
+              />
+            ) : undefined
+          }
+          chips={
+            asset ? (
+              <>
+                <AssetStatusSelect
+                  value={asset.status}
+                  onChange={(status) =>
+                    dispatch(editAsset(asset.id, { ...asset, status }))
+                  }
+                  disabled={!hasEditPermission(PermissionEntity.ASSETS, asset)}
+                />
+                {asset.category?.name && (
+                  <SoftChip tone="neutral" label={asset.category.name} />
+                )}
+              </>
+            ) : undefined
+          }
+          actions={
+            hasCreatePermission(PermissionEntity.ASSETS) ? (
+              <IconButton aria-label={t('copy_asset')} onClick={onCopy}>
+                <ContentCopyIcon fontSize="small" />
+              </IconButton>
+            ) : undefined
+          }
+          cta={
+            hasCreatePermission(PermissionEntity.WORK_ORDERS) ? (
+              <Button
+                onClick={() => navigate(`/app/work-orders?asset=${asset.id}`)}
+                startIcon={<AddTwoToneIcon />}
+                variant={'contained'}
+                sx={{
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                  boxShadow: `0 6px 16px ${alpha(
+                    theme.palette.primary.main,
+                    0.28
+                  )}`
+                }}
+              >
+                {t('work_order')}
+              </Button>
+            ) : undefined
+          }
+          description={asset?.description}
+        />
+      </Box>
+      <Grid container spacing={2.5}>
+        <Grid item xs={12} md={barcodeValue ? 8 : 12}>
+          <Stack spacing={2.5}>
+            <SectionCard
+              title="asset_information"
+              icon={<InfoTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid>
+                {informationFields
+                  .filter((field) => field.label !== t('description'))
+                  .map((field) => (
+                    <BasicField key={field.label} {...field} />
+                  ))}
+                <DetailItem label={t('location')}>
+                  {asset?.location ? (
                     <Link
                       href={`/app/locations/${asset.location.id}`}
-                      variant="h6"
+                      underline="hover"
                     >
                       {asset.location.name}
                     </Link>
-                  </Stack>
-                  <Divider sx={{ mt: 1 }} />
-                </Grid>
-              )}
-              <ListField
-                values={asset?.assignedTo}
-                label={t('assigned_to')}
-                getHref={(user: UserMiniDTO) => getUserUrl(user.id)}
-                getValueLabel={(user: UserMiniDTO) =>
-                  `${user.firstName} ${user.lastName}`
-                }
-              />
-              <ListField
-                values={asset?.customers}
-                label={t('customers')}
-                getHref={(customer: Customer) => getCustomerUrl(customer.id)}
-                getValueLabel={(customer: Customer) => customer.name}
-              />
-              <ListField
-                values={asset?.vendors}
-                label={t('vendors')}
-                getHref={(vendor: Vendor) => getVendorUrl(vendor.id)}
-                getValueLabel={(vendor: Vendor) => vendor.companyName}
-              />
-              <ListField
-                values={asset?.teams}
-                label={t('teams')}
-                getHref={(team: TeamMiniDTO) => getTeamUrl(team.id)}
-                getValueLabel={(team: TeamMiniDTO) => team.name}
-              />
-            </Grid>
-          </Card>
+                  ) : null}
+                </DetailItem>
+              </DetailGrid>
+            </SectionCard>
+            <SectionCard
+              title="details_assignment"
+              icon={<PeopleAltTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid>
+                <DetailItem label={t('primary_worker')}>
+                  {asset?.primaryUser ? (
+                    <Link
+                      key={asset.primaryUser.id}
+                      href={`/app/people-teams/people/${asset.primaryUser.id}`}
+                      underline="hover"
+                    >
+                      {`${asset.primaryUser.firstName} ${asset.primaryUser.lastName}`}
+                    </Link>
+                  ) : null}
+                </DetailItem>
+                <ListField
+                  values={asset?.assignedTo}
+                  label={t('assigned_to')}
+                  getHref={(user: UserMiniDTO) => getUserUrl(user.id)}
+                  getValueLabel={(user: UserMiniDTO) =>
+                    `${user.firstName} ${user.lastName}`
+                  }
+                />
+                <ListField
+                  values={asset?.teams}
+                  label={t('teams')}
+                  getHref={(team: TeamMiniDTO) => getTeamUrl(team.id)}
+                  getValueLabel={(team: TeamMiniDTO) => team.name}
+                />
+                <ListField
+                  values={asset?.customers}
+                  label={t('customers')}
+                  getHref={(customer: Customer) => getCustomerUrl(customer.id)}
+                  getValueLabel={(customer: Customer) => customer.name}
+                />
+                <ListField
+                  values={asset?.vendors}
+                  label={t('vendors')}
+                  getHref={(vendor: Vendor) => getVendorUrl(vendor.id)}
+                  getValueLabel={(vendor: Vendor) => vendor.companyName}
+                />
+              </DetailGrid>
+            </SectionCard>
+            <SectionCard
+              title="more_informations"
+              icon={<NotesTwoToneIcon fontSize="small" />}
+            >
+              <DetailGrid>
+                {moreInfosFields.map((field) => (
+                  <BasicField key={field.label} {...field} />
+                ))}
+              </DetailGrid>
+            </SectionCard>
+          </Stack>
         </Grid>
+        {barcodeValue && (
+          <Grid item xs={12} md={4}>
+            <SectionCard
+              title="barcode"
+              icon={<QrCode2TwoToneIcon fontSize="small" />}
+            >
+              <Stack alignItems="center" spacing={1.5}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    borderRadius: '12px',
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.18)}`,
+                    backgroundColor: theme.palette.common.white,
+                    lineHeight: 0
+                  }}
+                >
+                  <QRCodeSVG
+                    id={`qr-code-${barcodeValue}`}
+                    value={barcodeValue.toString()}
+                    size={120}
+                    level="H"
+                    onClick={() => {
+                      downloadQRCode(barcodeValue.toString());
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  />
+                </Box>
+                <Typography
+                  sx={{ fontWeight: 600, fontSize: 14, wordBreak: 'break-all' }}
+                >
+                  <bdi>{barcodeValue}</bdi>
+                </Typography>
+                <Typography
+                  sx={{ color: 'text.secondary', fontSize: 12.5 }}
+                >
+                  {t('details_qr_download_hint')}
+                </Typography>
+              </Stack>
+            </SectionCard>
+          </Grid>
+        )}
       </Grid>
-    </Box>
+    </DetailsPage>
   );
 };
 

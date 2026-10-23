@@ -10,6 +10,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { FilterField } from '../../../../models/owns/page';
 import { SuperAccountRelation } from '../../../../models/user';
+import { filterPillSx } from '../../components/ListPageShell';
 
 interface OwnProps {
   filterFields: FilterField[];
@@ -75,11 +76,8 @@ function CompanyFilter({
     <>
       <Button
         onClick={handleOpenMenu}
-        sx={{
-          '& .MuiButton-startIcon': { margin: '0px' },
-          minWidth: 0
-        }}
-        variant={selectedName ? 'contained' : 'outlined'}
+        sx={filterPillSx(Boolean(selectedName))}
+        variant="outlined"
         startIcon={icon}
       >
         {selectedName ?? t('all_companies')}

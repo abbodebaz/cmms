@@ -19,6 +19,15 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
+  ListCard,
+  ListCardBody,
+  ListPage,
+  ListPageHeader,
+  ListToolbar,
+  SegmentedTabs,
+  SoftIconButton
+} from '../components/ListPageShell';
+import {
   getCustomFieldsIFields,
   getCustomFieldsRequiredShape,
   getCustomFieldsValues,
@@ -92,6 +101,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import SearchInput from '../components/SearchInput';
 import { getCustomFields } from '../../../slices/customField';
 import { CustomFieldEntityType } from '../../../models/owns/customField';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 
 const PAGE_SIZE = 40;
 
@@ -747,20 +757,23 @@ function Locations() {
         }
       }}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {copyLocationData ? t('copy_location') : t('add_location')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {copyLocationData
+      <FormDialogTitle
+        title={copyLocationData ? t('copy_location') : t('add_location')}
+        subtitle={
+          copyLocationData
             ? t('copy_location_description')
-            : t('add_location_description')}
-        </Typography>
-      </DialogTitle>
+            : t('add_location_description')
+        }
+        onClose={() => {
+          if (isFormDirty) {
+            setOpenDiscardDialog(true);
+          } else {
+            setOpenAddModal(false);
+            setCopyLocationData(null);
+            setInitialLocationName('');
+          }
+        }}
+      />
       <DialogContent
         dividers
         sx={{
@@ -869,18 +882,11 @@ function Locations() {
       open={openUpdateModal}
       onClose={() => setOpenUpdateModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('edit_location')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('edit_location_description')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('edit_location')}
+        subtitle={t('edit_location_description')}
+        onClose={() => setOpenUpdateModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -1038,70 +1044,62 @@ function Locations() {
         <Helmet>
           <title>{t('locations')}</title>
         </Helmet>
-        <Box justifyContent="center" alignItems="stretch" paddingX={4}>
-          <Box
-            my={1}
-            display="flex"
-            flexDirection="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            {tabs.length > 1 ? (
-              <Tabs
-                onChange={handleTabsChange}
-                value={currentTab}
-                variant="scrollable"
-                scrollButtons="auto"
-                textColor="primary"
-                indicatorColor="primary"
-              >
-                {tabs.map((tab) => (
-                  <Tab key={tab.value} label={tab.label} value={tab.value} />
-                ))}
-              </Tabs>
-            ) : (
-              <Box />
-            )}
-            <Stack direction={'row'} alignItems="center" spacing={1}>
-              <SearchInput onChange={debouncedQueryChange} />
-              <IconButton onClick={() => handleReset(true)} color="primary">
-                <ReplayTwoToneIcon />
-              </IconButton>
-              <IconButton onClick={handleOpenMenu} color="primary">
-                <MoreVertTwoToneIcon />
-              </IconButton>
-              {hasCreatePermission(PermissionEntity.LOCATIONS) && (
-                <SplitButton
-                  onMainClick={() => setOpenAddModal(true)}
-                  startIcon={<AddTwoToneIcon />}
-                  sx={{ mx: 6, my: 1 }}
-                  label={t('location')}
-                  menuItems={
-                    hasViewPermission(PermissionEntity.SETTINGS) &&
-                    hasFeature(PlanFeature.IMPORT_CSV)
-                      ? [
-                          {
-                            label: t('import_from_spreadsheet'),
-                            onClick: () => navigate('/app/imports/locations')
-                          }
-                        ]
-                      : []
-                  }
-                />
-              )}
-            </Stack>
-          </Box>
+        <ListPage>
+          <ListPageHeader
+            title={t('locations')}
+            count={!isHierarchyView ? locations.totalElements : undefined}
+            actions={
+              <>
+                {tabs.length > 1 && (
+                  <SegmentedTabs
+                    onChange={handleTabsChange}
+                    value={currentTab}
+                    variant="scrollable"
+                    scrollButtons="auto"
+                    textColor="primary"
+                    indicatorColor="primary"
+                  >
+                    {tabs.map((tab) => (
+                      <Tab key={tab.value} label={tab.label} value={tab.value} />
+                    ))}
+                  </SegmentedTabs>
+                )}
+                <SoftIconButton
+                  title={t('lists.refresh')}
+                  onClick={() => handleReset(true)}
+                >
+                  <ReplayTwoToneIcon />
+                </SoftIconButton>
+                <SoftIconButton title={t('more')} onClick={handleOpenMenu}>
+                  <MoreVertTwoToneIcon />
+                </SoftIconButton>
+                {hasCreatePermission(PermissionEntity.LOCATIONS) && (
+                  <SplitButton
+                    onMainClick={() => setOpenAddModal(true)}
+                    startIcon={<AddTwoToneIcon />}
+                    label={t('location')}
+                    menuItems={
+                      hasViewPermission(PermissionEntity.SETTINGS) &&
+                      hasFeature(PlanFeature.IMPORT_CSV)
+                        ? [
+                            {
+                              label: t('import_from_spreadsheet'),
+                              onClick: () => navigate('/app/imports/locations')
+                            }
+                          ]
+                        : []
+                    }
+                  />
+                )}
+              </>
+            }
+          />
           {currentTab === 'list' && (
-            <Card
-              sx={{
-                py: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Box sx={{ width: '95%' }}>
+            <ListCard>
+              <ListToolbar>
+                <SearchInput onChange={debouncedQueryChange} />
+              </ListToolbar>
+              <ListCardBody>
                 <CustomDatagrid2
                   columns={isHierarchyView ? columns : columns.slice(1)}
                   data={filteredTableData}
@@ -1148,16 +1146,15 @@ function Locations() {
                     handleOpenDetails(row.id);
                   }}
                 />
-              </Box>
-            </Card>
+              </ListCardBody>
+            </ListCard>
           )}
           {currentTab === 'map' && (
-            <Card
-              sx={{
-                p: 2,
-                justifyContent: 'center'
-              }}
-            >
+            <ListCard>
+              <ListToolbar>
+                <SearchInput onChange={debouncedQueryChange} />
+              </ListToolbar>
+              <Box sx={{ p: 2 }}>
               <Map
                 dimensions={{ width: 1000, height: 500 }}
                 locations={locations.content
@@ -1174,9 +1171,10 @@ function Locations() {
                     };
                   })}
               />
-            </Card>
+              </Box>
+            </ListCard>
           )}
-        </Box>
+        </ListPage>
         {renderLocationAddModal()}
         {renderLocationUpdateModal()}
         <Drawer

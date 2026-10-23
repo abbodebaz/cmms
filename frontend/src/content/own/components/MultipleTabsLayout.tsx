@@ -1,94 +1,17 @@
 import { ChangeEvent, ReactNode } from 'react';
 import { Helmet } from 'react-helmet-async';
 import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
-import { Box, Button, Card, Stack, styled, Tab, Tabs } from '@mui/material';
+import { Box, Button, Stack, Tab } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
-
-const TabsContainerWrapper = styled(Box)(
-  ({ theme }) => `
-      padding: 0 ${theme.spacing(8)};
-      margin-top: 2px;
-      position: relative;
-      bottom: -1px;
-      max-width: 100%;
-
-      .MuiTabs-root {
-        height: 44px;
-        min-height: 44px;
-      }
-
-      .MuiTabs-scrollableX {
-        overflow-x: auto !important;
-      }
-
-      .MuiTabs-indicator {
-          min-height: 4px;
-          height: 4px;
-          box-shadow: none;
-          bottom: -4px;
-          background: none;
-          border: 0;
-
-          &:after {
-            position: absolute;
-            left: 50%;
-            width: 28px;
-            content: ' ';
-            margin-left: -14px;
-            background: ${theme.colors.primary.main};
-            border-radius: inherit;
-            height: 100%;
-          }
-      }
-
-      .MuiTab-root {
-          &.MuiButtonBase-root {
-              height: 44px;
-              min-height: 44px;
-              background: ${theme.colors.alpha.white[50]};
-              border: 1px solid ${theme.colors.alpha.black[10]};
-              border-bottom: 0;
-              position: relative;
-              margin-right: ${theme.spacing(1)};
-              font-size: ${theme.typography.pxToRem(14)};
-              color: ${theme.colors.alpha.black[80]};
-              border-bottom-left-radius: 0;
-              border-bottom-right-radius: 0;
-
-              .MuiTouchRipple-root {
-                opacity: .1;
-              }
-
-              &:after {
-                position: absolute;
-                left: 0;
-                right: 0;
-                width: 100%;
-                bottom: 0;
-                height: 1px;
-                content: '';
-                background: ${theme.colors.alpha.black[10]};
-              }
-
-              &:hover {
-                color: ${theme.colors.alpha.black[100]};
-              }
-          }
-
-          &.Mui-selected {
-              color: ${theme.colors.alpha.black[100]};
-              background: ${theme.colors.alpha.white[100]};
-              border-bottom-color: ${theme.colors.alpha.white[100]};
-
-              &:after {
-                height: 0;
-              }
-          }
-      }
-  `
-);
+import {
+  ListCard,
+  ListPageHeader,
+  primaryCtaSx,
+  SegmentedTabs
+} from './ListPageShell';
 
 interface SettingsLayoutProps {
   children?: ReactNode;
@@ -130,64 +53,88 @@ function MultipleTabsLayout(props: SettingsLayoutProps) {
     navigate(`${basePath}/${value}`);
   };
 
+  const hasActions = Boolean(action || secondAction || rawAction);
+  const actionsNode = hasActions ? (
+    <>
+      {action && (
+        <Button
+          startIcon={editAction ? <EditTwoToneIcon /> : <AddTwoToneIcon />}
+          variant="contained"
+          onClick={action}
+          sx={primaryCtaSx}
+        >
+          {actionTitle}
+        </Button>
+      )}
+      {secondAction && secondActionTitle && (
+        <Button
+          startIcon={secondActionIcon}
+          variant="outlined"
+          onClick={secondAction}
+          sx={(theme) => ({
+            borderRadius: '12px',
+            minHeight: 40,
+            fontWeight: 700,
+            borderColor: alpha(theme.palette.primary.main, 0.35),
+            color: theme.palette.primary.dark
+          })}
+        >
+          {secondActionTitle}
+        </Button>
+      )}
+      {rawAction}
+    </>
+  ) : null;
+
+  const tabsNode = (
+    <SegmentedTabs
+      onChange={handleTabsChange}
+      value={currentTab}
+      variant="scrollable"
+      scrollButtons="auto"
+      allowScrollButtonsMobile
+      textColor="primary"
+      indicatorColor="primary"
+    >
+      {tabs.map((tab) => (
+        <Tab key={tab.value} label={tab.label} value={tab.value} />
+      ))}
+    </SegmentedTabs>
+  );
+
   return (
-    <Box mt={1}>
+    <Box
+      sx={{
+        px: { xs: 2, md: 3 },
+        pt: { xs: 2, md: 2.5 },
+        pb: 3
+      }}
+    >
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <Box display="flex" justifyContent="space-between">
-        <TabsContainerWrapper>
-          <Tabs
-            onChange={handleTabsChange}
-            value={currentTab}
-            variant="scrollable"
-            scrollButtons="auto"
-            textColor="primary"
-            indicatorColor="primary"
-          >
-            {tabs.map((tab) => (
-              <Tab key={tab.value} label={tab.label} value={tab.value} />
-            ))}
-          </Tabs>
-        </TabsContainerWrapper>
-        {(action || secondAction || rawAction) && (
-          <Stack direction="row" spacing={1} sx={{ mr: 4, my: 1 }}>
-            {action && (
-              <Button
-                startIcon={
-                  editAction ? <EditTwoToneIcon /> : <AddTwoToneIcon />
-                }
-                variant="contained"
-                onClick={action}
-              >
-                {actionTitle}
-              </Button>
-            )}
-            {secondAction && secondActionTitle && (
-              <Button
-                startIcon={secondActionIcon}
-                variant="outlined"
-                onClick={secondAction}
-              >
-                {secondActionTitle}
-              </Button>
-            )}
-            {rawAction}
-          </Stack>
-        )}
-      </Box>
       {withoutCard ? (
-        children
-      ) : (
-        <Card
-          variant="outlined"
-          sx={{
-            mx: 4
-          }}
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          alignItems={{ xs: 'stretch', md: 'center' }}
+          justifyContent="space-between"
+          gap={2}
+          sx={{ mb: 2.5 }}
         >
-          {children}
-        </Card>
+          <Box sx={{ minWidth: 0 }}>{tabsNode}</Box>
+          {hasActions && (
+            <Stack direction="row" alignItems="center" flexWrap="wrap" gap={1}>
+              {actionsNode}
+            </Stack>
+          )}
+        </Stack>
+      ) : (
+        <>
+          <ListPageHeader title={title} actions={actionsNode} />
+          <Box sx={{ mb: 2 }}>{tabsNode}</Box>
+        </>
       )}
+      {withoutCard ? children : <ListCard>{children}</ListCard>}
     </Box>
   );
 }

@@ -1,4 +1,5 @@
-import { Box, Grid, Tab, Tabs } from '@mui/material';
+import { Box, Stack } from '@mui/material';
+import PillTabs from '../components/PillTabs';
 import { useTranslation } from 'react-i18next';
 import { ChangeEvent, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
@@ -51,33 +52,17 @@ function IntegrationsLayout() {
   }
 
   return (
-    <Grid item xs={12}>
-      <Box p={4}>
-        <Box>
-          <Tabs
-            onChange={handleTabsChange}
-            value={activeTab}
-            variant="scrollable"
-            scrollButtons="auto"
-            textColor="primary"
-            indicatorColor="primary"
-          >
-            {tabs.map((tab) => (
-              <Tab
-                key={tab.value}
-                icon={tab.icon}
-                iconPosition="start"
-                label={tab.label}
-                value={tab.value}
-              />
-            ))}
-          </Tabs>
-          <Box>
-            <Outlet />
-          </Box>
-        </Box>
+    <Stack spacing={2}>
+      <PillTabs
+        tabs={tabs}
+        value={activeTab}
+        onChange={(value) => handleTabsChange(null, value)}
+        ariaLabel={t('integrations')}
+      />
+      <Box>
+        <Outlet />
       </Box>
-    </Grid>
+    </Stack>
   );
 }
 

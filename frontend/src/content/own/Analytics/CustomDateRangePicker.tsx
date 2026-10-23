@@ -10,8 +10,13 @@ import {
   Stack,
   TextField,
   Popover,
+  InputAdornment,
+  Typography,
   useTheme
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import FilterListTwoToneIcon from '@mui/icons-material/FilterListTwoTone';
+import DateRangeTwoToneIcon from '@mui/icons-material/DateRangeTwoTone';
 import { DateRange } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
@@ -113,14 +118,59 @@ export default function ({
 
   return (
     <>
-      <Card sx={{ display: 'flex', p: 2, justifyContent: 'center' }}>
-        <Stack direction="row" spacing={1} alignItems="center">
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: 1.5,
+          px: { xs: 2, sm: 2.5 },
+          py: 1.5,
+          borderRadius: '14px',
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
+          backgroundColor: theme.palette.background.paper,
+          boxShadow: `0 6px 18px ${alpha(theme.palette.primary.main, 0.05)}`
+        }}
+      >
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
+          <FilterListTwoToneIcon
+            fontSize="small"
+            sx={{ color: theme.palette.primary.main }}
+          />
+          <Typography
+            sx={{
+              fontWeight: 700,
+              fontSize: theme.typography.pxToRem(14),
+              color: theme.palette.text.primary
+            }}
+          >
+            {t('filters')}
+          </Typography>
+        </Stack>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          sx={{ flex: 1, justifyContent: 'flex-end' }}
+        >
           <TextField
-            sx={{ width: 250 }}
+            size="small"
+            sx={{
+              width: { xs: '100%', sm: 300 },
+              '& input': { cursor: 'pointer' }
+            }}
             value={`${displayStartDate} ${t('to')} ${displayEndDate}`}
             onClick={handleOpen}
             InputProps={{
-              readOnly: true
+              readOnly: true,
+              startAdornment: (
+                <InputAdornment position="start">
+                  <DateRangeTwoToneIcon
+                    fontSize="small"
+                    sx={{ color: theme.palette.primary.main }}
+                  />
+                </InputAdornment>
+              )
             }}
             ref={anchorRef}
           />
@@ -129,12 +179,15 @@ export default function ({
               <Button
                 onClick={handleOpenMenu}
                 sx={{
-                  '& .MuiButton-startIcon': { margin: '0px' },
-                  minWidth: 0
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  ...(selectedName
+                    ? {}
+                    : { borderColor: alpha(theme.palette.primary.main, 0.35) })
                 }}
                 variant={selectedName ? 'contained' : 'outlined'}
                 startIcon={<BusinessTwoToneIcon />}
-                size={'large'}
               >
                 {selectedName ?? t('all_companies')}
               </Button>
@@ -164,7 +217,7 @@ export default function ({
             </>
           )}
         </Stack>
-      </Card>
+      </Box>
       <Popover
         open={open}
         anchorEl={anchorRef.current}
@@ -178,6 +231,7 @@ export default function ({
           horizontal: 'left'
         }}
       >
+        <Box sx={{ maxWidth: '100vw', overflowX: 'auto' }}>
         <DateRange
           ranges={state}
           onChange={handleSelect}
@@ -187,6 +241,7 @@ export default function ({
           direction="horizontal"
           rangeColors={[theme.palette.primary.main]}
         />
+        </Box>
       </Popover>
     </>
   );

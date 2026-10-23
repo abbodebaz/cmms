@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Cell, Legend, Pie, PieChart, Tooltip } from 'recharts';
@@ -6,7 +11,6 @@ import { Filter } from '../WOModal';
 import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
 import { getCompleteByPriority } from '../../../../../slices/analytics/workOrder';
-import { getRandomColor } from '../../../../../utils/overall';
 import { getPriorityLabel } from '../../../../../utils/formatters';
 import Loading from '../../Loading';
 
@@ -24,6 +28,9 @@ interface WOByPrimaryUserProps {
 function WOByPriority({ handleOpenModal, start, end, companyId }: WOByPrimaryUserProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const dispatch = useDispatch();
   const { completeByPriority, loading } = useSelector(
     (state) => state.woAnalytics
@@ -40,7 +47,7 @@ function WOByPriority({ handleOpenModal, start, end, companyId }: WOByPrimaryUse
       return {
         label: getPriorityLabel(priority, t),
         value: count,
-        color: getRandomColor(),
+        color: nextChartColor(),
         filters: [{ key: 'priority', value: priority }]
       };
     }
@@ -60,7 +67,7 @@ function WOByPriority({ handleOpenModal, start, end, companyId }: WOByPrimaryUse
             cy="50%"
             outerRadius={100}
             innerRadius={50}
-            fill="#8884d8"
+            fill={chartPalette[0]}
           >
             {formattedData.map((entry, index) => (
               <Cell

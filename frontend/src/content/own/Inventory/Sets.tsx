@@ -14,6 +14,7 @@ import {
   useTheme
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { ListToolbar, SegmentedTabs } from '../components/ListPageShell';
 import CustomDatagrid2, {
   CustomDatagridColumn2
 } from '../components/CustomDatagrid2';
@@ -23,6 +24,7 @@ import { useDispatch, useSelector } from '../../../store';
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
 import * as Yup from 'yup';
 import Form from '../components/form';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 import { IField } from '../type';
 import SetType from '../../../models/owns/setType';
 import SetDetails from './SetDetails';
@@ -153,7 +155,8 @@ const Sets = ({ setAction }: PropsType) => {
     {
       name: 'partsTitle',
       type: 'titleGroupField',
-      label: t('parts')
+      label: t('parts'),
+      description: t('form_section_set_parts_desc')
     },
     {
       name: 'parts',
@@ -225,16 +228,11 @@ const Sets = ({ setAction }: PropsType) => {
       open={openAddModal}
       onClose={() => setOpenAddModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('add_set')}
-        </Typography>
-        <Typography variant="subtitle2">{t('add_set_description')}</Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('add_set')}
+        subtitle={t('add_set_description')}
+        onClose={() => setOpenAddModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -266,16 +264,11 @@ const Sets = ({ setAction }: PropsType) => {
       open={openUpdateModal}
       onClose={() => setOpenUpdateModal(false)}
     >
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('edit_set')}
-        </Typography>
-        <Typography variant="subtitle2">{t('edit_set_description')}</Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('edit_set')}
+        subtitle={t('edit_set_description')}
+        onClose={() => setOpenUpdateModal(false)}
+      />
       <DialogContent
         dividers
         sx={{
@@ -312,21 +305,22 @@ const Sets = ({ setAction }: PropsType) => {
     <Box sx={{ p: 2 }}>
       {renderSetAddModal()}
       {renderSetUpdateModal()}
-      <Tabs
-        sx={{ mb: 2 }}
-        onChange={handleTabsChange}
-        value={currentTab}
-        variant="scrollable"
-        scrollButtons="auto"
-        textColor="primary"
-        indicatorColor="primary"
-      >
-        {tabs.map((tab) => (
-          <Tab key={tab.value} label={tab.label} value={tab.value} />
-        ))}
-      </Tabs>
+      <ListToolbar bare>
+        <SegmentedTabs
+          onChange={handleTabsChange}
+          value={currentTab}
+          variant="scrollable"
+          scrollButtons="auto"
+          textColor="primary"
+          indicatorColor="primary"
+        >
+          {tabs.map((tab) => (
+            <Tab key={tab.value} label={tab.label} value={tab.value} />
+          ))}
+        </SegmentedTabs>
+      </ListToolbar>
       {currentTab === 'list' && (
-        <Box sx={{ width: '95%' }}>
+        <Box sx={{ width: '100%' }}>
           <CustomDatagrid2
             columns={columns}
             data={multiParts}

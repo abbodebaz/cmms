@@ -10,7 +10,9 @@ import {
   Typography
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { ListToolbar } from '../components/ListPageShell';
 import Form from '../components/form';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 import * as Yup from 'yup';
 import { IField } from '../type';
 import CustomDataGrid from '../components/CustomDatagrid';
@@ -21,6 +23,19 @@ import {
   GridToolbar
 } from '@mui/x-data-grid';
 import { Close } from '@mui/icons-material';
+import { Avatar } from '@mui/material';
+import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
+import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
+import ArrowBackTwoToneIcon from '@mui/icons-material/ArrowBackTwoTone';
+import PeopleAltTwoToneIcon from '@mui/icons-material/PeopleAltTwoTone';
+import SectionCard from '../components/SectionCard';
+import { SoftChip } from '../components/StatusChip';
+import {
+  DetailRow,
+  DetailRowText,
+  DetailsHeader,
+  EmptyCardBody
+} from '../components/DetailsKit';
 import { isNumeric } from 'src/utils/validators';
 import { useParams } from 'react-router-dom';
 import {
@@ -212,18 +227,11 @@ const Teams = ({ openModal, handleCloseModal }: PropsType) => {
 
   const RenderTeamsAddModal = () => (
     <Dialog fullWidth maxWidth="md" open={openModal} onClose={handleCloseModal}>
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('create_team')}
-        </Typography>
-        <Typography variant="subtitle2">
-          {t('create_team_description')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('create_team')}
+        subtitle={t('create_team_description')}
+        onClose={handleCloseModal}
+      />
 
       <DialogContent
         dividers
@@ -325,67 +333,67 @@ const Teams = ({ openModal, handleCloseModal }: PropsType) => {
       open={isTeamDetailsOpen}
       onClose={handleCloseDetails}
     >
-      <DialogTitle
-        sx={{
-          p: 3,
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between'
-        }}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-          {viewOrUpdate === 'view' ? (
-            hasEditPermission(
-              PermissionEntity.PEOPLE_AND_TEAMS,
-              currentTeam
-            ) && (
-              <Typography
-                onClick={() => setViewOrUpdate('update')}
-                style={{ cursor: 'pointer' }}
-                variant="subtitle1"
-                mr={2}
-              >
-                {t('edit')}
-              </Typography>
-            )
-          ) : (
-            <Typography
-              onClick={() => setViewOrUpdate('view')}
-              style={{ cursor: 'pointer' }}
-              variant="subtitle1"
-              mr={2}
-            >
-              {t('go_back')}
-            </Typography>
-          )}
-          {hasDeletePermission(
-            PermissionEntity.PEOPLE_AND_TEAMS,
-            currentTeam
-          ) && (
-            <Typography
-              variant="subtitle1"
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                setIsTeamDetailsOpen(false);
-                setOpenDelete(true);
-              }}
-            >
-              {t('to_delete')}
-            </Typography>
-          )}
-        </Box>
-        <IconButton
-          aria-label="close"
-          onClick={handleCloseDetails}
-          sx={{
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500]
-          }}
-        >
-          <Close />
-        </IconButton>
+      <DialogTitle component="div" sx={{ p: { xs: 2, sm: 3 }, pb: 0 }}>
+        <DetailsHeader
+          subtitle={t('team')}
+          title={currentTeam?.name}
+          chips={
+            currentTeam ? (
+              <SoftChip
+                tone="primary"
+                size="medium"
+                label={`${currentTeam.users?.length ?? 0} ${t('members')}`}
+              />
+            ) : undefined
+          }
+          actions={
+            <>
+              {viewOrUpdate === 'view' ? (
+                hasEditPermission(
+                  PermissionEntity.PEOPLE_AND_TEAMS,
+                  currentTeam
+                ) && (
+                  <IconButton
+                    aria-label={t('edit')}
+                    onClick={() => setViewOrUpdate('update')}
+                  >
+                    <EditTwoToneIcon fontSize="small" color="primary" />
+                  </IconButton>
+                )
+              ) : (
+                <IconButton
+                  aria-label={t('go_back')}
+                  onClick={() => setViewOrUpdate('view')}
+                >
+                  <ArrowBackTwoToneIcon
+                    fontSize="small"
+                    sx={{
+                      transform: (theme) =>
+                        theme.direction === 'rtl' ? 'scaleX(-1)' : 'none'
+                    }}
+                  />
+                </IconButton>
+              )}
+              {hasDeletePermission(
+                PermissionEntity.PEOPLE_AND_TEAMS,
+                currentTeam
+              ) && (
+                <IconButton
+                  aria-label={t('to_delete')}
+                  onClick={() => {
+                    setIsTeamDetailsOpen(false);
+                    setOpenDelete(true);
+                  }}
+                >
+                  <DeleteTwoToneIcon fontSize="small" color="error" />
+                </IconButton>
+              )}
+              <IconButton aria-label="close" onClick={handleCloseDetails}>
+                <Close fontSize="small" />
+              </IconButton>
+            </>
+          }
+        />
       </DialogTitle>
 
       <DialogContent
@@ -395,29 +403,50 @@ const Teams = ({ openModal, handleCloseModal }: PropsType) => {
         }}
       >
         {viewOrUpdate === 'view' ? (
-          <Box>
-            <Typography variant="subtitle1">{t('name')}</Typography>
-            <Typography variant="h5" sx={{ mb: 1 }}>
-              {currentTeam?.name}
-            </Typography>
+          <Stack spacing={2.5}>
             {currentTeam?.description && (
-              <>
-                <Typography variant="subtitle1">{t('description')}</Typography>
-                <Typography variant="h5" sx={{ mb: 1 }}>
-                  {currentTeam.description}
-                </Typography>
-              </>
+              <Typography
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-line',
+                  textAlign: 'start'
+                }}
+              >
+                {currentTeam.description}
+              </Typography>
             )}
-            <Typography variant="subtitle1">{t('members')}</Typography>
-            {currentTeam?.users.map((user) => (
-              <Box key={user.id}>
-                <Link
-                  href={getUserUrl(user.id)}
-                  variant="h6"
-                >{`${user.firstName} ${user.lastName}`}</Link>
-              </Box>
-            ))}
-          </Box>
+            <SectionCard
+              title="members"
+              icon={<PeopleAltTwoToneIcon fontSize="small" />}
+              noPadding
+            >
+              {currentTeam?.users.length ? (
+                <Box>
+                  {currentTeam.users.map((user) => (
+                    <DetailRow key={user.id}>
+                      <Avatar
+                        src={user.image?.url}
+                        sx={{ width: 34, height: 34, fontSize: 14 }}
+                      >
+                        {user.firstName?.[0]?.toUpperCase()}
+                      </Avatar>
+                      <DetailRowText
+                        primary={
+                          <Link href={getUserUrl(user.id)} underline="hover">
+                            {`${user.firstName} ${user.lastName}`}
+                          </Link>
+                        }
+                      />
+                    </DetailRow>
+                  ))}
+                </Box>
+              ) : (
+                <EmptyCardBody message="—" />
+              )}
+            </SectionCard>
+          </Stack>
         ) : (
           <Box>
             <Form
@@ -465,11 +494,11 @@ const Teams = ({ openModal, handleCloseModal }: PropsType) => {
       <RenderTeamsAddModal />
       <ModalTeamDetails />
       {Boolean(teams.content.length) && (
-        <Stack direction="row" width="95%">
-          <Box sx={{ my: 0.5 }}>
+        <Box sx={{ width: '100%', px: 2 }}>
+          <ListToolbar bare>
             <SearchInput onChange={debouncedQueryChange} />
-          </Box>
-        </Stack>
+          </ListToolbar>
+        </Box>
       )}
       {Renderteams()}
       <ConfirmDialog

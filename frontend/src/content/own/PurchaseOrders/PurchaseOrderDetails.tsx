@@ -29,6 +29,21 @@ import ClearTwoToneIcon from '@mui/icons-material/ClearTwoTone';
 import CheckTwoToneIcon from '@mui/icons-material/CheckTwoTone';
 import { respondPurchaseOrder } from '../../../slices/purchaseOrder';
 import BasicField from '../components/BasicField';
+import { alpha } from '@mui/material/styles';
+import SectionCard from '../components/SectionCard';
+import { SoftChip } from '../components/StatusChip';
+import {
+  DetailGrid,
+  DetailItem,
+  DetailsHeader,
+  DetailsPage,
+  DetailsTabs,
+  primaryButtonSx
+} from '../components/DetailsKit';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import HandymanTwoToneIcon from '@mui/icons-material/HandymanTwoTone';
+import LocalShippingTwoToneIcon from '@mui/icons-material/LocalShippingTwoTone';
+import NotesTwoToneIcon from '@mui/icons-material/NotesTwoTone';
 
 interface PurchaseOrderDetailsProps {
   purchaseOrder: PurchaseOrder;
@@ -176,153 +191,172 @@ export default function PurchaseOrderDetails(props: PurchaseOrderDetailsProps) {
       value: purchaseOrder1.additionalInfoTerm
     }
   ];
+  const canEditPO = hasEditPermission(
+    PermissionEntity.PURCHASE_ORDERS,
+    purchaseOrder
+  );
+  const canDeletePO = hasDeletePermission(
+    PermissionEntity.PURCHASE_ORDERS,
+    purchaseOrder
+  );
+  const poStatusTone =
+    purchaseOrder?.status === 'APPROVED'
+      ? 'success'
+      : purchaseOrder?.status === 'PENDING'
+      ? 'warning'
+      : purchaseOrder?.status
+      ? 'error'
+      : 'neutral';
   return (
-    <Grid
-      container
-      justifyContent="center"
-      alignItems="stretch"
-      spacing={2}
-      padding={4}
-    >
-      <Grid
-        item
-        xs={12}
-        display="flex"
-        flexDirection="row"
-        justifyContent="space-between"
-      >
-        <Box>
-          <Typography variant="h2">{purchaseOrder?.name}</Typography>
-          <Typography variant="h6">{purchaseOrder?.shippingAddress}</Typography>
-          <Typography variant="h6">{t(purchaseOrder?.status)}</Typography>
-        </Box>
-        <Box>
-          {hasEditPermission(
-            PermissionEntity.PURCHASE_ORDERS,
-            purchaseOrder
-          ) && (
-            <IconButton onClick={handleOpenUpdate} style={{ marginRight: 10 }}>
-              <EditTwoToneIcon color="primary" />
-            </IconButton>
-          )}
-          {hasDeletePermission(
-            PermissionEntity.PURCHASE_ORDERS,
-            purchaseOrder
-          ) && (
-            <IconButton onClick={handleDelete}>
-              <DeleteTwoToneIcon color="error" />
-            </IconButton>
-          )}
-        </Box>
-      </Grid>
-      <Divider />
+    <DetailsPage>
+      <DetailsHeader
+        subtitle={<bdi>{`#${purchaseOrder?.id}`}</bdi>}
+        title={purchaseOrder?.name}
+        description={purchaseOrder?.shippingAddress}
+        chips={
+          purchaseOrder?.status ? (
+            <SoftChip
+              tone={poStatusTone}
+              size="medium"
+              label={t(purchaseOrder.status)}
+            />
+          ) : undefined
+        }
+        actions={
+          canEditPO || canDeletePO ? (
+            <>
+              {canEditPO && (
+                <IconButton aria-label={t('edit')} onClick={handleOpenUpdate}>
+                  <EditTwoToneIcon fontSize="small" color="primary" />
+                </IconButton>
+              )}
+              {canDeletePO && (
+                <IconButton aria-label={t('delete')} onClick={handleDelete}>
+                  <DeleteTwoToneIcon fontSize="small" color="error" />
+                </IconButton>
+              )}
+            </>
+          ) : undefined
+        }
+      />
       {purchaseOrder.status === 'PENDING' &&
         hasViewPermission(PermissionEntity.SETTINGS) && (
-          <>
-            <Grid
-              item
-              xs={12}
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-around'
-              }}
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'flex-end',
+              gap: 1.5,
+              p: 1.5,
+              borderRadius: '14px',
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
+              backgroundColor: alpha(theme.palette.primary.main, 0.035)
+            }}
+          >
+            <Button
+              startIcon={
+                cancelling ? (
+                  <CircularProgress size="1rem" />
+                ) : (
+                  <ClearTwoToneIcon />
+                )
+              }
+              onClick={onCancel}
+              variant="outlined"
+              color="error"
+              sx={{ borderRadius: '12px', fontWeight: 700 }}
             >
-              <Button
-                startIcon={
-                  cancelling ? (
-                    <CircularProgress size="1rem" />
-                  ) : (
-                    <ClearTwoToneIcon />
-                  )
-                }
-                onClick={onCancel}
-                variant="outlined"
-              >
-                {t('reject')}
-              </Button>
-              <Button
-                startIcon={
-                  approving ? (
-                    <CircularProgress size="1rem" sx={{ color: 'white' }} />
-                  ) : (
-                    <CheckTwoToneIcon />
-                  )
-                }
-                onClick={onApprove}
-                variant="contained"
-              >
-                {t('approve')}
-              </Button>
-            </Grid>
-            <Divider />
-          </>
+              {t('reject')}
+            </Button>
+            <Button
+              startIcon={
+                approving ? (
+                  <CircularProgress size="1rem" color="inherit" />
+                ) : (
+                  <CheckTwoToneIcon />
+                )
+              }
+              onClick={onApprove}
+              variant="contained"
+              sx={primaryButtonSx}
+            >
+              {t('approve')}
+            </Button>
+          </Box>
         )}
-      <Grid item xs={12}>
-        <Tabs
-          onChange={handleTabsChange}
-          value={currentTab}
-          variant="scrollable"
-          scrollButtons="auto"
-          textColor="primary"
-          indicatorColor="primary"
-        >
-          {tabs.map((tab) => (
-            <Tab key={tab.value} label={tab.label} value={tab.value} />
-          ))}
-        </Tabs>
-      </Grid>
-      <Grid item xs={12}>
+      <DetailsTabs onChange={handleTabsChange} value={currentTab}>
+        {tabs.map((tab) => (
+          <Tab key={tab.value} label={tab.label} value={tab.value} />
+        ))}
+      </DetailsTabs>
+      <Box>
         {currentTab === 'details' && (
-          <Grid container spacing={2}>
-            {detailsFieldsToRender(purchaseOrder).map((field) => (
-              <BasicField
-                key={field.id}
-                label={field.label}
-                value={field.value}
-                type={field.type}
-                id={field.id}
-                hijriDate={field.hijriDate}
-              />
-            ))}
-          </Grid>
+          <SectionCard
+            title="details"
+            icon={<InfoTwoToneIcon fontSize="small" />}
+          >
+            <DetailGrid>
+              {detailsFieldsToRender(purchaseOrder).map((field) => (
+                <BasicField
+                  key={field.label}
+                  label={field.label}
+                  value={field.value}
+                  type={field.type}
+                  id={field.id}
+                  hijriDate={field.hijriDate}
+                />
+              ))}
+            </DetailGrid>
+          </SectionCard>
         )}
         {currentTab === 'parts' && (
-          <PartQuantitiesList
-            partQuantities={partQuantities}
-            disabled={
-              !hasEditPermission(
-                PermissionEntity.PURCHASE_ORDERS,
-                purchaseOrder
-              ) || purchaseOrder.status !== 'PENDING'
-            }
-            deleteDisabled={partQuantities.length === 1}
-            onChange={debouncedPartQuantityChange}
-          />
+          <SectionCard
+            title="parts"
+            icon={<HandymanTwoToneIcon fontSize="small" />}
+          >
+            <Box sx={{ mx: { xs: -2, sm: -2.5 }, my: -1.5 }}>
+              <PartQuantitiesList
+                partQuantities={partQuantities}
+                disabled={!canEditPO || purchaseOrder.status !== 'PENDING'}
+                deleteDisabled={partQuantities.length === 1}
+                onChange={debouncedPartQuantityChange}
+              />
+            </Box>
+          </SectionCard>
         )}
         {currentTab === 'shipping' && (
-          <Grid container spacing={2}>
-            {shippingFieldsToRender(purchaseOrder).map((field) => (
-              <BasicField
-                key={field.label}
-                label={field.label}
-                value={field.value}
-              />
-            ))}
-          </Grid>
+          <SectionCard
+            title="shipping_information"
+            icon={<LocalShippingTwoToneIcon fontSize="small" />}
+          >
+            <DetailGrid>
+              {shippingFieldsToRender(purchaseOrder).map((field) => (
+                <DetailItem
+                  key={field.label}
+                  label={field.label}
+                  value={field.value}
+                />
+              ))}
+            </DetailGrid>
+          </SectionCard>
         )}
         {currentTab === 'additionalInfos' && (
-          <Grid container spacing={2}>
-            {additionalInfosFieldsToRender(purchaseOrder).map((field) => (
-              <BasicField
-                key={field.label}
-                label={field.label}
-                value={field.value}
-              />
-            ))}
-          </Grid>
+          <SectionCard
+            title="additional_information"
+            icon={<NotesTwoToneIcon fontSize="small" />}
+          >
+            <DetailGrid>
+              {additionalInfosFieldsToRender(purchaseOrder).map((field) => (
+                <DetailItem
+                  key={field.label}
+                  label={field.label}
+                  value={field.value}
+                />
+              ))}
+            </DetailGrid>
+          </SectionCard>
         )}
-      </Grid>
-    </Grid>
+      </Box>
+    </DetailsPage>
   );
 }

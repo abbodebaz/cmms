@@ -1,35 +1,30 @@
-import { Box, Button, Grid } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight } from '@mui/icons-material';
+import DynamicFormTwoToneIcon from '@mui/icons-material/DynamicFormTwoTone';
 import SettingsSection from '../../components/SettingsSection';
+import { SettingsLinkRow, SettingsRowList } from '../../components/SettingsRows';
 
 function VendorsSettings() {
   const { t }: { t: any } = useTranslation();
   const navigate = useNavigate();
 
   return (
-    <Grid item xs={12}>
-      <Box p={4}>
-        <SettingsSection title={t('customize_form')}>
-          <Box display="flex" flexDirection="column" gap={2}>
-            <Button
-              variant="text"
-              endIcon={<ChevronRight />}
-              onClick={() =>
-                navigate('/app/settings/features/vendors/custom-fields')
-              }
-              sx={{
-                justifyContent: 'space-between',
-                textTransform: 'none'
-              }}
-            >
-              {t('custom_fields')}
-            </Button>
-          </Box>
-        </SettingsSection>
-      </Box>
-    </Grid>
+    <SettingsSection
+      title="customize_form"
+      description="settings_customize_form_description"
+      noPadding
+    >
+      <SettingsRowList>
+        <SettingsLinkRow
+          title={t('custom_fields')}
+          description={t('settings_custom_fields_description')}
+          icon={<DynamicFormTwoToneIcon fontSize="small" />}
+          onClick={() =>
+            navigate('/app/settings/features/vendors/custom-fields')
+          }
+        />
+      </SettingsRowList>
+    </SettingsSection>
   );
 }
 

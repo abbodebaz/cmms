@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,7 +22,6 @@ import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
 import { getIncompleteByAsset } from '../../../../../slices/analytics/workOrder';
 import Loading from '../../Loading';
-import { getRandomColor } from '../../../../../utils/overall';
 
 interface WOStatusIncompleteProps {
   handleOpenModal: (
@@ -33,6 +37,9 @@ interface WOStatusIncompleteProps {
 function IncompleteWOByAsset({ handleOpenModal, start, end, companyId }: WOStatusIncompleteProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const { incompleteByAsset, loading } = useSelector(
     (state) => state.woAnalytics
   );
@@ -54,7 +61,7 @@ function IncompleteWOByAsset({ handleOpenModal, start, end, companyId }: WOStatu
       label: asset.name,
       count: asset.count,
       averageAge: asset.averageAge,
-      color: getRandomColor(),
+      color: nextChartColor(),
       filters: [{ key: 'asset', value: asset.id }]
     };
   });
@@ -72,7 +79,7 @@ function IncompleteWOByAsset({ handleOpenModal, start, end, companyId }: WOStatu
                  orientation="right" unit={t('days')} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="count" fill="#8884d8" name={t('work_orders')} yAxisId="left-axis">
+          <Bar dataKey="count" fill={chartPalette[0]} name={t('work_orders')} yAxisId="left-axis">
             {formattedData.map((entry, index) => (
               <Cell
                 key={index}
@@ -87,7 +94,7 @@ function IncompleteWOByAsset({ handleOpenModal, start, end, companyId }: WOStatu
             name={t('average_age')}
             type="monotone"
             dataKey="averageAge"
-            stroke="#ff7300"
+            stroke={chartLineColor}
             yAxisId="right-axis"
           />
         </ComposedChart>

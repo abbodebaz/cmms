@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,7 +22,6 @@ import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
 import { getIncompleteByAsset } from '../../../../../slices/analytics/workOrder';
 import Loading from '../../Loading';
-import { getRandomColor } from '../../../../../utils/overall';
 import { getRequestsResolvedByDate } from '../../../../../slices/analytics/request';
 import { getDayAndMonth } from '../../../../../utils/dates';
 
@@ -35,6 +39,9 @@ interface OwnProps {
 function RequestsResolution({ handleOpenModal, start, end, companyId }: OwnProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const { requestsResolvedByDate, loading } = useSelector(
     (state) => state.requestAnalytics
   );
@@ -101,7 +108,7 @@ function RequestsResolution({ handleOpenModal, start, end, companyId }: OwnProps
             name={t('resolution_rate')}
             type="monotone"
             dataKey="resolutionRate"
-            stroke="#ff7300"
+            stroke={chartLineColor}
             yAxisId="right-axis"
           />
         </ComposedChart>

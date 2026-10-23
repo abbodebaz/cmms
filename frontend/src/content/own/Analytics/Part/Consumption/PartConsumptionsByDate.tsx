@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -14,7 +19,6 @@ import AnalyticsCard from '../../AnalyticsCard';
 import { Filter } from '../WOModal';
 import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
-import { getRandomColor } from '../../../../../utils/overall';
 import Loading from '../../Loading';
 import { getDayAndMonth } from '../../../../../utils/dates';
 import { getPartConsumptionsByDate } from '../../../../../slices/analytics/part';
@@ -33,6 +37,9 @@ interface DowntimesByMonthProps {
 function PartConsumptionsByDate({ handleOpenModal, start, end, companyId }: DowntimesByMonthProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const dispatch = useDispatch();
   const { partConsumptionsByDate, loading } = useSelector(
     (state) => state.partAnalytics
@@ -53,7 +60,7 @@ function PartConsumptionsByDate({ handleOpenModal, start, end, companyId }: Down
     return {
       label: getDayAndMonth(month.date),
       cost: Number(month.cost.toFixed(2)),
-      color: getRandomColor(),
+      color: nextChartColor(),
       filters: [{ key: 'month', value: month.date }]
     };
   });
@@ -69,7 +76,7 @@ function PartConsumptionsByDate({ handleOpenModal, start, end, companyId }: Down
           <YAxis />
           <Tooltip />
           <Legend />
-          <Bar dataKey="cost" fill="#8884d8" name={t('cost')}>
+          <Bar dataKey="cost" fill={chartPalette[0]} name={t('cost')}>
             {formattedData.map((entry, index) => (
               <Cell
                 key={index}

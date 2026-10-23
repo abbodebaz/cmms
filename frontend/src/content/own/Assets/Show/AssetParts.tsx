@@ -1,5 +1,7 @@
 import { Box, Card, Grid } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import SectionCard from '../../components/SectionCard';
+import HandymanTwoToneIcon from '@mui/icons-material/HandymanTwoTone';
 import CustomDataGrid from '../../components/CustomDatagrid';
 import {
   GridActionsCellItem,
@@ -74,11 +76,13 @@ const AssetParts = ({ asset }: PropsType) => {
     }
   ];
   return (
-    <Box sx={{ px: 4 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Card sx={{ p: 2 }}>
-            <Box sx={{ width: '95%' }}>
+    <Box>
+      <SectionCard
+        title="parts"
+        icon={<HandymanTwoToneIcon fontSize="small" />}
+        noPadding
+      >
+            <Box sx={{ width: '100%' }}>
               <CustomDataGrid
                 columns={columns}
                 rows={asset?.parts ?? []}
@@ -95,9 +99,7 @@ const AssetParts = ({ asset }: PropsType) => {
                 }}
               />
             </Box>
-          </Card>
-        </Grid>
-      </Grid>
+      </SectionCard>
     </Box>
   );
 };

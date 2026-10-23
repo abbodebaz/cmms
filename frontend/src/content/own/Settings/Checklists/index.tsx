@@ -1,6 +1,8 @@
-import { Box, Button, Grid } from '@mui/material';
+import { Box, Button } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import FactCheckTwoToneIcon from '@mui/icons-material/FactCheckTwoTone';
+import SettingsSection from '../components/SettingsSection';
 import { useTranslation } from 'react-i18next';
-import SettingsLayout from '../SettingsLayout';
 import CustomDataGrid from '../../components/CustomDatagrid';
 import { GridEnrichedColDef } from '@mui/x-data-grid/models/colDef/gridColDef';
 import {
@@ -113,23 +115,35 @@ function Checklists() {
     <>
       {hasFeature(PlanFeature.CHECKLIST) ? (
         <>
-          <Grid item xs={12}>
-            <Box
-              sx={{
-                width: '95%',
-                p: 4
-              }}
-            >
+          <SettingsSection
+            title="checklists"
+            description="settings_checklists_description"
+            icon={<FactCheckTwoToneIcon fontSize="small" />}
+            actions={
               <Button
-                sx={{
-                  mb: 2
-                }}
                 variant="contained"
+                size="small"
                 onClick={() => setOpenCreateChecklist(true)}
                 startIcon={<AddTwoToneIcon fontSize="small" />}
+                sx={{
+                  borderRadius: '10px',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  boxShadow: (theme) =>
+                    `0 6px 16px ${alpha(theme.palette.primary.main, 0.28)}`
+                }}
               >
                 {t('create_checklist')}
               </Button>
+            }
+            noPadding
+          >
+            <Box
+              sx={{
+                width: '100%',
+                '& .MuiDataGrid-root': { border: 0, borderRadius: 0 }
+              }}
+            >
               <CustomDataGrid
                 columns={columns}
                 rows={checklists}
@@ -148,7 +162,7 @@ function Checklists() {
                 }}
               />
             </Box>
-          </Grid>
+          </SettingsSection>
           <SelectTasksModal
             open={openCreateChecklist}
             onClose={() => setOpenCreateChecklist(false)}

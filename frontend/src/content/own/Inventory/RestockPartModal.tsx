@@ -8,6 +8,7 @@ import { useContext } from 'react';
 import { CustomSnackBarContext } from '../../../contexts/CustomSnackBarContext';
 import { getErrorMessage } from '../../../utils/api';
 import Part from '../../../models/owns/part';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 
 interface RestockPartModalProps {
   open: boolean;
@@ -26,11 +27,10 @@ export default function RestockPartModal({
 
   return (
     <Dialog fullWidth maxWidth="sm" open={open} onClose={onClose}>
-      <DialogTitle sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          {t('restock_part')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('restock_part')}
+        onClose={onClose}
+      />
       <DialogContent dividers sx={{ p: 3 }}>
         <Form
           fields={[

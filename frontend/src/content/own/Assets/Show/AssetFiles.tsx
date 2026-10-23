@@ -1,5 +1,7 @@
 import { Box, Card, Grid } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import SectionCard from '../../components/SectionCard';
+import AttachFileTwoToneIcon from '@mui/icons-material/AttachFileTwoTone';
 import CustomDataGrid from '../../components/CustomDatagrid';
 import {
   GridActionsCellItem,
@@ -61,11 +63,13 @@ const AssetFiles = ({ asset }: PropsType) => {
     }
   ];
   return (
-    <Box sx={{ px: 4 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Card sx={{ p: 2 }}>
-            <Box sx={{ width: '95%' }}>
+    <Box>
+      <SectionCard
+        title="files"
+        icon={<AttachFileTwoToneIcon fontSize="small" />}
+        noPadding
+      >
+            <Box sx={{ width: '100%' }}>
               <CustomDataGrid
                 columns={columns}
                 rows={asset?.files ?? []}
@@ -82,9 +86,7 @@ const AssetFiles = ({ asset }: PropsType) => {
                 }}
               />
             </Box>
-          </Card>
-        </Grid>
-      </Grid>
+      </SectionCard>
     </Box>
   );
 };

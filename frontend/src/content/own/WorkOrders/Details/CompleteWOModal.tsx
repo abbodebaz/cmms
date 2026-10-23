@@ -8,6 +8,7 @@ import { CompanySettingsContext } from '../../../../contexts/CompanySettingsCont
 import { StoreReturnType } from '../../../../store';
 import { getErrorMessage } from '../../../../utils/api';
 import { CustomSnackBarContext } from '../../../../contexts/CustomSnackBarContext';
+import FormDialogTitle from '../../components/form/FormDialogTitle';
 
 interface SignatureProps {
   open: boolean;
@@ -56,15 +57,10 @@ export default function CompleteWOModal({
   };
   return (
     <Dialog fullWidth maxWidth="sm" open={open} onClose={onClose}>
-      <DialogTitle
-        sx={{
-          p: 3
-        }}
-      >
-        <Typography variant="h4" gutterBottom>
-          {t('close_wo')}
-        </Typography>
-      </DialogTitle>
+      <FormDialogTitle
+        title={t('close_wo')}
+        onClose={onClose}
+      />
       <DialogContent
         dividers
         sx={{

@@ -17,6 +17,7 @@ import {
   Typography
 } from '@mui/material';
 import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
+import { alpha } from '@mui/material/styles';
 import { useDispatch } from '../../../../store';
 import { addRole } from '../../../../slices/role';
 import { CustomSnackBarContext } from '../../../../contexts/CustomSnackBarContext';
@@ -63,40 +64,30 @@ function PageHeader({ rolesNumber, formatValues }: PageHeaderProps) {
 
   return (
     <>
-      <Grid container justifyContent="space-between" alignItems="center">
-        <Grid item>
-          <Typography variant="h3" component="h3" gutterBottom>
-            {t('roles_management')}
-          </Typography>
-          <Typography variant="subtitle2">
-            {t('roles_number', { count: rolesNumber })}
-          </Typography>
-        </Grid>
-
-        <Grid item>
-          <Tooltip
-            title={
-              hasFeature(PlanFeature.ROLE)
-                ? t('create_role')
-                : t('upgrade_role')
-            }
+      <Tooltip
+        title={
+          hasFeature(PlanFeature.ROLE) ? t('create_role') : t('upgrade_role')
+        }
+      >
+        <span>
+          <Button
+            disabled={!hasFeature(PlanFeature.ROLE)}
+            onClick={handleCreateRoleOpen}
+            variant="contained"
+            size="small"
+            startIcon={<AddTwoToneIcon fontSize="small" />}
+            sx={{
+              borderRadius: '10px',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              boxShadow: (theme) =>
+                `0 6px 16px ${alpha(theme.palette.primary.main, 0.28)}`
+            }}
           >
-            <span>
-              <Button
-                sx={{
-                  mt: { xs: 2, sm: 0 }
-                }}
-                disabled={!hasFeature(PlanFeature.ROLE)}
-                onClick={handleCreateRoleOpen}
-                variant="contained"
-                startIcon={<AddTwoToneIcon fontSize="small" />}
-              >
-                {t('create_role')}
-              </Button>
-            </span>
-          </Tooltip>
-        </Grid>
-      </Grid>
+            {t('create_role')}
+          </Button>
+        </span>
+      </Tooltip>
 
       <Dialog
         fullWidth

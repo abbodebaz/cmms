@@ -11,6 +11,13 @@ import {
   Typography
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import {
+  ListCard,
+  ListCardBody,
+  ListPage,
+  ListPageHeader,
+  PrimaryAddButton
+} from '../components/ListPageShell';
 import { useContext, useEffect, useState } from 'react';
 import { TitleContext } from '../../../contexts/TitleContext';
 import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
@@ -46,6 +53,7 @@ import { SearchCriteria } from '../../../models/owns/page';
 import { isNumeric } from '../../../utils/validators';
 import { createColumnHelper } from '@tanstack/react-table';
 import useTableState from '../../../hooks/useTableState';
+import FormDialogTitle from '../components/form/FormDialogTitle';
 
 function Files() {
   const { t }: { t: any } = useTranslation();
@@ -260,15 +268,10 @@ function Files() {
         open={openAddModal}
         onClose={() => setOpenAddModal(false)}
       >
-        <DialogTitle
-          sx={{
-            p: 3
-          }}
-        >
-          <Typography variant="h4" gutterBottom>
-            {t('add_files')}
-          </Typography>
-        </DialogTitle>
+        <FormDialogTitle
+          title={t('add_files')}
+          onClose={() => setOpenAddModal(false)}
+        />
         <DialogContent
           dividers
           sx={{
@@ -299,15 +302,10 @@ function Files() {
         open={openUpdateModal}
         onClose={() => setOpenUpdateModal(false)}
       >
-        <DialogTitle
-          sx={{
-            p: 3
-          }}
-        >
-          <Typography variant="h4" gutterBottom>
-            {t('edit_file')}
-          </Typography>
-        </DialogTitle>
+        <FormDialogTitle
+          title={t('edit_file')}
+          onClose={() => setOpenUpdateModal(false)}
+        />
         <DialogContent
           dividers
           sx={{
@@ -337,34 +335,21 @@ function Files() {
           <Helmet>
             <title>{t('files')}</title>
           </Helmet>
-          <Box justifyContent="center" alignItems="stretch" paddingX={4}>
-            {hasCreatePermission(PermissionEntity.FILES) && (
-              <Box
-                display="flex"
-                flexDirection="row"
-                justifyContent="right"
-                alignItems="center"
-              >
-                <Button
-                  startIcon={<AddTwoToneIcon />}
-                  onClick={() => setOpenAddModal(true)}
-                  sx={{ my: 1 }}
-                  variant="contained"
-                >
-                  {t('file')}
-                </Button>
-              </Box>
-            )}
-            <Card
-              sx={{
-                py: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Box sx={{ width: '95%' }}>
+          <ListPage>
+            <ListPageHeader
+              title={t('files')}
+              count={files.totalElements}
+              actions={
+                hasCreatePermission(PermissionEntity.FILES) ? (
+                  <PrimaryAddButton
+                    label={t('file')}
+                    onClick={() => setOpenAddModal(true)}
+                  />
+                ) : undefined
+              }
+            />
+            <ListCard>
+              <ListCardBody>
                 <CustomDatagrid2
                   columns={columns}
                   data={files.content}
@@ -389,9 +374,9 @@ function Files() {
                   pinnedColumns={pinnedColumns}
                   onPinnedColumnsChange={setPinnedColumns}
                 />
-              </Box>
-            </Card>
-          </Box>
+              </ListCardBody>
+            </ListCard>
+          </ListPage>
           <ConfirmDialog
             open={openDelete}
             onCancel={() => {

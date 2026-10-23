@@ -1,3 +1,8 @@
+import {
+  createColorSequence,
+  getChartLineColor,
+  getChartPalette
+} from '../../chartColors';
 import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -14,7 +19,6 @@ import AnalyticsCard from '../../AnalyticsCard';
 import { Filter } from '../WOModal';
 import { useDispatch, useSelector } from '../../../../../store';
 import { useEffect } from 'react';
-import { getRandomColor } from '../../../../../utils/overall';
 import Loading from '../../Loading';
 import { getDayAndMonth } from '../../../../../utils/dates';
 import { getPartConsumptionsByPart } from '../../../../../slices/analytics/part';
@@ -33,6 +37,9 @@ interface DowntimesByMonthProps {
 function PartConsumptionsPareto({ handleOpenModal, start, end, companyId }: DowntimesByMonthProps) {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const chartPalette = getChartPalette(theme);
+  const chartLineColor = getChartLineColor(theme);
+  const nextChartColor = createColorSequence(theme);
   const dispatch = useDispatch();
   const { partConsumptionsByPart, loading } = useSelector(
     (state) => state.partAnalytics
@@ -56,7 +63,7 @@ function PartConsumptionsPareto({ handleOpenModal, start, end, companyId }: Down
       cost: Number(part.cost.toFixed(2)),
       cumulativePercent: 100 * array.slice(0, index).reduce((prev, curr) => prev + curr.cost, 0)
         / array.reduce((prev, curr) => prev + curr.cost, 0),
-      color: getRandomColor(),
+      color: nextChartColor(),
       filters: [{ key: 'part', value: part.id }]
     };
   });
@@ -73,7 +80,7 @@ function PartConsumptionsPareto({ handleOpenModal, start, end, companyId }: Down
           <YAxis yAxisId="right-axis" orientation="right" type={'number'} unit={'%'} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="cost" fill="#8884d8" name={t('cost')} yAxisId={'left-axis'}>
+          <Bar dataKey="cost" fill={chartPalette[0]} name={t('cost')} yAxisId={'left-axis'}>
             {formattedData.map((entry, index) => (
               <Cell
                 key={index}
@@ -88,7 +95,7 @@ function PartConsumptionsPareto({ handleOpenModal, start, end, companyId }: Down
             name={t('cumulative_percent')}
             type="monotone"
             dataKey="cumulativePercent"
-            stroke="#ff7300"
+            stroke={chartLineColor}
             yAxisId="right-axis"
           />
         </ComposedChart>

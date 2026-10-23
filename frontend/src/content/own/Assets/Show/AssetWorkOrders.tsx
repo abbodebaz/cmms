@@ -7,6 +7,14 @@ import { getAssetWorkOrders } from '../../../../slices/asset';
 import { useNavigate } from 'react-router-dom';
 import { CompanySettingsContext } from '../../../../contexts/CompanySettingsContext';
 import Loading from '../../Analytics/Loading';
+import SectionCard from '../../components/SectionCard';
+import StatusChip from '../../components/StatusChip';
+import {
+  DetailRow,
+  DetailRowText,
+  EmptyCardBody
+} from '../../components/DetailsKit';
+import AssignmentTwoToneIcon from '@mui/icons-material/AssignmentTwoTone';
 
 interface PropsType {
   asset: Asset;
@@ -38,70 +46,53 @@ const AssetWorkOrders = ({ asset }: PropsType) => {
       </Box>
     );
   return (
-    <Box sx={{ px: 4 }}>
-      <Grid container spacing={2}>
-        {workOrders?.length ? (
-          workOrders.map((workOrder) => (
-            <Grid key={workOrder.id} item xs={12}>
-              <Card
-                sx={{ cursor: 'pointer' }}
-                onClick={() => navigate(`/app/work-orders/${workOrder.id}`)}
-              >
-                <Box
-                  sx={{
-                    p: 2,
-                    flexDirection: 'row',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <Box>
-                    <Typography variant="h4" gutterBottom>
-                      {workOrder.title}
-                    </Typography>
-                    <Typography variant="subtitle1">{`#${workOrder.id}`}</Typography>
-                  </Box>
-                  <Typography
-                    variant="h6"
-                    color={workOrder.dueDate ? 'error' : 'primary'}
-                  >
-                    {workOrder.dueDate
-                      ? t('due_at_date', {
-                          date: getFormattedDate(workOrder.dueDate)
-                        })
-                      : t('no_due_date')}
-                  </Typography>
-                  <Typography variant="h6">
+    <SectionCard
+      title="work_orders"
+      icon={<AssignmentTwoToneIcon fontSize="small" />}
+      noPadding
+    >
+      {workOrders?.length ? (
+        <Box>
+          {workOrders.map((workOrder) => (
+            <DetailRow
+              key={workOrder.id}
+              onClick={() => navigate(`/app/work-orders/${workOrder.id}`)}
+              sx={{ flexWrap: { xs: 'wrap', sm: 'nowrap' } }}
+            >
+              <DetailRowText
+                primary={workOrder.title}
+                secondary={
+                  <>
+                    <bdi>{`#${workOrder.id}`}</bdi>
+                    {' · '}
                     {workOrder.primaryUser
                       ? `${workOrder.primaryUser.firstName} ${workOrder.primaryUser.lastName}`
                       : t('no_primary_worker')}
-                  </Typography>
-                  <Typography variant="h6">{t(workOrder.status)}</Typography>
-                </Box>
-              </Card>
-            </Grid>
-          ))
-        ) : (
-          <Grid item xs={12}>
-            <Card>
-              <Box
+                  </>
+                }
+              />
+              <Typography
                 sx={{
-                  height: 500,
-                  p: 2,
-                  flexDirection: 'row',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  color: workOrder.dueDate ? 'error.main' : 'text.secondary'
                 }}
               >
-                <Typography variant="h4">{t('no_wo_linked_asset')}</Typography>
-              </Box>
-            </Card>
-          </Grid>
-        )}
-      </Grid>
-    </Box>
+                {workOrder.dueDate
+                  ? t('due_at_date', {
+                      date: getFormattedDate(workOrder.dueDate)
+                    })
+                  : t('no_due_date')}
+              </Typography>
+              <StatusChip status={workOrder.status} />
+            </DetailRow>
+          ))}
+        </Box>
+      ) : (
+        <EmptyCardBody message={t('no_wo_linked_asset')} />
+      )}
+    </SectionCard>
   );
 };
 
