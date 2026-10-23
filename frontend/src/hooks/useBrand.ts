@@ -6,6 +6,7 @@ import {
 } from '../config';
 import { useSelector } from '../store';
 import { useLicenseEntitlement } from './useLicenseEntitlement';
+import { useTranslation } from 'react-i18next';
 
 const DEFAULT_WHITE_LOGO = '/static/images/logo/logo-white.png';
 const DEFAULT_DARK_LOGO = '/static/images/logo/logo.png';
@@ -16,14 +17,16 @@ interface BrandConfig extends BrandRawConfig {
   logo: { white: string; dark: string };
 }
 export function useBrand(): BrandConfig {
+  const { i18n } = useTranslation();
+  const isArabic = (i18n.language ?? 'ar').startsWith('ar');
   const defaultBrand: Omit<BrandConfig, 'logo'> = {
-    name: 'Abdulrhman Bazarah',
-    shortName: 'AB',
-    website: 'https://ab18.tech',
-    mail: 'abodebaz@gmail.com',
+    name: isArabic ? 'شركة المرجان الوقائية' : 'Al Murjan Preventive Company',
+    shortName: isArabic ? 'المرجان' : 'Al Murjan',
+    website: '',
+    mail: '',
     phone: '',
     addressStreet: '',
-    addressCity: 'Jeddah, Saudi Arabia'
+    addressCity: isArabic ? 'المملكة العربية السعودية' : 'Saudi Arabia'
   };
   const isLicenseValid = useLicenseEntitlement('BRANDING');
   return {

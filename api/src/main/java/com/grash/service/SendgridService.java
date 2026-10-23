@@ -295,7 +295,7 @@ public class SendgridService implements MailService {
         thymeleafContext.setLocale(locale);
         thymeleafContext.setVariables(templateModel);
         thymeleafContext.setVariable("environment", environment);
-        thymeleafContext.setVariable("brandConfig", brandingService.getBrandConfig());
+        thymeleafContext.setVariable("brandConfig", brandingService.getBrandConfig(locale));
         thymeleafContext.setVariable("backgroundColor", brandingService.getMailBackgroundColor());
 
         String htmlBody = thymeleafTemplateEngine.process(template, thymeleafContext);

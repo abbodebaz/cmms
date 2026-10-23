@@ -17,6 +17,7 @@ import {
 import SidebarMenu from './SidebarMenu';
 import SidebarFooter from './SidebarFooter';
 import Logo from 'src/components/LogoSign';
+import { useBrand } from 'src/hooks/useBrand';
 import { isCloudVersion, isWhiteLabeled } from '../../../config';
 import useAuth from '../../../hooks/useAuth';
 import dayjs from 'dayjs';
@@ -34,6 +35,7 @@ const SidebarWrapper = styled(Box)(
 );
 
 function Sidebar() {
+  const { name: brandName } = useBrand();
   const { sidebarToggle, toggleSidebar } = useContext(SidebarContext);
   const closeSidebar = () => toggleSidebar();
   const theme = useTheme();
@@ -70,13 +72,10 @@ function Sidebar() {
                 <Logo white />
                 {!isWhiteLabeled && (
                   <Typography
-                    style={{ cursor: 'pointer', color: 'white' }}
+                    style={{ color: 'white', textAlign: 'center', fontWeight: 600 }}
                     fontSize={13}
-                    onClick={() => {
-                      window.open('https://ab18.tech', '_blank');
-                    }}
                   >
-                    Abdulrhman Bazarah
+                    {brandName}
                   </Typography>
                 )}
               </Box>
@@ -129,13 +128,10 @@ function Sidebar() {
                   <Logo white />
                   {!isWhiteLabeled && (
                     <Typography
-                      style={{ cursor: 'pointer', color: 'white' }}
-                      fontSize={13}
-                      onClick={() => {
-                        window.open('https://ab18.tech', '_blank');
-                      }}
+                      style={{ color: 'white', textAlign: 'center', fontWeight: 600 }}
+                    fontSize={13}
                     >
-                      Abdulrhman Bazarah
+                      {brandName}
                     </Typography>
                   )}
                 </Box>

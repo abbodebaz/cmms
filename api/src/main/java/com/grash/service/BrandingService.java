@@ -34,15 +34,24 @@ public class BrandingService {
         return backgroundColor;
     }
 
+    public static final String BRAND_NAME_AR = "شركة المرجان الوقائية";
+    public static final String BRAND_NAME_EN = "Al Murjan Preventive Company";
+
     public BrandConfig getBrandConfig() {
+        return getBrandConfig(null);
+    }
+
+    /** Arabic brand name for Arabic (or unknown) locales, English otherwise. */
+    public BrandConfig getBrandConfig(java.util.Locale locale) {
+        boolean english = locale != null && !"ar".equalsIgnoreCase(locale.getLanguage());
         BrandConfig defaultConfig = BrandConfig.builder()
-                .name("Abdulrhman Bazarah")
-                .shortName("AB")
-                .website("https://ab18.tech")
-                .mail("abodebaz@gmail.com")
+                .name(english ? BRAND_NAME_EN : BRAND_NAME_AR)
+                .shortName(english ? "Al Murjan" : "المرجان")
+                .website("")
+                .mail("")
                 .phone("")
                 .addressStreet("")
-                .addressCity("Jeddah, Saudi Arabia")
+                .addressCity(english ? "Saudi Arabia" : "المملكة العربية السعودية")
                 .build();
         if (!licenseService.hasEntitlement(LicenseEntitlement.BRANDING)) return defaultConfig;
         if (brandRawConfig == null || brandRawConfig.isEmpty()) {

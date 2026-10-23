@@ -1,9 +1,11 @@
 import { Box, Typography } from '@mui/material';
 
 import Logo from 'src/components/LogoSign';
+import { useBrand } from 'src/hooks/useBrand';
 import { isWhiteLabeled } from '../../config';
 
 function AppInit() {
+  const { name: brandName } = useBrand();
   return (
     <Box
       sx={{
@@ -23,13 +25,10 @@ function AppInit() {
         <Logo />
         {!isWhiteLabeled && (
           <Typography
-            style={{ cursor: 'pointer' }}
-            fontSize={13}
-            onClick={() => {
-              window.open('https://ab18.tech', '_blank');
-            }}
+            style={{ textAlign: 'center', fontWeight: 600 }}
+                    fontSize={13}
           >
-            Abdulrhman Bazarah
+            {brandName}
           </Typography>
         )}
       </Box>

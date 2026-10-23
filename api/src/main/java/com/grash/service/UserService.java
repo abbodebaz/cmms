@@ -350,7 +350,7 @@ public class UserService {
             verificationTokenRepository.save(newUserToken);
             mailServiceFactory.getMailService().sendMessageUsingThymeleafTemplate(new String[]{email},
                     messageSource.getMessage("password_reset"
-                            , new String[]{brandingService.getBrandConfig().getName()}, Helper.getLocale(user)),
+                            , new String[]{brandingService.getBrandConfig(Helper.getLocale(user)).getName()}, Helper.getLocale(user)),
                     variables,
                     "reset-password.html", Helper.getLocale(user), null);
         } catch (Exception ignored) {
@@ -372,7 +372,7 @@ public class UserService {
         verificationTokenRepository.save(newUserToken);
         mailServiceFactory.getMailService().sendMessageUsingThymeleafTemplate(new String[]{user.getEmail()},
                 messageSource.getMessage("delete_account"
-                        , new String[]{brandingService.getBrandConfig().getName()}, Helper.getLocale(user)),
+                        , new String[]{brandingService.getBrandConfig(Helper.getLocale(user)).getName()}, Helper.getLocale(user)),
                 variables,
                 "delete-account.html", Helper.getLocale(user), null);
         return new SuccessResponse(true, "Account deletion link sent successfully");
@@ -424,7 +424,7 @@ public class UserService {
             if (!Boolean.TRUE.equals(disableSendingMails))
                 mailServiceFactory.getMailService().sendMessageUsingThymeleafTemplate(new String[]{email},
                         messageSource.getMessage(
-                                "invitation_to_use", new String[]{brandingService.getBrandConfig().getName()},
+                                "invitation_to_use", new String[]{brandingService.getBrandConfig(Helper.getLocale(inviter)).getName()},
                                 Helper.getLocale(inviter)), variables, "invite.html",
                         Helper.getLocale(inviter), null);
         } else throw new CustomException("Email already in use", HttpStatus.NOT_ACCEPTABLE);
