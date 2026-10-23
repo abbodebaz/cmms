@@ -138,6 +138,8 @@ const CreatePurchaseOrders = Loader(
 );
 const Locations = Loader(lazy(() => import('../content/own/Locations')));
 const WorkOrders = Loader(lazy(() => import('../content/own/WorkOrders')));
+const Dashboard = Loader(lazy(() => import('../content/own/Dashboard')));
+const MyTasks = Loader(lazy(() => import('../content/own/MyTasks')));
 
 const VendorsAndCustomers = Loader(
   lazy(() => import('../content/own/VendorsAndCustomers'))
@@ -166,6 +168,8 @@ const SwitchAccount = Loader(
   lazy(() => import('../content/own/SwitchAccount'))
 );
 const appRoutes = [
+  { path: 'dashboard', element: <Dashboard /> },
+  { path: 'my-tasks', element: <MyTasks /> },
   {
     path: 'settings',
     element: <SettingsLayout />,

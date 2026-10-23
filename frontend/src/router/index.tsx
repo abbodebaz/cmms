@@ -55,7 +55,7 @@ const router: RouteObject[] = [
   },
   {
     path: '',
-    element: <Navigate to={'/app/work-orders'} />
+    element: <Navigate to={'/app/dashboard'} />
   },
   {
     path: '*',

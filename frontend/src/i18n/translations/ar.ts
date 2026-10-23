@@ -1772,7 +1772,9 @@ const locale = {
   'free_cmms.features.get_started_free': 'ابدأ مجانًا',
   'free_cmms.features.ready_to_optimize': 'هل أنت مستعد للارتقاء بأعمال الصيانة؟',
   'free_cmms.features.join_thousands': 'انضم إلى آلاف المتخصصين في الصيانة الذين يعتمدون على أسهل نظام CMMS مجاني في العالم.',
-  'free_cmms.features.get_started_no_card': 'ابدأ مجانًا، دون الحاجة إلى بطاقة ائتمان'
+  'free_cmms.features.get_started_no_card': 'ابدأ مجانًا، دون الحاجة إلى بطاقة ائتمان',
+  dashboard: 'لوحة التحكم',
+  my_tasks: 'مهامي'
 };
 
 export default locale;

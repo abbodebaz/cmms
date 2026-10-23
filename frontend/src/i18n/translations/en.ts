@@ -1940,7 +1940,9 @@ const locale = {
   edit_reading: 'Edit reading',
   are_you_sure_delete_reading: 'Are you sure to delete this reading?',
   no_custom_fields_found: 'No custom fields found',
-  conflict_retry: 'The resource was modified by another request. Please retry in 5 seconds.'
+  conflict_retry: 'The resource was modified by another request. Please retry in 5 seconds.',
+  dashboard: 'Dashboard',
+  my_tasks: 'My Tasks'
 };
 
 export default locale;

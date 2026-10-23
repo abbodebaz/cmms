@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import SpaceDashboardTwoToneIcon from '@mui/icons-material/DashboardTwoTone';
+import TaskAltTwoToneIcon from '@mui/icons-material/TaskAltTwoTone';
 
 import AnalyticsTwoToneIcon from '@mui/icons-material/AnalyticsTwoTone';
 import InsertChartTwoToneIcon from '@mui/icons-material/InsertChartTwoTone';
@@ -52,6 +54,16 @@ const ownMenuItems: MenuItems[] = [
   {
     heading: '',
     items: [
+      {
+        name: 'dashboard',
+        link: '/app/dashboard',
+        icon: SpaceDashboardTwoToneIcon
+      },
+      {
+        name: 'my_tasks',
+        link: '/app/my-tasks',
+        icon: TaskAltTwoToneIcon
+      },
       {
         name: 'work_orders',
         link: '/app/work-orders',
