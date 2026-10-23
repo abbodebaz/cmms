@@ -2038,7 +2038,8 @@ const locale = {
   'tables.add_first_wo': 'Create your first work order',
   'tables.add_first_asset': 'Add your first asset',
   'tables.add_first_location': 'Add your first location',
-  'tables.add_first_part': 'Add your first part'
+  'tables.add_first_part': 'Add your first part',
+  form_section_basic: 'Basic information'
 };
 
 export default locale;

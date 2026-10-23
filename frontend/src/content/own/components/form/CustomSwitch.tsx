@@ -32,7 +32,7 @@ export default function CustomSwitch(props: CustomSwitchProps) {
             {title}
           </Typography>
           {description && (
-            <Typography variant="h6" fontStyle="italic">
+            <Typography variant="body2" color="text.secondary">
               {description}
             </Typography>
           )}

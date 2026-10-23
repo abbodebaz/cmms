@@ -1870,7 +1870,8 @@ const locale = {
   'tables.add_first_wo': 'أنشئ أول أمر عمل',
   'tables.add_first_asset': 'أضف أول أصل',
   'tables.add_first_location': 'أضف أول موقع',
-  'tables.add_first_part': 'أضف أول قطعة غيار'
+  'tables.add_first_part': 'أضف أول قطعة غيار',
+  form_section_basic: 'المعلومات الأساسية'
 };
 
 export default locale;

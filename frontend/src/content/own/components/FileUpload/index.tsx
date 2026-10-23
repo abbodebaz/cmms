@@ -1,3 +1,4 @@
+import { alpha } from '@mui/material/styles';
 import {
   Alert,
   Avatar,
@@ -31,11 +32,11 @@ const WarningTwoToneIconWrapper = styled(WarningTwoToneIcon)(
 
 const ButtonContrast = styled(Button)(
   ({ theme }) => `
-    background: ${theme.colors.alpha.trueWhite[10]};
-    color: ${theme.colors.alpha.trueWhite[100]};
+    background: ${alpha(theme.palette.primary.main, 0.1)};
+    color: ${theme.palette.primary.dark};
 
     &:hover {
-      background: ${theme.colors.alpha.trueWhite[30]};
+      background: ${alpha(theme.palette.primary.main, 0.18)};
     }
 `
 );
@@ -43,10 +44,11 @@ const ButtonContrast = styled(Button)(
 const BoxUploadWrapper = styled(Box)(
   ({ theme }) => `
     border-radius: ${theme.general.borderRadius};
-    padding: ${theme.spacing(2)};
-    margin-top: ${theme.spacing(2)};
-    background: ${theme.colors.alpha.trueWhite[10]};
-    border: 1px dashed ${theme.colors.alpha.trueWhite[30]};
+    padding: ${theme.spacing(3, 2)};
+    margin-top: ${theme.spacing(1.5)};
+    background: ${alpha(theme.palette.primary.main, 0.03)};
+    border: 1.5px dashed ${alpha(theme.palette.primary.main, 0.35)};
+    cursor: pointer;
     outline: none;
     display: flex;
     flex-direction: column;
@@ -55,41 +57,44 @@ const BoxUploadWrapper = styled(Box)(
     transition: ${theme.transitions.create(['border', 'background'])};
 
     &:hover {
-      background: ${theme.colors.alpha.trueWhite[5]};
-      border-color: ${theme.colors.alpha.trueWhite[70]};
+      background: ${alpha(theme.palette.primary.main, 0.07)};
+      border-color: ${theme.palette.primary.main};
     }
 `
 );
 
 const UploadBox = styled(Box)(
   ({ theme }) => `
-    border-radius: ${theme.general.borderRadius};
-    padding: ${theme.spacing(2)};
-    background: ${theme.colors.alpha.black[100]};
+    border-radius: 14px;
+    padding: ${theme.spacing(2, 2.5)};
+    background: ${theme.palette.background.paper};
+    border: 1px solid ${alpha(theme.palette.primary.main, 0.16)};
 `
 );
 
 const TypographyPrimary = styled(Typography)(
   ({ theme }) => `
-    color: ${theme.colors.alpha.trueWhite[100]};
+    color: ${theme.palette.text.primary};
+    font-weight: 700;
   `
 );
 
 const TypographySecondary = styled(Typography)(
   ({ theme }) => `
-    color: ${theme.colors.alpha.trueWhite[70]};
+    color: ${theme.palette.text.secondary};
   `
 );
 
 const DividerContrast = styled(Divider)(
   ({ theme }) => `
-    background: ${theme.colors.alpha.trueWhite[10]};
+    background: ${theme.palette.divider};
   `
 );
 
 const AvatarWrapper = styled(Avatar)(
   ({ theme }) => `
-    background: ${theme.colors.alpha.trueWhite[10]};
+    background: ${alpha(theme.palette.primary.main, 0.12)};
+    color: ${theme.palette.primary.main};
     width: ${theme.spacing(7)};
     height: ${theme.spacing(7)};
 `
@@ -194,7 +199,7 @@ function FileUpload(props: FileUploadProps) {
       disableGutters
       component="div"
       key={index}
-      sx={{ color: theme.colors.alpha.trueWhite[100] }}
+      sx={{ color: theme.palette.text.primary }}
     >
       <ListItemText primary={file.name} />
       <IconButton

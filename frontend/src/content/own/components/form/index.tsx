@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ExpandMoreTwoToneIcon from '@mui/icons-material/ExpandMoreTwoTone';
-import { Fragment, ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Formik, FormikProps } from 'formik';
 import { useTranslation } from 'react-i18next';
 import FormikErrorFocus from 'formik-error-focus';
@@ -74,6 +74,174 @@ const isFilled = (value: any): boolean => {
   return true;
 };
 
+const SectionCard = ({
+  title,
+  description,
+  open = true,
+  collapsible = false,
+  onToggle,
+  hasError = false,
+  badge,
+  contentId,
+  children
+}: {
+  title: string;
+  description?: string;
+  open?: boolean;
+  collapsible?: boolean;
+  onToggle?: () => void;
+  hasError?: boolean;
+  badge?: ReactNode;
+  contentId: string;
+  children: ReactNode;
+}) => {
+  const { t }: { t: any } = useTranslation();
+  const theme = useTheme();
+  const primary = theme.palette.primary.main;
+  const borderColor = hasError
+    ? theme.palette.error.main
+    : alpha(primary, open ? 0.22 : 0.14);
+
+  const headerContent = (
+    <>
+      <Box
+        sx={{
+          width: 4,
+          alignSelf: 'stretch',
+          minHeight: 28,
+          borderRadius: 4,
+          background: hasError
+            ? theme.palette.error.main
+            : `linear-gradient(180deg, ${alpha(primary, 0.95)} 0%, ${alpha(
+                primary,
+                0.45
+              )} 100%)`,
+          flexShrink: 0
+        }}
+      />
+      <Box sx={{ minWidth: 0, flex: 1 }}>
+        <Typography
+          component="span"
+          sx={{
+            display: 'block',
+            fontWeight: 700,
+            fontSize: theme.typography.pxToRem(15),
+            letterSpacing: 0.1,
+            color: hasError ? theme.palette.error.main : theme.palette.text.primary
+          }}
+        >
+          {t(title)}
+        </Typography>
+        {description && (
+          <Typography
+            component="span"
+            sx={{
+              display: 'block',
+              color: theme.palette.text.secondary,
+              fontSize: theme.typography.pxToRem(12.5),
+              mt: 0.25
+            }}
+          >
+            {t(description)}
+          </Typography>
+        )}
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {badge}
+        {collapsible && (
+          <Box
+            sx={{
+              width: 30,
+              height: 30,
+              borderRadius: '50%',
+              display: 'grid',
+              placeItems: 'center',
+              backgroundColor: alpha(primary, open ? 0.14 : 0.07),
+              transition: theme.transitions.create('background-color')
+            }}
+          >
+            <ExpandMoreTwoToneIcon
+              fontSize="small"
+              sx={{
+                color: primary,
+                transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: theme.transitions.create('transform', {
+                  duration: theme.transitions.duration.shorter
+                })
+              }}
+            />
+          </Box>
+        )}
+      </Box>
+    </>
+  );
+
+  const headerSx = {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1.5,
+    textAlign: 'start' as const,
+    px: { xs: 2, sm: 2.5 },
+    py: 1.75
+  };
+
+  return (
+    <Box
+      sx={{
+        border: `1px solid ${borderColor}`,
+        borderRadius: '14px',
+        backgroundColor: theme.palette.background.paper,
+        overflow: 'hidden',
+        boxShadow: open
+          ? `0 1px 2px ${alpha(theme.palette.common.black, 0.04)}, 0 6px 18px ${alpha(
+              primary,
+              0.06
+            )}`
+          : 'none',
+        transition: theme.transitions.create(['border-color', 'box-shadow'])
+      }}
+    >
+      {collapsible ? (
+        <ButtonBase
+          onClick={onToggle}
+          aria-expanded={open}
+          aria-controls={contentId}
+          aria-label={`${t(title)} - ${t('form_section_toggle')}`}
+          sx={{
+            ...headerSx,
+            backgroundColor: open ? alpha(primary, 0.035) : 'transparent',
+            transition: theme.transitions.create('background-color'),
+            '&:hover': { backgroundColor: alpha(primary, 0.06) },
+            '&.Mui-focusVisible': {
+              outline: `2px solid ${alpha(primary, 0.5)}`,
+              outlineOffset: -2
+            }
+          }}
+        >
+          {headerContent}
+        </ButtonBase>
+      ) : (
+        <Box sx={{ ...headerSx, backgroundColor: alpha(primary, 0.035) }}>
+          {headerContent}
+        </Box>
+      )}
+      <Collapse in={open} timeout={250} id={contentId}>
+        <Box
+          sx={{
+            px: { xs: 2, sm: 2.5 },
+            pt: 2.5,
+            pb: 2.5,
+            borderTop: `1px solid ${alpha(primary, 0.1)}`
+          }}
+        >
+          {children}
+        </Box>
+      </Collapse>
+    </Box>
+  );
+};
+
 const FormSection = ({
   header,
   fields,
@@ -96,112 +264,52 @@ const FormSection = ({
   const primary = theme.palette.primary.main;
   const total = fields.length;
   const filled = fields.filter((field) => isFilled(values[field.name])).length;
-  const contentId = `form-section-${header.name}`;
+  const complete = total > 0 && filled === total;
 
   return (
-    <Box>
-      <ButtonBase
-        onClick={onToggle}
-        aria-expanded={open}
-        aria-controls={contentId}
-        aria-label={`${t(header.label)} - ${t('form_section_toggle')}`}
-        sx={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 1.5,
-          textAlign: 'start',
-          px: { xs: 1.5, sm: 2 },
-          py: 1.5,
-          borderRadius: `${theme.shape.borderRadius}px`,
-          backgroundColor: theme.palette.background.default,
-          border: `1px solid ${
-            hasError ? theme.palette.error.main : alpha(primary, 0.12)
-          }`,
-          transition: theme.transitions.create(
-            ['background-color', 'border-color'],
-            { duration: theme.transitions.duration.shorter }
-          ),
-          '&:hover': {
-            backgroundColor: alpha(primary, 0.07),
-            borderColor: hasError
-              ? theme.palette.error.main
-              : alpha(primary, 0.3)
-          },
-          '&.Mui-focusVisible': {
-            outline: `2px solid ${alpha(primary, 0.5)}`,
-            outlineOffset: 2
-          }
-        }}
-      >
-        <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography
-            component="span"
-            sx={{
-              display: 'block',
-              fontWeight: 600,
-              fontSize: theme.typography.pxToRem(15),
-              color: hasError
-                ? theme.palette.error.main
-                : theme.palette.text.primary
-            }}
+    <SectionCard
+      title={header.label}
+      description={header.description}
+      open={open}
+      collapsible
+      onToggle={onToggle}
+      hasError={hasError}
+      contentId={`form-section-${header.name}`}
+      badge={
+        total > 0 ? (
+          <Tooltip
+            title={t('form_section_filled_count', { filled, total })}
+            arrow
           >
-            {t(`${header.label}`)}
-          </Typography>
-          {header.description && (
-            <Typography
+            <Box
               component="span"
-              variant="body2"
               sx={{
-                display: 'block',
-                color: theme.palette.text.secondary,
-                mt: 0.25
+                px: 1.1,
+                py: 0.3,
+                borderRadius: '20px',
+                fontSize: theme.typography.pxToRem(11.5),
+                fontWeight: 700,
+                lineHeight: 1.5,
+                whiteSpace: 'nowrap',
+                direction: 'ltr',
+                backgroundColor: complete
+                  ? alpha(theme.palette.success.main, 0.12)
+                  : alpha(primary, filled ? 0.12 : 0.06),
+                color: complete
+                  ? theme.palette.success.dark
+                  : filled
+                  ? theme.palette.primary.dark
+                  : theme.palette.text.secondary
               }}
             >
-              {t(header.description)}
-            </Typography>
-          )}
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {total > 0 && (
-            <Tooltip
-              title={t('form_section_filled_count', { filled, total })}
-              arrow
-            >
-              <Box
-                component="span"
-                sx={{
-                  px: 1,
-                  py: 0.25,
-                  borderRadius: '10px',
-                  fontSize: theme.typography.pxToRem(12),
-                  fontWeight: 600,
-                  lineHeight: 1.6,
-                  whiteSpace: 'nowrap',
-                  backgroundColor: alpha(primary, filled ? 0.14 : 0.06),
-                  color: filled ? theme.palette.primary.dark : 'text.secondary'
-                }}
-              >
-                {filled}/{total}
-              </Box>
-            </Tooltip>
-          )}
-          <ExpandMoreTwoToneIcon
-            sx={{
-              color: primary,
-              transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: theme.transitions.create('transform', {
-                duration: theme.transitions.duration.shorter
-              })
-            }}
-          />
-        </Box>
-      </ButtonBase>
-      <Collapse in={open} timeout={250} id={contentId}>
-        {children}
-      </Collapse>
-    </Box>
+              {filled}/{total}
+            </Box>
+          </Tooltip>
+        ) : null
+      }
+    >
+      {children}
+    </SectionCard>
   );
 };
 
@@ -232,7 +340,7 @@ export default (props: PropsType) => {
 
   const allSections = buildSections(props.fields);
   const sectionCount = allSections.filter((section) => section.header).length;
-  const stickyFooter = props.stickyFooter ?? sectionCount >= 3;
+  const stickyFooter = props.stickyFooter ?? false;
 
   const isSectionOpen = (section: FormSectionGroup): boolean => {
     const name = section.header.name;
@@ -325,6 +433,16 @@ export default (props: PropsType) => {
     });
     return fieldsClone;
   };
+  const FULL_WIDTH_SELECTS = ['task', 'part'];
+  const isHalfWidth = (field: IField, index: number): boolean => {
+    if (field.midWidth !== undefined) return field.midWidth;
+    if (!sectionCount || field.fullWidth) return false;
+    if (field.type === 'select')
+      return !FULL_WIDTH_SELECTS.includes(field.type2 as string);
+    if (field.type === 'date' || field.type === 'number') return true;
+    if (field.type === 'text') return !field.multiple && !field.required;
+    return false;
+  };
   const renderField = (
     field: IField,
     index: number,
@@ -333,7 +451,7 @@ export default (props: PropsType) => {
     <Grid
       item
       xs={12}
-      lg={field.midWidth ? 6 : 12}
+      md={isHalfWidth(field, index) ? 6 : 12}
       key={field.name}
     >
       {field.type === 'select' ? (
@@ -387,9 +505,6 @@ export default (props: PropsType) => {
         </Box>
       ) : field.type === 'date' ? (
         <Box>
-          <Box pb={1}>
-            <b>{field.label}:</b>
-          </Box>
           <DateTimePicker
             value={formik.values[field.name] ?? null}
             onChange={(newValue) => {
@@ -405,6 +520,7 @@ export default (props: PropsType) => {
               <TextField
                 {...params}
                 fullWidth
+                label={t(`${field.label}`)}
                 placeholder={t('select_date')}
                 required={field?.required}
                 error={!!formik.errors[field.name] || field.error}
@@ -504,7 +620,47 @@ export default (props: PropsType) => {
         }}
       >
         {(formik) => (
-          <Grid container spacing={2}>
+          <Grid
+            container
+            spacing={sectionCount ? 2.5 : 2}
+            sx={
+              sectionCount
+                ? {
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '10px',
+                      backgroundColor: theme.palette.background.paper,
+                      transition: theme.transitions.create('box-shadow'),
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: alpha(theme.palette.text.primary, 0.14)
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: alpha(theme.palette.primary.main, 0.5)
+                      },
+                      '&.Mui-focused': {
+                        boxShadow: `0 0 0 4px ${alpha(
+                          theme.palette.primary.main,
+                          0.12
+                        )}`
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.primary.main,
+                        borderWidth: '1.5px'
+                      },
+                      '&.Mui-error .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.error.main
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: theme.palette.text.secondary,
+                      fontWeight: 500
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: theme.palette.primary.dark
+                    }
+                  }
+                : undefined
+            }
+          >
             {(() => {
               const visibleFields = filterRelatedFields(props.fields, formik);
               const sections = buildSections(visibleFields);
@@ -526,7 +682,7 @@ export default (props: PropsType) => {
                         values={formik.values}
                         hasError={sectionHasError(section, formik)}
                       >
-                        <Grid container spacing={2} sx={{ pt: 2 }}>
+                        <Grid container spacing={2}>
                           {section.fields.map((field, index) =>
                             renderField(field, index, formik)
                           )}
@@ -535,11 +691,18 @@ export default (props: PropsType) => {
                     </Grid>
                   ) : null
                 ) : (
-                  <Fragment key={`section-basic-${sectionIndex}`}>
-                    {section.fields.map((field, index) =>
-                      renderField(field, index, formik)
-                    )}
-                  </Fragment>
+                  <Grid item xs={12} key={`section-basic-${sectionIndex}`}>
+                    <SectionCard
+                      title="form_section_basic"
+                      contentId={`form-section-basic-${sectionIndex}`}
+                    >
+                      <Grid container spacing={2}>
+                        {section.fields.map((field, index) =>
+                          renderField(field, index, formik)
+                        )}
+                      </Grid>
+                    </SectionCard>
+                  </Grid>
                 )
               );
             })()}
@@ -548,7 +711,15 @@ export default (props: PropsType) => {
               item
               xs={12}
               sx={
-                stickyFooter
+                sectionCount && !stickyFooter
+                  ? {
+                      mt: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      flexWrap: 'wrap'
+                    }
+                  : stickyFooter
                   ? {
                       position: 'sticky',
                       bottom: 0,
@@ -562,8 +733,21 @@ export default (props: PropsType) => {
             >
               <Button
                 type="submit"
+                size={sectionCount ? 'large' : 'medium'}
                 sx={{
-                  mt: { xs: 2, sm: 0 }
+                  mt: { xs: 2, sm: 0 },
+                  ...(sectionCount
+                    ? {
+                        mt: 0,
+                        minWidth: 160,
+                        borderRadius: '12px',
+                        fontWeight: 700,
+                        boxShadow: `0 6px 16px ${alpha(
+                          theme.palette.primary.main,
+                          0.28
+                        )}`
+                      }
+                    : {})
                 }}
                 onClick={() => formik.handleSubmit()}
                 variant="contained"
