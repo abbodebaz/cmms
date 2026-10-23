@@ -39,6 +39,7 @@ import { CompanySettingsContext } from '../../../contexts/CompanySettingsContext
 import { CustomSnackBarContext } from '../../../contexts/CustomSnackBarContext';
 import FilesList from '../components/FilesList';
 import BasicField from '../components/BasicField';
+import DualDate from '../components/DualDate';
 import { getTasksByPreventiveMaintenance } from '../../../slices/task';
 import Tasks from '../WorkOrders/Details/Tasks';
 import { Task } from '../../../models/owns/tasks';
@@ -115,7 +116,7 @@ export default function PMDetails({
 
   const fieldsToRender = (
     preventiveMaintenance: PreventiveMaintenance
-  ): { label: string; value: string | number }[] => [
+  ): { label: string; value: string | number; hijriDate?: string }[] => [
     {
       label: t('title'),
       value: preventiveMaintenance.title
@@ -139,7 +140,8 @@ export default function PMDetails({
     },
     {
       label: t('estimated_start_date'),
-      value: getFormattedDate(preventiveMaintenance.estimatedStartDate)
+      value: getFormattedDate(preventiveMaintenance.estimatedStartDate),
+      hijriDate: preventiveMaintenance.estimatedStartDate
     },
     {
       label: t('estimated_duration'),
@@ -247,7 +249,7 @@ export default function PMDetails({
                     {t('starts_on')}
                   </Typography>
                   <Typography variant="h6">
-                    {getFormattedDate(preventiveMaintenance.schedule.startsOn)}
+                    <DualDate date={preventiveMaintenance.schedule.startsOn} />
                   </Typography>
                 </Grid>
               )}
@@ -260,7 +262,7 @@ export default function PMDetails({
                     {t('ends_on')}
                   </Typography>
                   <Typography variant="h6">
-                    {getFormattedDate(preventiveMaintenance.schedule.endsOn)}
+                    <DualDate date={preventiveMaintenance.schedule.endsOn} />
                   </Typography>
                 </Grid>
               )}

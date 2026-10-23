@@ -1,16 +1,10 @@
 import { Stack } from '@mui/material';
-import NoRowsMessage from './NoRowsMessage';
+import NoRowsMessage, { NoRowsMessageProps } from './NoRowsMessage';
 
-export default function NoRowsMessageWrapper({
-  message,
-  action
-}: {
-  message: string;
-  action: string;
-}) {
+export default function NoRowsMessageWrapper(props: NoRowsMessageProps) {
   return (
     <Stack height="100%" alignItems="center" justifyContent="center">
-      <NoRowsMessage message={message} action={action} />
+      <NoRowsMessage {...props} />
     </Stack>
   );
 }

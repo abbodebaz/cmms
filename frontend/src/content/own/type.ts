@@ -72,6 +72,11 @@ export interface IField {
   loading?: boolean;
   excluded?: number;
   relatedFields?: { field: string; value?: any; hide?: boolean }[];
+  // Only used by `titleGroupField` (collapsible section header)
+  /** Section starts collapsed (ignored when the section has a required field) */
+  defaultCollapsed?: boolean;
+  /** Short helper line shown under the section title */
+  description?: string;
 }
 
 export interface IHash<E> {

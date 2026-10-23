@@ -1,19 +1,11 @@
 import { Link as RouterLink } from 'react-router-dom';
-import { Box, Card, Container, Link, styled, Typography } from '@mui/material';
+import { Link } from '@mui/material';
 import { Helmet } from 'react-helmet-async';
 import JWTLogin from '../LoginJWT';
 
 import { useTranslation } from 'react-i18next';
-import Logo from 'src/components/LogoSign';
 import { ldapEnabled } from '../../../../../config';
-
-const Content = styled(Box)(
-  () => `
-    display: flex;
-    flex: 1;
-    width: 100%;
-`
-);
+import AuthLayout, { AuthFooterLink } from '../../AuthLayout';
 
 function LoginCover() {
   const { t }: { t: any } = useTranslation();
@@ -24,63 +16,24 @@ function LoginCover() {
         <title>{t('Login')}</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
-      <Content>
-        <Container
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            flexDirection: 'column'
-          }}
-          maxWidth="sm"
-        >
-          <Card
-            sx={{
-              p: 4,
-              my: 4
-            }}
-          >
-            <Box textAlign="center">
-              <Logo />
-              <Typography
-                variant="h2"
-                sx={{
-                  mb: 1
-                }}
-              >
-                {t('login')}
-              </Typography>
-              <Typography
-                variant="h4"
-                color="text.secondary"
-                fontWeight="normal"
-                sx={{
-                  mb: 3
-                }}
-              >
-                {t('login_description')}
-              </Typography>
-            </Box>
-            <JWTLogin />
-            {!ldapEnabled && (
-              <Box my={4}>
-                <Typography
-                  component="span"
-                  variant="subtitle2"
-                  color="text.primary"
-                  fontWeight="bold"
-                >
-                  {t('no_account_yet')}
-                </Typography>{' '}
-                <Box display={{ xs: 'block', md: 'inline-block' }}>
-                  <Link component={RouterLink} to="/account/register">
-                    <b>{t('signup_here')}</b>
-                  </Link>
-                </Box>
-              </Box>
-            )}
-          </Card>
-        </Container>
-      </Content>
+      <AuthLayout
+        title={t('login')}
+        subtitle={t('login_description')}
+        footer={
+          !ldapEnabled && (
+            <AuthFooterLink
+              text={t('no_account_yet')}
+              link={
+                <Link component={RouterLink} to="/account/register">
+                  {t('signup_here')}
+                </Link>
+              }
+            />
+          )
+        }
+      >
+        <JWTLogin />
+      </AuthLayout>
     </>
   );
 }

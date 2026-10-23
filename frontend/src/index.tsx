@@ -9,7 +9,6 @@ import store from 'src/store';
 import App from 'src/App';
 import { SidebarProvider } from 'src/contexts/SidebarContext';
 import { TitleProvider } from 'src/contexts/TitleContext';
-import * as serviceWorker from 'src/serviceWorker';
 import { AuthProvider } from 'src/contexts/JWTAuthContext';
 import {
   sentryDsn,
@@ -55,4 +54,13 @@ ReactDOM.render(
   document.getElementById('root')
 );
 
-serviceWorker.unregister();
+if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register(`${process.env.PUBLIC_URL ?? ''}/sw.js`, { scope: '/' })
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('Service worker registration failed:', error);
+      });
+  });
+}

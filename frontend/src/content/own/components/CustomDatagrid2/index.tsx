@@ -33,6 +33,7 @@ import {
   TablePagination,
   CircularProgress,
   alpha,
+  lighten,
   Menu,
   MenuItem,
   Switch,
@@ -109,6 +110,9 @@ interface CustomDatagrid2Props<TData extends RowData> {
   // Custom render for no rows
   noRowsMessage?: string;
   noRowsAction?: string;
+  // Optional primary action shown in the empty state (e.g. "Add your first asset")
+  noRowsActionLabel?: string;
+  onNoRowsAction?: () => void;
   // Enable column reordering
   enableColumnReordering?: boolean;
   // Enable column resizing
@@ -119,8 +123,6 @@ interface CustomDatagrid2Props<TData extends RowData> {
   hidePagination?: boolean;
   getRowId?: (row: TData) => string;
 }
-
-const PINNED_BG = '#F2F5F9';
 
 function CustomDatagrid2<TData extends RowData>({
   columns,
@@ -151,6 +153,8 @@ function CustomDatagrid2<TData extends RowData>({
   pinnedColumns: externalPinnedColumns,
   onPinnedColumnsChange,
   noRowsAction,
+  noRowsActionLabel,
+  onNoRowsAction,
   hidePagination,
   getRowId
 }: CustomDatagrid2Props<TData>) {
@@ -161,6 +165,11 @@ function CustomDatagrid2<TData extends RowData>({
   const [tableHeight, setTableHeight] = useState<number>(500);
   const { user } = useAuth();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // Warm, opaque surfaces (sticky cells need an opaque background)
+  const HEADER_BG = lighten(theme.colors.primary.lighter, 0.45);
+  const PINNED_BG = lighten(theme.colors.primary.lighter, 0.7);
+  const ROW_HOVER_BG = lighten(theme.colors.primary.lighter, 0.55);
+  const CELL_BORDER = theme.colors.alpha.black[10];
 
   // Internal pinned columns state (used if external not provided)
   const [internalPinnedColumns, setInternalPinnedColumns] = useState<string[]>(
@@ -369,6 +378,7 @@ function CustomDatagrid2<TData extends RowData>({
   const TablePaginationActions = (props: TablePaginationActionsProps) => {
     const { page, onPageChange, rowsPerPage } = props;
     const totalPages = Math.ceil(totalRows / rowsPerPage);
+    const isRtl = theme.direction === 'rtl';
 
     const handleFirstPageClick = (
       event: React.MouseEvent<HTMLButtonElement>
@@ -395,30 +405,30 @@ function CustomDatagrid2<TData extends RowData>({
         <IconButton
           onClick={handleFirstPageClick}
           disabled={page === 0}
-          aria-label="first page"
+          aria-label={t('first_page')}
         >
-          <FirstPageIcon />
+          {isRtl ? <LastPageIcon /> : <FirstPageIcon />}
         </IconButton>
         <IconButton
           onClick={handleBackClick}
           disabled={page === 0}
-          aria-label="previous page"
+          aria-label={t('previous_page')}
         >
-          <KeyboardArrowLeft />
+          {isRtl ? <KeyboardArrowRight /> : <KeyboardArrowLeft />}
         </IconButton>
         <IconButton
           onClick={handleNextClick}
           disabled={page >= totalPages - 1}
-          aria-label="next page"
+          aria-label={t('next_page')}
         >
-          <KeyboardArrowRight />
+          {isRtl ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
         </IconButton>
         <IconButton
           onClick={handleLastPageClick}
           disabled={page >= totalPages - 1}
-          aria-label="last page"
+          aria-label={t('last_page')}
         >
-          <LastPageIcon />
+          {isRtl ? <FirstPageIcon /> : <LastPageIcon />}
         </IconButton>
       </Box>
     );
@@ -521,10 +531,14 @@ function CustomDatagrid2<TData extends RowData>({
               top: 0,
               zIndex: 2,
               '& .MuiTableCell-head': {
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                borderBottom: `1px solid ${theme.palette.divider}`,
-                backgroundColor: '#E8EAEE',
+                fontWeight: 600,
+                fontSize: theme.typography.pxToRem(13),
+                color: theme.colors.alpha.black[70],
+                height: 48,
+                paddingTop: theme.spacing(1),
+                paddingBottom: theme.spacing(1),
+                borderBottom: `1px solid ${theme.colors.primary.lighter}`,
+                backgroundColor: HEADER_BG,
                 position: 'sticky',
                 top: 0,
                 zIndex: 3
@@ -532,7 +546,14 @@ function CustomDatagrid2<TData extends RowData>({
             },
             '& .MuiTableBody-root': {
               '& .MuiTableRow-root': {
-                cursor: notClickable ? 'auto' : 'pointer'
+                cursor: notClickable ? 'auto' : 'pointer',
+                transition: 'background-color 0.15s ease'
+              },
+              '& .MuiTableCell-body': {
+                height: 56,
+                paddingTop: theme.spacing(1),
+                paddingBottom: theme.spacing(1),
+                borderBottom: `1px solid ${CELL_BORDER}`
               }
             }
           }}
@@ -559,12 +580,15 @@ function CustomDatagrid2<TData extends RowData>({
                         whiteSpace: 'nowrap',
                         position: isPinned ? 'sticky' : 'relative',
                         left: isPinned ? stickyLeft : undefined,
-                        backgroundColor: PINNED_BG,
+                        backgroundColor: HEADER_BG,
                         userSelect: isResizing ? 'none' : 'auto',
                         cursor: canDrag ? 'pointer' : 'default',
                         borderRight: isPinned
                           ? `2px solid ${theme.palette.divider}`
-                          : `1px solid #F2F5F9`,
+                          : `1px solid ${alpha(
+                              theme.colors.primary.main,
+                              0.08
+                            )}`,
                         boxShadow: isPinned
                           ? `2px 0 4px ${alpha(
                               theme.palette.common.black,
@@ -703,18 +727,22 @@ function CustomDatagrid2<TData extends RowData>({
             }}
           >
             {table.getRowModel().rows.length === 0 ? (
-              <Box
-                style={{
-                  marginTop: 130,
-                  width: scrollContainerRef.current?.clientWidth ?? 500,
-                  maxWidth: scrollContainerRef.current?.clientWidth ?? 500
-                }}
-              >
-                <NoRowsMessageWrapper
-                  message={noRowsMessage}
-                  action={noRowsAction}
-                />
-              </Box>
+              loading ? null : (
+                <Box
+                  style={{
+                    marginTop: 40,
+                    width: scrollContainerRef.current?.clientWidth ?? 500,
+                    maxWidth: scrollContainerRef.current?.clientWidth ?? 500
+                  }}
+                >
+                  <NoRowsMessageWrapper
+                    message={noRowsMessage}
+                    action={noRowsAction}
+                    actionLabel={noRowsActionLabel}
+                    onAction={onNoRowsAction}
+                  />
+                </Box>
+              )
             ) : (
               table.getRowModel().rows.map((row) => {
                 const rowDepth = (row.original as any)?.depth ?? 0;
@@ -737,7 +765,7 @@ function CustomDatagrid2<TData extends RowData>({
                       '&:hover': {
                         backgroundColor: isNested
                           ? theme.palette.primary.main
-                          : alpha(theme.palette.primary.main, 0.04)
+                          : ROW_HOVER_BG
                       }
                     }}
                   >
@@ -763,7 +791,15 @@ function CustomDatagrid2<TData extends RowData>({
                             textOverflow: 'ellipsis',
                             position: isPinned ? 'sticky' : undefined,
                             left: isPinned ? stickyLeft : undefined,
-                            backgroundColor: isPinned ? PINNED_BG : undefined,
+                            backgroundColor: isPinned
+                              ? backgroundColor ?? PINNED_BG
+                              : undefined,
+                            ...(isPinned &&
+                              !isNested && {
+                                'tr:hover > &': {
+                                  backgroundColor: ROW_HOVER_BG
+                                }
+                              }),
                             borderRight: isPinned
                               ? `2px solid ${theme.palette.divider}`
                               : undefined,
@@ -924,7 +960,14 @@ function CustomDatagrid2<TData extends RowData>({
             })
           }
           rowsPerPageOptions={pageSizeOptions}
-          // labelRowsPerPage={t('rows_per_page')}
+          labelRowsPerPage={t('rows_per_page')}
+          labelDisplayedRows={({ from, to, count }) =>
+            t('displayed_rows_range', {
+              from,
+              to,
+              total: count !== -1 ? count : to
+            })
+          }
           ActionsComponent={TablePaginationActions}
           sx={{
             borderTop: `1px solid ${theme.palette.divider}`,

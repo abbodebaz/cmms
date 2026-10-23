@@ -1,9 +1,11 @@
 import { Box } from '@mui/material';
 import HeaderNotifications from './Notifications';
+import HeaderThemeToggle from './ThemeToggle';
 
 function HeaderButtons() {
   return (
-    <Box>
+    <Box display="flex" alignItems="center">
+      <HeaderThemeToggle />
       <HeaderNotifications />
       {/*<LanguageSwitcher />*/}
       {/*<Chat />*/}

@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { ThemeProvider } from '@mui/material';
+import React, { useEffect, useMemo, useState } from 'react';
+import { createTheme, ThemeProvider } from '@mui/material';
+import { arEG } from '@mui/material/locale';
+import { arSD } from '@mui/x-data-grid';
 import { themeCreator } from './base';
 import { StylesProvider } from '@mui/styles';
 import { CacheProvider } from '@emotion/react';
@@ -32,9 +34,20 @@ export const ThemeContext = React.createContext(
 const ThemeProviderWrapper: React.FC = (props) => {
   const curThemeName = localStorage.getItem('appTheme') || 'PureLightTheme';
   const [themeName, _setThemeName] = useState(curThemeName);
-  const theme = themeCreator(themeName);
   const { i18n } = useTranslation();
   const rtl = i18n.dir() === 'rtl';
+  const isArabic = (i18n.language || '').toLowerCase().startsWith('ar');
+  // Built-in MUI / DataGrid strings (pagination, column menu, filters…) in Arabic
+  const theme = useMemo(() => {
+    const baseTheme = themeCreator(themeName);
+    const direction = rtl ? 'rtl' : 'ltr';
+    // Theme schemes read i18n.dir() once at import; keep it in sync on language switch
+    const themed =
+      baseTheme.direction === direction
+        ? baseTheme
+        : createTheme(baseTheme, { direction });
+    return isArabic ? createTheme(themed, arEG, arSD) : themed;
+  }, [themeName, isArabic, rtl]);
   const setThemeName = (themeName: string): void => {
     localStorage.setItem('appTheme', themeName);
     _setThemeName(themeName);

@@ -1,6 +1,7 @@
 import { Grid, Stack, Typography, Link } from '@mui/material';
 import { getPriorityLabel } from '../../../utils/formatters';
 import { useTranslation } from 'react-i18next';
+import { HijriSuffix } from './DualDate';
 
 interface BasicFieldProps {
   label: string | number;
@@ -10,6 +11,8 @@ interface BasicFieldProps {
   id?: number;
   type?: 'location' | 'asset' | 'team' | 'vendor';
   linkPrefix?: string;
+  /** Raw date of the value; when set, a muted Hijri date is appended (if enabled). */
+  hijriDate?: string | null;
 }
 
 const BasicField: React.FC<BasicFieldProps> = ({
@@ -19,7 +22,8 @@ const BasicField: React.FC<BasicFieldProps> = ({
   isLink,
   id,
   type,
-  linkPrefix
+  linkPrefix,
+  hijriDate
 }) => {
   const { t } = useTranslation();
   if (!value) return null;
@@ -86,7 +90,10 @@ const BasicField: React.FC<BasicFieldProps> = ({
       >
         {label}
       </Typography>
-      <Typography variant="h6">{renderValue()}</Typography>
+      <Typography variant="h6">
+        {renderValue()}
+        {hijriDate && <HijriSuffix date={hijriDate} />}
+      </Typography>
     </Grid>
   );
 };

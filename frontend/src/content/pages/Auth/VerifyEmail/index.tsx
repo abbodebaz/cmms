@@ -1,19 +1,10 @@
-import { Box, Card, Container, styled, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { Avatar, Box, Link, Typography } from '@mui/material';
 import { Helmet } from 'react-helmet-async';
+import MarkEmailReadTwoToneIcon from '@mui/icons-material/MarkEmailReadTwoTone';
 
 import { useTranslation } from 'react-i18next';
-import Logo from 'src/components/LogoSign';
-
-const MainContent = styled(Box)(
-  () => `
-    height: 100%;
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-`
-);
+import AuthLayout, { AuthFooterLink } from '../AuthLayout';
 
 function VerifyEmail() {
   const { t }: { t: any } = useTranslation();
@@ -22,38 +13,45 @@ function VerifyEmail() {
       <Helmet>
         <title>{t('verify_email_title')}</title>
       </Helmet>
-      <MainContent>
-        <Container maxWidth="sm">
-          <Logo />
-          <Card
-            sx={{
-              mt: 3,
-              p: 4
-            }}
+      <AuthLayout
+        title={t('verify_email_title')}
+        footer={
+          <AuthFooterLink
+            text={t('want_to_sign_in_again')}
+            link={
+              <Link component={RouterLink} to="/account/login">
+                {t('click_here')}
+              </Link>
+            }
+          />
+        }
+      >
+        <Box
+          sx={(theme) => ({
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 2,
+            p: 2.5,
+            borderRadius: '12px',
+            border: `1px solid ${theme.colors.primary.lighter}`,
+            background: theme.colors.primary.lighter
+          })}
+        >
+          <Avatar
+            sx={(theme) => ({
+              bgcolor: theme.colors.primary.main,
+              color: '#ffffff',
+              width: 44,
+              height: 44
+            })}
           >
-            <Box>
-              <Typography
-                variant="h2"
-                sx={{
-                  mb: 1
-                }}
-              >
-                {t('verify_email_title')}
-              </Typography>
-              <Typography
-                variant="h4"
-                color="text.secondary"
-                fontWeight="normal"
-                sx={{
-                  mb: 3
-                }}
-              >
-                {t('verify_email_description')}
-              </Typography>
-            </Box>
-          </Card>
-        </Container>
-      </MainContent>
+            <MarkEmailReadTwoToneIcon />
+          </Avatar>
+          <Typography sx={{ fontSize: 15, lineHeight: 1.7 }}>
+            {t('verify_email_description')}
+          </Typography>
+        </Box>
+      </AuthLayout>
     </>
   );
 }

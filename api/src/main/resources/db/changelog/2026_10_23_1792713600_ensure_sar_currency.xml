@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <!-- Saudi localization: make sure the Saudi Riyal (code SAR) exists; it is the default currency for new companies -->
+    <changeSet id="1792713600-1" author="saudi-localization">
+        <sql>
+            INSERT INTO currency (id, code, name)
+            SELECT (SELECT COALESCE(MAX(id), 0) + 1 FROM currency), 'SAR', 'Saudi Riyal'
+            WHERE NOT EXISTS (SELECT 1 FROM currency WHERE code = 'SAR')
+              AND NOT EXISTS (SELECT 1 FROM currency WHERE name = 'Saudi Riyal');
+            UPDATE currency
+            SET code = 'SAR'
+            WHERE name = 'Saudi Riyal'
+              AND NOT EXISTS (SELECT 1 FROM currency WHERE code = 'SAR');
+        </sql>
+    </changeSet>
+</databaseChangeLog>

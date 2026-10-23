@@ -84,6 +84,7 @@ import useAuth from '../../../../hooks/useAuth';
 import { PermissionEntity } from '../../../../models/owns/role';
 import { getSingleUserMini } from '../../../../slices/user';
 import FilesList from '../../components/FilesList';
+import DualDate, { HijriSuffix } from '../../components/DualDate';
 import { PlanFeature } from '../../../../models/owns/subscriptionPlan';
 import PartQuantitiesList from '../../components/PartQuantitiesList';
 import AddFileModal from './AddFileModal';
@@ -429,13 +430,15 @@ export default function WorkOrderDetails(props: WorkOrderDetailsProps) {
     value,
     id,
     type,
-    isLink
+    isLink,
+    hijriDate
   }: {
     label: string | number;
     value: string | number;
     type?: string;
     id?: number;
     isLink?: boolean;
+    hijriDate?: string;
   }) => {
     if (value && (isLink || !type || (type && id))) {
       const href = value.toString().startsWith('http')
@@ -461,7 +464,10 @@ export default function WorkOrderDetails(props: WorkOrderDetailsProps) {
               {value}
             </Link>
           ) : (
-            <Typography variant="h6">{value}</Typography>
+            <Typography variant="h6">
+              {value}
+              {hijriDate && <HijriSuffix date={hijriDate} />}
+            </Typography>
           )}
         </Grid>
       );
@@ -478,6 +484,7 @@ export default function WorkOrderDetails(props: WorkOrderDetailsProps) {
     type?: 'location' | 'asset' | 'team';
     isLink?: boolean;
     id?: number;
+    hijriDate?: string;
   }[] => [
     {
       label: t('id'),
@@ -485,11 +492,13 @@ export default function WorkOrderDetails(props: WorkOrderDetailsProps) {
     },
     {
       label: t('due_date'),
-      value: getFormattedDate(workOrder.dueDate)
+      value: getFormattedDate(workOrder.dueDate),
+      hijriDate: workOrder.dueDate
     },
     {
       label: t('estimated_start_date'),
-      value: getFormattedDate(workOrder.estimatedStartDate)
+      value: getFormattedDate(workOrder.estimatedStartDate),
+      hijriDate: workOrder.estimatedStartDate
     },
     {
       label: t('estimated_duration'),
@@ -810,7 +819,7 @@ export default function WorkOrderDetails(props: WorkOrderDetailsProps) {
                       {t('completed_on')}
                     </Typography>
                     <Typography variant="h6">
-                      {getFormattedDate(workOrder.completedOn)}
+                      <DualDate date={workOrder.completedOn} />
                     </Typography>
                   </Grid>
                   {workOrder.feedback && (

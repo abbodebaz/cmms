@@ -15,6 +15,7 @@ import { CompanySettingsContext } from '../../../contexts/CompanySettingsContext
 import api from '../../../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { WorkOrderMini } from '../../../models/owns/workOrder';
+import StatusChip from '../components/StatusChip';
 
 const RecentWorkOrders = ({ pmId }: { pmId: number }) => {
   const { t }: { t: any } = useTranslation();
@@ -64,24 +65,7 @@ const RecentWorkOrders = ({ pmId }: { pmId: number }) => {
             primary={workOrder.title}
             secondary={getFormattedDate(workOrder.createdAt)}
           />
-          <Box
-            sx={{
-              backgroundColor:
-                workOrder.status === 'IN_PROGRESS'
-                  ? theme.colors.success.main
-                  : workOrder.status === 'ON_HOLD'
-                  ? theme.colors.warning.main
-                  : theme.colors.alpha.black[30],
-              color: 'white',
-              width: 'fit-content',
-              height: 'fit-content',
-              py: 0.5,
-              px: 1,
-              borderRadius: 1
-            }}
-          >
-            <Typography variant="body2">{t(workOrder.status)}</Typography>
-          </Box>
+          <StatusChip status={workOrder.status} />
         </ListItemButton>
       ))}
     </List>

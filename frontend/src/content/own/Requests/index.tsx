@@ -39,6 +39,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { isNumeric } from '../../../utils/validators';
 import { CustomSnackBarContext } from '../../../contexts/CustomSnackBarContext';
 import PriorityWrapper from '../components/PriorityWrapper';
+import { SoftChip } from '../components/StatusChip';
 import {
   formatSelect,
   formatSelectMultiple,
@@ -307,11 +308,13 @@ function Requests() {
       header: () => t('status'),
       cell: (info) => {
         const row = info.row.original;
-        return row.cancelled
-          ? t('rejected')
-          : row.workOrder
-          ? t('approved')
-          : t('pending');
+        return row.cancelled ? (
+          <SoftChip tone="error" label={t('rejected')} />
+        ) : row.workOrder ? (
+          <SoftChip tone="success" label={t('approved')} />
+        ) : (
+          <SoftChip tone="warning" label={t('pending')} />
+        );
       },
       size: 150
     }),
@@ -327,7 +330,7 @@ function Requests() {
       cell: (info) => info.getValue() || '',
       size: 150
     }),
-    columnHelper.accessor((row) => row.asset?.name, {
+    columnHelper.accessor((row) => row.location?.name, {
       id: 'location',
       header: () => t('location'),
       cell: (info) => info.getValue() || '',

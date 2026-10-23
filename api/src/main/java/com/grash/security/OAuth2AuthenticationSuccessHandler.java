@@ -141,7 +141,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             subscriptionService.create(subscription);
 
             Company company = new Company("Organization " + emailDomain, 10, subscription);
-            company.getCompanySettings().getGeneralPreferences().setCurrency(currencyService.findByCode("$").get());
+            company.getCompanySettings().getGeneralPreferences().setCurrency(currencyService.findByCode("SAR")
+                .orElseGet(() -> currencyService.findByCode("$").orElse(null)));
 
             companyService.create(company);
 

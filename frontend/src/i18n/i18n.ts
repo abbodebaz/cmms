@@ -52,7 +52,8 @@ const dateLocaleLoaders: Record<string, () => Promise<DateLocale>> = {
   tr: () => import('date-fns/locale').then((m) => m.tr),
   pt_br: () => import('date-fns/locale').then((m) => m.ptBR),
   pl: () => import('date-fns/locale').then((m) => m.pl),
-  ar: () => import('date-fns/locale').then((m) => m.ar),
+  // Saudi Arabic locale (Gregorian month names, week starts Sunday)
+  ar: () => import('date-fns/locale').then((m) => m.arSA),
   it: () => import('date-fns/locale').then((m) => m.it),
   sv: () => import('date-fns/locale').then((m) => m.sv),
   ru: () => import('date-fns/locale').then((m) => m.ru),
@@ -154,7 +155,12 @@ export const loadLanguage = async (lang: string): Promise<void> => {
  */
 export const getDateLocale = async (lang: string): Promise<DateLocale> => {
   const loader = dateLocaleLoaders[lang] ?? dateLocaleLoaders['en'];
-  return loader();
+  const locale = await loader();
+  // Saudi localization: weeks start on Sunday in every language
+  return {
+    ...locale,
+    options: { ...(locale.options ?? {}), weekStartsOn: 0 }
+  };
 };
 
 /**

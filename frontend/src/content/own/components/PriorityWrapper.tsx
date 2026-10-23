@@ -1,45 +1,34 @@
-import { Box, styled, Typography, useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { getPriorityLabel } from '../../../utils/formatters';
+import { SoftChip, SoftChipTone } from './StatusChip';
 
-const LabelWrapper = styled(Box)(
-  ({ theme }) => `
-    font-size: ${theme.typography.pxToRem(10)};
-    font-weight: bold;
-    text-transform: uppercase;
-    border-radius: ${theme.general.borderRadiusSm};
-    padding: ${theme.spacing(0.9, 1.5, 0.7)};
-    line-height: 1;
-    width: fit-content;
-  `
-);
+export const priorityTone = (priority: string): SoftChipTone => {
+  switch (priority) {
+    case 'HIGH':
+      return 'error';
+    case 'MEDIUM':
+      return 'warning';
+    case 'LOW':
+      return 'info';
+    default:
+      return 'neutral';
+  }
+};
+
 export default function PriorityWrapper(props: {
   priority: string | null;
   withSuffix?: boolean;
+  size?: 'small' | 'medium';
 }) {
-  const { priority, withSuffix } = props;
+  const { priority, withSuffix, size } = props;
   const { t }: { t: any } = useTranslation();
-  const theme = useTheme();
   if (!priority) return null;
-  return priority === 'NONE' ? (
-    <Typography>{getPriorityLabel(priority, t)}</Typography>
-  ) : (
-    <LabelWrapper
-      sx={{
-        background:
-          priority === 'LOW'
-            ? `${theme.colors.info.main}`
-            : priority === 'HIGH'
-            ? `${theme.colors.error.main}`
-            : `${theme.colors.warning.main}`,
-        color: `${theme.palette.getContrastText(
-          priority === 'HIGH'
-            ? theme.colors.info.dark
-            : theme.colors.success.dark
-        )}`
-      }}
-    >
-      {t(priority)} {withSuffix ? t('priority') : null}
-    </LabelWrapper>
+  const label = getPriorityLabel(priority, t) ?? t(priority);
+  return (
+    <SoftChip
+      tone={priorityTone(priority)}
+      size={size}
+      label={withSuffix ? `${label} ${t('priority')}` : label}
+    />
   );
 }

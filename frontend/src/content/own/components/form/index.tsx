@@ -1,12 +1,18 @@
 import {
   Box,
   Button,
+  ButtonBase,
   CircularProgress,
+  Collapse,
   Grid,
   TextField,
+  Tooltip,
   Typography,
   useTheme
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import ExpandMoreTwoToneIcon from '@mui/icons-material/ExpandMoreTwoTone';
+import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { Formik, FormikProps } from 'formik';
 import { useTranslation } from 'react-i18next';
 import FormikErrorFocus from 'formik-error-focus';
@@ -37,12 +43,230 @@ interface PropsType {
   isButtonEnabled?: (values: IHash<any>, ...props: any[]) => boolean;
   enableReinitialize?: boolean;
   nextToButton?: React.ReactNode;
+  /** Keep the submit button visible at the bottom of the scroll area.
+   * Defaults to true for long sectioned forms (3+ sections). */
+  stickyFooter?: boolean;
 }
+
+interface FormSectionGroup {
+  /** The titleGroupField heading; undefined for the leading "basic" block */
+  header?: IField;
+  fields: IField[];
+}
+
+const buildSections = (fields: IField[]): FormSectionGroup[] => {
+  const sections: FormSectionGroup[] = [];
+  let current: FormSectionGroup = { fields: [] };
+  fields.forEach((field) => {
+    if (field.type === 'titleGroupField') {
+      if (current.header || current.fields.length) sections.push(current);
+      current = { header: field, fields: [] };
+    } else current.fields.push(field);
+  });
+  if (current.header || current.fields.length) sections.push(current);
+  return sections;
+};
+
+const isFilled = (value: any): boolean => {
+  if (value === null || value === undefined || value === false) return false;
+  if (typeof value === 'string') return value.trim() !== '';
+  if (Array.isArray(value)) return value.length > 0;
+  return true;
+};
+
+const FormSection = ({
+  header,
+  fields,
+  open,
+  onToggle,
+  values,
+  hasError,
+  children
+}: {
+  header: IField;
+  fields: IField[];
+  open: boolean;
+  onToggle: () => void;
+  values: IHash<any>;
+  hasError: boolean;
+  children: ReactNode;
+}) => {
+  const { t }: { t: any } = useTranslation();
+  const theme = useTheme();
+  const primary = theme.palette.primary.main;
+  const total = fields.length;
+  const filled = fields.filter((field) => isFilled(values[field.name])).length;
+  const contentId = `form-section-${header.name}`;
+
+  return (
+    <Box>
+      <ButtonBase
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={contentId}
+        aria-label={`${t(header.label)} - ${t('form_section_toggle')}`}
+        sx={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 1.5,
+          textAlign: 'start',
+          px: { xs: 1.5, sm: 2 },
+          py: 1.5,
+          borderRadius: `${theme.shape.borderRadius}px`,
+          backgroundColor: theme.palette.background.default,
+          border: `1px solid ${
+            hasError ? theme.palette.error.main : alpha(primary, 0.12)
+          }`,
+          transition: theme.transitions.create(
+            ['background-color', 'border-color'],
+            { duration: theme.transitions.duration.shorter }
+          ),
+          '&:hover': {
+            backgroundColor: alpha(primary, 0.07),
+            borderColor: hasError
+              ? theme.palette.error.main
+              : alpha(primary, 0.3)
+          },
+          '&.Mui-focusVisible': {
+            outline: `2px solid ${alpha(primary, 0.5)}`,
+            outlineOffset: 2
+          }
+        }}
+      >
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography
+            component="span"
+            sx={{
+              display: 'block',
+              fontWeight: 600,
+              fontSize: theme.typography.pxToRem(15),
+              color: hasError
+                ? theme.palette.error.main
+                : theme.palette.text.primary
+            }}
+          >
+            {t(`${header.label}`)}
+          </Typography>
+          {header.description && (
+            <Typography
+              component="span"
+              variant="body2"
+              sx={{
+                display: 'block',
+                color: theme.palette.text.secondary,
+                mt: 0.25
+              }}
+            >
+              {t(header.description)}
+            </Typography>
+          )}
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {total > 0 && (
+            <Tooltip
+              title={t('form_section_filled_count', { filled, total })}
+              arrow
+            >
+              <Box
+                component="span"
+                sx={{
+                  px: 1,
+                  py: 0.25,
+                  borderRadius: '10px',
+                  fontSize: theme.typography.pxToRem(12),
+                  fontWeight: 600,
+                  lineHeight: 1.6,
+                  whiteSpace: 'nowrap',
+                  backgroundColor: alpha(primary, filled ? 0.14 : 0.06),
+                  color: filled ? theme.palette.primary.dark : 'text.secondary'
+                }}
+              >
+                {filled}/{total}
+              </Box>
+            </Tooltip>
+          )}
+          <ExpandMoreTwoToneIcon
+            sx={{
+              color: primary,
+              transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: theme.transitions.create('transform', {
+                duration: theme.transitions.duration.shorter
+              })
+            }}
+          />
+        </Box>
+      </ButtonBase>
+      <Collapse in={open} timeout={250} id={contentId}>
+        {children}
+      </Collapse>
+    </Box>
+  );
+};
+
+/** Expands every section holding a field with a validation error after a submit attempt */
+const SectionErrorExpander = ({
+  formik,
+  onErrors
+}: {
+  formik: FormikProps<IHash<any>>;
+  onErrors: (errorFieldNames: string[]) => void;
+}) => {
+  const { submitCount, errors } = formik;
+  useEffect(() => {
+    if (!submitCount) return;
+    const errorFieldNames = Object.keys(errors ?? {});
+    if (errorFieldNames.length) onErrors(errorFieldNames);
+  }, [submitCount, errors]);
+  return null;
+};
 
 export default (props: PropsType) => {
   const { t }: { t: any } = useTranslation();
   const theme = useTheme();
+  const [sectionOpenState, setSectionOpenState] = useState<
+    IHash<boolean>
+  >({});
   const shape: IHash<any> = {};
+
+  const allSections = buildSections(props.fields);
+  const sectionCount = allSections.filter((section) => section.header).length;
+  const stickyFooter = props.stickyFooter ?? sectionCount >= 3;
+
+  const isSectionOpen = (section: FormSectionGroup): boolean => {
+    const name = section.header.name;
+    if (sectionOpenState[name] !== undefined) return sectionOpenState[name];
+    return (
+      !section.header.defaultCollapsed ||
+      section.fields.some((field) => field.required)
+    );
+  };
+  const toggleSection = (section: FormSectionGroup) =>
+    setSectionOpenState((prev) => ({
+      ...prev,
+      [section.header.name]: !isSectionOpen(section)
+    }));
+  const sectionHasError = (
+    section: FormSectionGroup,
+    formik: FormikProps<IHash<any>>
+  ): boolean =>
+    section.fields.some(
+      (field) => Boolean(formik.errors[field.name]) || Boolean(field.error)
+    );
+  const expandSectionsWithErrors = (errorFieldNames: string[]) => {
+    const toOpen = allSections.filter(
+      (section) =>
+        section.header &&
+        section.fields.some((field) => errorFieldNames.includes(field.name))
+    );
+    if (toOpen.length)
+      setSectionOpenState((prev) => {
+        const next = { ...prev };
+        toOpen.forEach((section) => (next[section.header.name] = true));
+        return next;
+      });
+  };
   const {
     companySettings: { generalPreferences }
   } = useAuth();
@@ -101,6 +325,164 @@ export default (props: PropsType) => {
     });
     return fieldsClone;
   };
+  const renderField = (
+    field: IField,
+    index: number,
+    formik: FormikProps<IHash<any>>
+  ) => (
+    <Grid
+      item
+      xs={12}
+      lg={field.midWidth ? 6 : 12}
+      key={field.name}
+    >
+      {field.type === 'select' ? (
+        <CustomSelect field={field} handleChange={handleChange} />
+      ) : field.type === 'checkbox' ? (
+        <CheckBoxForm
+          label={field.label}
+          onChange={(e) => {
+            handleChange(formik, field.name, e.target.checked);
+          }}
+          checked={formik.values[field.name]}
+        />
+      ) : field.type === 'groupCheckbox' ? (
+        <CheckBoxForm
+          label={field.label}
+          type="groupCheckbox"
+          listCheckbox={field.items}
+          key={field.name}
+        />
+      ) : field.type === 'switch' ? (
+        <CustomSwitch
+          title={field.label}
+          description={field.helperText}
+          name={field.name}
+          handleChange={formik.handleChange}
+          checked={formik.values[field.name]}
+        />
+      ) : field.type === 'titleGroupField' ? (
+        <Typography variant="h3" sx={{ pb: 1 }}>
+          {t(`${field.label}`)}
+        </Typography>
+      ) : field.type === 'file' ? (
+        <Box>
+          <FileUpload
+            multiple={field.multiple}
+            title={field.label}
+            type={field.fileType || 'file'}
+            description={t('upload')}
+            files={
+              Array.isArray(formik.values[field.name])
+                ? formik.values[field.name]
+                : formik.values[field.name]
+                ? [formik.values[field.name]]
+                : []
+            }
+            onDrop={(files) => {
+              formik.setFieldValue(field.name, files);
+            }}
+            error={formik.errors[field.name] || field.error}
+          />
+        </Box>
+      ) : field.type === 'date' ? (
+        <Box>
+          <Box pb={1}>
+            <b>{field.label}:</b>
+          </Box>
+          <DateTimePicker
+            value={formik.values[field.name] ?? null}
+            onChange={(newValue) => {
+              handleChange(formik, field.name, newValue);
+            }}
+            inputFormat={
+              generalPreferences.dateFormat === 'MMDDYY'
+                ? 'MM/dd/yyyy HH:mm'
+                : 'dd/MM/yyyy HH:mm'
+            }
+            ampm={false}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                fullWidth
+                placeholder={t('select_date')}
+                required={field?.required}
+                error={!!formik.errors[field.name] || field.error}
+                helperText={
+                  typeof formik.errors[field.name] === 'string'
+                    ? (formik.errors[field.name] as string)
+                    : ''
+                }
+              />
+            )}
+          />
+        </Box>
+      ) : field.type === 'dateRange' ? (
+        <Box>
+          <Box pb={1}>
+            <b>{field.label}:</b>
+          </Box>
+          <DateRangePicker
+            value={formik.values[field.name]}
+            onChange={(range) => {
+              handleChange(formik, field.name, range);
+            }}
+            fullWidth
+            placeholder={t('select_date_range')}
+            required={field?.required}
+            error={!!formik.errors[field.name] || field.error}
+            helperText={
+              typeof formik.errors[field.name] === 'string'
+                ? (formik.errors[field.name] as string)
+                : ''
+            }
+          />
+        </Box>
+      ) : field.type === 'coordinates' ? (
+        <SelectMapCoordinates
+          selected={formik.values[field.name]}
+          onChange={(coordinates) => {
+            handleChange(formik, field.name, coordinates);
+          }}
+        />
+      ) : field.type === 'partQuantity' ? (
+        <SelectPartQuantities
+          selected={formik.values[field.name] ?? []}
+          onChange={(newPartQuantities) => {
+            handleChange(formik, field.name, newPartQuantities);
+          }}
+        />
+      ) : field.type === 'signature' ? (
+        <SignaturePad
+          label={field.label}
+          value={formik.values[field.name]}
+          onChange={(signature) => {
+            formik.setFieldValue(field.name, signature);
+          }}
+        />
+      ) : (
+        <Field
+          key={index}
+          {...field}
+          isDisabled={formik.isSubmitting}
+          type={field.type}
+          label={field.label}
+          placeholder={field.placeholder}
+          value={formik.values[field.name]}
+          onBlur={formik.handleBlur}
+          // onChange={formik.handleChange}
+          onChange={(e) => {
+            handleChange(formik, field.name, e.target.value);
+          }}
+          onKeyDown={handleKeyDown(formik, field.multiple)}
+          error={!!formik.errors[field.name] || field.error}
+          errorMessage={formik.errors[field.name]}
+          fullWidth={field.fullWidth}
+        />
+      )}
+    </Grid>
+  );
+
   return (
     <>
       <Formik<IHash<any>>
@@ -123,163 +505,61 @@ export default (props: PropsType) => {
       >
         {(formik) => (
           <Grid container spacing={2}>
-            {filterRelatedFields(props.fields, formik).map((field, index) => {
-              return (
-                <Grid
-                  item
-                  xs={12}
-                  lg={field.midWidth ? 6 : 12}
-                  key={field.name}
-                >
-                  {field.type === 'select' ? (
-                    <CustomSelect field={field} handleChange={handleChange} />
-                  ) : field.type === 'checkbox' ? (
-                    <CheckBoxForm
-                      label={field.label}
-                      onChange={(e) => {
-                        handleChange(formik, field.name, e.target.checked);
-                      }}
-                      checked={formik.values[field.name]}
-                    />
-                  ) : field.type === 'groupCheckbox' ? (
-                    <CheckBoxForm
-                      label={field.label}
-                      type="groupCheckbox"
-                      listCheckbox={field.items}
-                      key={field.name}
-                    />
-                  ) : field.type === 'switch' ? (
-                    <CustomSwitch
-                      title={field.label}
-                      description={field.helperText}
-                      name={field.name}
-                      handleChange={formik.handleChange}
-                      checked={formik.values[field.name]}
-                    />
-                  ) : field.type === 'titleGroupField' ? (
-                    <Typography variant="h3" sx={{ pb: 1 }}>
-                      {t(`${field.label}`)}
-                    </Typography>
-                  ) : field.type === 'file' ? (
-                    <Box>
-                      <FileUpload
-                        multiple={field.multiple}
-                        title={field.label}
-                        type={field.fileType || 'file'}
-                        description={t('upload')}
-                        files={
-                          Array.isArray(formik.values[field.name])
-                            ? formik.values[field.name]
-                            : formik.values[field.name]
-                            ? [formik.values[field.name]]
-                            : []
-                        }
-                        onDrop={(files) => {
-                          formik.setFieldValue(field.name, files);
-                        }}
-                        error={formik.errors[field.name] || field.error}
-                      />
-                    </Box>
-                  ) : field.type === 'date' ? (
-                    <Box>
-                      <Box pb={1}>
-                        <b>{field.label}:</b>
-                      </Box>
-                      <DateTimePicker
-                        value={formik.values[field.name] ?? null}
-                        onChange={(newValue) => {
-                          handleChange(formik, field.name, newValue);
-                        }}
-                        inputFormat={
-                          generalPreferences.dateFormat === 'MMDDYY'
-                            ? 'MM/dd/yyyy HH:mm'
-                            : 'dd/MM/yyyy HH:mm'
-                        }
-                        ampm={false}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            fullWidth
-                            placeholder={t('select_date')}
-                            required={field?.required}
-                            error={!!formik.errors[field.name] || field.error}
-                            helperText={
-                              typeof formik.errors[field.name] === 'string'
-                                ? (formik.errors[field.name] as string)
-                                : ''
-                            }
-                          />
-                        )}
-                      />
-                    </Box>
-                  ) : field.type === 'dateRange' ? (
-                    <Box>
-                      <Box pb={1}>
-                        <b>{field.label}:</b>
-                      </Box>
-                      <DateRangePicker
-                        value={formik.values[field.name]}
-                        onChange={(range) => {
-                          handleChange(formik, field.name, range);
-                        }}
-                        fullWidth
-                        placeholder={t('select_date_range')}
-                        required={field?.required}
-                        error={!!formik.errors[field.name] || field.error}
-                        helperText={
-                          typeof formik.errors[field.name] === 'string'
-                            ? (formik.errors[field.name] as string)
-                            : ''
-                        }
-                      />
-                    </Box>
-                  ) : field.type === 'coordinates' ? (
-                    <SelectMapCoordinates
-                      selected={formik.values[field.name]}
-                      onChange={(coordinates) => {
-                        handleChange(formik, field.name, coordinates);
-                      }}
-                    />
-                  ) : field.type === 'partQuantity' ? (
-                    <SelectPartQuantities
-                      selected={formik.values[field.name] ?? []}
-                      onChange={(newPartQuantities) => {
-                        handleChange(formik, field.name, newPartQuantities);
-                      }}
-                    />
-                  ) : field.type === 'signature' ? (
-                    <SignaturePad
-                      label={field.label}
-                      value={formik.values[field.name]}
-                      onChange={(signature) => {
-                        formik.setFieldValue(field.name, signature);
-                      }}
-                    />
-                  ) : (
-                    <Field
-                      key={index}
-                      {...field}
-                      isDisabled={formik.isSubmitting}
-                      type={field.type}
-                      label={field.label}
-                      placeholder={field.placeholder}
-                      value={formik.values[field.name]}
-                      onBlur={formik.handleBlur}
-                      // onChange={formik.handleChange}
-                      onChange={(e) => {
-                        handleChange(formik, field.name, e.target.value);
-                      }}
-                      onKeyDown={handleKeyDown(formik, field.multiple)}
-                      error={!!formik.errors[field.name] || field.error}
-                      errorMessage={formik.errors[field.name]}
-                      fullWidth={field.fullWidth}
-                    />
-                  )}
-                </Grid>
+            {(() => {
+              const visibleFields = filterRelatedFields(props.fields, formik);
+              const sections = buildSections(visibleFields);
+              if (!sections.some((section) => section.header)) {
+                // No groups: render exactly as before
+                return visibleFields.map((field, index) =>
+                  renderField(field, index, formik)
+                );
+              }
+              return sections.map((section, sectionIndex) =>
+                section.header ? (
+                  section.fields.length ? (
+                    <Grid item xs={12} key={`section-${section.header.name}`}>
+                      <FormSection
+                        header={section.header}
+                        fields={section.fields}
+                        open={isSectionOpen(section)}
+                        onToggle={() => toggleSection(section)}
+                        values={formik.values}
+                        hasError={sectionHasError(section, formik)}
+                      >
+                        <Grid container spacing={2} sx={{ pt: 2 }}>
+                          {section.fields.map((field, index) =>
+                            renderField(field, index, formik)
+                          )}
+                        </Grid>
+                      </FormSection>
+                    </Grid>
+                  ) : null
+                ) : (
+                  <Fragment key={`section-basic-${sectionIndex}`}>
+                    {section.fields.map((field, index) =>
+                      renderField(field, index, formik)
+                    )}
+                  </Fragment>
+                )
               );
-            })}
+            })()}
 
-            <Grid item xs={12}>
+            <Grid
+              item
+              xs={12}
+              sx={
+                stickyFooter
+                  ? {
+                      position: 'sticky',
+                      bottom: 0,
+                      zIndex: 2,
+                      pb: 1.5,
+                      backgroundColor: theme.palette.background.paper,
+                      boxShadow: `0 -1px 0 ${theme.palette.divider}`
+                    }
+                  : undefined
+              }
+            >
               <Button
                 type="submit"
                 sx={{
@@ -318,6 +598,12 @@ export default (props: PropsType) => {
               duration={500}
               formik={formik}
             />
+            {sectionCount > 0 && (
+              <SectionErrorExpander
+                formik={formik}
+                onErrors={expandSectionsWithErrors}
+              />
+            )}
           </Grid>
         )}
       </Formik>

@@ -205,7 +205,8 @@ public class UserService {
         subscriptionService.create(subscription);
         Company company = new Company(userReq.getCompanyName(), userReq.getEmployeesCount(), subscription);
         company.setDemo(Boolean.TRUE.equals(userReq.getDemo()));
-        company.getCompanySettings().getGeneralPreferences().setCurrency(currencyService.findByCode("$").get());
+        company.getCompanySettings().getGeneralPreferences().setCurrency(currencyService.findByCode("SAR")
+                .orElseGet(() -> currencyService.findByCode("$").orElse(null)));
         if (userReq.getLanguage() != null)
             company.getCompanySettings().getGeneralPreferences().setLanguage(userReq.getLanguage());
         if (userReq.getTimeZone() != null)

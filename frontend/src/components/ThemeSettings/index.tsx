@@ -111,11 +111,21 @@ const ColorSchemeWrapper = styled(Box)(
 
     &.pureLight {
         .primary {
-            background: #5569ff;
+            background: #977537;
         }
     
         .secondary {
-            background: #f2f5f9;
+            background: #F6F4EF;
+        }
+    }
+
+    &.goldDark {
+        .primary {
+            background: #C8A86A;
+        }
+    
+        .secondary {
+            background: #15130F;
         }
     }
 
@@ -387,6 +397,38 @@ const ThemeSettings: FC = () => {
                     </CheckSelected>
                   )}
                   <ColorSchemeWrapper className="colorSchemeWrapper purpleFlow">
+                    <Box className="primary" />
+                    <Box className="secondary" />
+                  </ColorSchemeWrapper>
+                </ButtonWrapper>
+              </Tooltip>
+            </Stack>
+            <Typography
+              sx={{
+                mt: 3,
+                mb: 3,
+                textAlign: 'center',
+                fontWeight: 'bold',
+                textTransform: 'uppercase'
+              }}
+              variant="body1"
+            >
+              Dark color schemes
+            </Typography>
+            <Stack alignItems="center" spacing={2}>
+              <Tooltip placement="left" title="Gold Dark" arrow>
+                <ButtonWrapper
+                  className={theme === 'GoldDarkTheme' ? 'active' : ''}
+                  onClick={() => {
+                    changeTheme('GoldDarkTheme');
+                  }}
+                >
+                  {theme === 'GoldDarkTheme' && (
+                    <CheckSelected>
+                      <CheckTwoToneIcon />
+                    </CheckSelected>
+                  )}
+                  <ColorSchemeWrapper className="colorSchemeWrapper goldDark">
                     <Box className="primary" />
                     <Box className="secondary" />
                   </ColorSchemeWrapper>

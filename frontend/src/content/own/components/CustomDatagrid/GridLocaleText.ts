@@ -93,15 +93,15 @@ const gridLocaleText: GridLocaleText = {
   // Rows selected footer text
   footerRowSelected: (count) =>
     count !== 1
-      ? `${count.toLocaleString()} rows selected`
-      : `${count.toLocaleString()} row selected`,
+      ? `${count.toLocaleString('en-US')} rows selected`
+      : `${count.toLocaleString('en-US')} row selected`,
 
   // Total row amount footer text
   footerTotalRows: 'total_rows',
 
   // Total visible row amount footer text
   footerTotalVisibleRows: (visibleCount, totalCount) =>
-    `${visibleCount.toLocaleString()} of ${totalCount.toLocaleString()}`,
+    `${visibleCount.toLocaleString('en-US')} of ${totalCount.toLocaleString('en-US')}`,
 
   // Checkbox selection text
   checkboxSelectionHeaderName: 'Checkbox selection',

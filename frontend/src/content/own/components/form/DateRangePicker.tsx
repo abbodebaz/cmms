@@ -5,7 +5,7 @@ import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import en from 'date-fns/locale/en-US';
+import useDateLocale from '../../../../hooks/useDateLocale';
 
 interface OwnProps {
   value?: [Date, Date];
@@ -32,6 +32,7 @@ export default function DateRangePicker({
   const anchorRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const theme = useTheme();
+  const dateLocale = useDateLocale();
 
   // Track how many times a date has been clicked
   const clickCount = useRef(0);
@@ -59,8 +60,13 @@ export default function DateRangePicker({
     }
   };
 
-  const displayStartDate = value?.[0] ? format(value[0], 'MMM dd, yyyy') : '';
-  const displayEndDate = value?.[1] ? format(value[1], 'MMM dd, yyyy') : '';
+  // Day-first display (Saudi localization)
+  const displayStartDate = value?.[0]
+    ? format(value[0], 'dd MMM yyyy', { locale: dateLocale })
+    : '';
+  const displayEndDate = value?.[1]
+    ? format(value[1], 'dd MMM yyyy', { locale: dateLocale })
+    : '';
 
   return (
     <>
@@ -116,7 +122,8 @@ export default function DateRangePicker({
           }
           onChange={handleSelect}
           months={2}
-          locale={en}
+          locale={dateLocale}
+          weekStartsOn={0}
           direction="horizontal"
           rangeColors={[theme.palette.primary.main]}
         />

@@ -63,6 +63,7 @@ import { getUsersMini } from '../../../slices/user';
 import { CustomSnackBarContext } from '../../../contexts/CustomSnackBarContext';
 import { useDispatch, useSelector } from '../../../store';
 import PriorityWrapper from '../components/PriorityWrapper';
+import StatusChip from '../components/StatusChip';
 import { patchTasksOfWorkOrder } from '../../../slices/task';
 import { CompanySettingsContext } from '../../../contexts/CompanySettingsContext';
 import useAuth from '../../../hooks/useAuth';
@@ -235,7 +236,8 @@ function WorkOrders() {
   const [openUpdateModal, setOpenUpdateModal] = useState<boolean>(false);
   const [openDrawer, setOpenDrawer] = useState<boolean>(false);
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false);
-  const [calendarRefreshTrigger, setCalendarRefreshTrigger] = useState<number>(0);
+  const [calendarRefreshTrigger, setCalendarRefreshTrigger] =
+    useState<number>(0);
   const { setTitle } = useContext(TitleContext);
   const { workOrderId } = useParams();
   const { showSnackBar } = useContext(CustomSnackBarContext);
@@ -514,23 +516,7 @@ function WorkOrders() {
     columnHelper.accessor('status', {
       id: 'status',
       header: () => t('status'),
-      cell: (info) => (
-        <Box display="flex" flexDirection="row">
-          <CircleTwoToneIcon
-            fontSize="small"
-            color={
-              info.getValue() === 'IN_PROGRESS'
-                ? 'success'
-                : info.getValue() === 'ON_HOLD'
-                ? 'warning'
-                : info.getValue() === 'COMPLETE'
-                ? 'info'
-                : 'secondary'
-            }
-          />
-          <Typography sx={{ ml: 1 }}>{t(info.getValue())}</Typography>
-        </Box>
-      ),
+      cell: (info) => <StatusChip status={info.getValue()} />,
       size: 150
     }),
     columnHelper.accessor('title', {
@@ -598,7 +584,42 @@ function WorkOrders() {
     columnHelper.accessor('dueDate', {
       id: 'dueDate',
       header: () => t('due_date'),
-      cell: (info) => getFormattedDate(info.getValue()),
+      cell: (info) => {
+        const dueDate = info.getValue();
+        if (!dueDate) return '';
+        const isOverdue =
+          info.row.original.status !== 'COMPLETE' &&
+          new Date(dueDate).getTime() < Date.now();
+        if (!isOverdue) return getFormattedDate(dueDate);
+        return (
+          <Box
+            component="span"
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.75,
+              color: 'error.main',
+              fontWeight: 600
+            }}
+          >
+            {getFormattedDate(dueDate)}
+            <Box
+              component="span"
+              sx={{
+                px: 0.75,
+                py: 0.25,
+                borderRadius: '6px',
+                fontSize: '0.6875rem',
+                lineHeight: 1.4,
+                backgroundColor: (theme) => theme.colors.error.lighter,
+                color: 'error.dark'
+              }}
+            >
+              {t('overdue')}
+            </Box>
+          </Box>
+        );
+      },
       size: 150
     }),
     columnHelper.accessor(
@@ -645,6 +666,10 @@ function WorkOrders() {
     })
   ];
 
+  const woCustomFields = getCustomFieldsIFields(
+    customFields,
+    CustomFieldEntityType.WORK_ORDER
+  );
   const defaultFields: Array<IField> = [
     {
       name: 'title',
@@ -661,10 +686,17 @@ function WorkOrders() {
       multiple: true
     },
     {
-      name: 'image',
-      type: 'file',
-      fileType: 'image',
-      label: t('image')
+      name: 'priority',
+      type: 'select',
+      label: t('priority'),
+      type2: 'priority'
+    },
+    {
+      name: 'category',
+      type: 'select',
+      label: t('category'),
+      type2: 'category',
+      category: 'work-order-categories'
     },
     {
       name: 'location',
@@ -692,6 +724,12 @@ function WorkOrders() {
       }))
     },
     {
+      name: 'schedulingGroup',
+      type: 'titleGroupField',
+      label: t('form_section_scheduling'),
+      description: t('form_section_scheduling_desc')
+    },
+    {
       name: 'dueDate',
       type: 'date',
       label: t('due_date')
@@ -708,17 +746,10 @@ function WorkOrders() {
       placeholder: t('hours')
     },
     {
-      name: 'priority',
-      type: 'select',
-      label: t('priority'),
-      type2: 'priority'
-    },
-    {
-      name: 'category',
-      type: 'select',
-      label: t('category'),
-      type2: 'category',
-      category: 'work-order-categories'
+      name: 'assignmentGroup',
+      type: 'titleGroupField',
+      label: t('form_section_assignment'),
+      description: t('form_section_wo_assignment_desc')
     },
     {
       name: 'primaryUser',
@@ -734,13 +765,6 @@ function WorkOrders() {
       multiple: true
     },
     {
-      name: 'customers',
-      type: 'select',
-      label: t('customers'),
-      type2: 'customer',
-      multiple: true
-    },
-    {
       name: 'team',
       type: 'select',
       type2: 'team',
@@ -748,11 +772,31 @@ function WorkOrders() {
       placeholder: t('select_team')
     },
     {
+      name: 'customers',
+      type: 'select',
+      label: t('customers'),
+      type2: 'customer',
+      multiple: true
+    },
+    {
+      name: 'attachmentsGroup',
+      type: 'titleGroupField',
+      label: t('form_section_tasks_attachments'),
+      description: t('form_section_tasks_attachments_desc'),
+      defaultCollapsed: true
+    },
+    {
       name: 'tasks',
       type: 'select',
       type2: 'task',
       label: t('tasks'),
       placeholder: t('select_tasks')
+    },
+    {
+      name: 'image',
+      type: 'file',
+      fileType: 'image',
+      label: t('image')
     },
     {
       name: 'files',
@@ -766,7 +810,16 @@ function WorkOrders() {
       type: 'switch',
       label: t('requires_signature')
     },
-    ...getCustomFieldsIFields(customFields, CustomFieldEntityType.WORK_ORDER)
+    ...(woCustomFields.length
+      ? ([
+          {
+            name: 'customFieldsGroup',
+            type: 'titleGroupField',
+            label: t('custom_fields')
+          },
+          ...woCustomFields
+        ] as IField[])
+      : [])
   ];
   const defaultShape: { [key: string]: any } = {
     title: Yup.string().required(t('required_wo_title')),
@@ -1158,6 +1211,12 @@ function WorkOrders() {
                 onRowClick={(row) => handleOpenDetails(row.id)}
                 noRowsMessage={t('noRows.wo.message')}
                 noRowsAction={t('noRows.wo.action')}
+                noRowsActionLabel={
+                  hasCreatePermission(PermissionEntity.WORK_ORDERS)
+                    ? t('tables.add_first_wo')
+                    : undefined
+                }
+                onNoRowsAction={() => setOpenAddModal(true)}
                 enableColumnReordering
                 enableColumnResizing
                 pinnedColumns={pinnedColumns}

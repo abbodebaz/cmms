@@ -110,7 +110,7 @@ function CompanyPlan(props: CompanyPlanProps) {
               : licensingState.planName ?? 'Free',
             expiration: expiryDate
               ? new Date(expiryDate).toLocaleString(
-                  getLanguage === 'fr' ? 'fr-FR' : undefined
+                  getLanguage === 'fr' ? 'fr-FR' : 'en-GB'
                 )
               : ''
           })}
@@ -119,7 +119,7 @@ function CompanyPlan(props: CompanyPlanProps) {
             ? ` ${t('subscription_will_cancel_on', {
                 date: new Date(
                   company.subscription.scheduledChangeDate
-                ).toLocaleDateString(getLanguage === 'fr' ? 'fr-FR' : undefined)
+                ).toLocaleDateString(getLanguage === 'fr' ? 'fr-FR' : 'en-GB')
               })}`
             : ''}
         </Typography>

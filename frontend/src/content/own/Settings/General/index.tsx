@@ -9,8 +9,11 @@ import {
   Stack,
   TextField,
   Typography,
-  InputAdornment
+  InputAdornment,
+  Switch
 } from '@mui/material';
+import useHijriPreference from '../../../../hooks/useHijriPreference';
+import { formatHijri } from '../../../../utils/locale';
 import { useTranslation } from 'react-i18next';
 import { Field, Formik } from 'formik';
 import * as Yup from 'yup';
@@ -39,6 +42,7 @@ function GeneralSettings() {
   const { generalPreferences } = companySettings;
   const dispatch = useDispatch();
   const { currencies } = useSelector((state) => state.currencies);
+  const [showHijri, setShowHijri] = useHijriPreference();
 
   useEffect(() => {
     dispatch(getCurrencies());
@@ -158,9 +162,36 @@ function GeneralSettings() {
                         as={Select}
                         name="dateFormat"
                       >
-                        <MenuItem value="MMDDYY">MM/DD/YY</MenuItem>
-                        <MenuItem value="DDMMYY">DD/MM/YY</MenuItem>
+                        <MenuItem value="DDMMYY">DD/MM/YYYY</MenuItem>
+                        <MenuItem value="MMDDYY">MM/DD/YYYY</MenuItem>
                       </Field>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="space-between"
+                        spacing={2}
+                        sx={{ maxWidth: 520 }}
+                      >
+                        <Box>
+                          <Typography variant="h6" sx={{ mb: 0.5 }}>
+                            {t('show_hijri_dates')}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {t('show_hijri_dates_description', {
+                              example: formatHijri(new Date())
+                            })}
+                          </Typography>
+                        </Box>
+                        <Switch
+                          checked={showHijri}
+                          onChange={(event) =>
+                            setShowHijri(event.target.checked)
+                          }
+                          inputProps={{ 'aria-label': t('show_hijri_dates') }}
+                        />
+                      </Stack>
                     </Grid>
                     <Grid item xs={12}>
                       <Typography variant="h6" sx={{ mb: 0.5 }}>

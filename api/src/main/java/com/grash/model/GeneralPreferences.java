@@ -31,7 +31,7 @@ public class GeneralPreferences {
     private Language language = Language.EN;
 
     @Schema(description = "Date format preference")
-    private DateFormat dateFormat = DateFormat.MMDDYY;
+    private DateFormat dateFormat = DateFormat.DDMMYY;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Currency currency;

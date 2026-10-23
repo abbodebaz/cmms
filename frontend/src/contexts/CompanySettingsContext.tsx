@@ -15,6 +15,8 @@ import { utcToZonedTime } from 'date-fns-tz';
 
 type CompanySettingsContext = {
   getFormattedDate: (dateString: string, hideTime?: boolean) => string;
+  /** date-fns pattern for date pickers, honouring the company date format (day-first by default). */
+  getDateInputFormat: (withTime?: boolean) => string;
   uploadFiles: (
     files: any[],
     images: any[],
@@ -48,7 +50,7 @@ export const CompanySettingsProvider: FC = ({ children }) => {
   const { workOrderConfiguration } = companySettings ?? {
     workOrderFieldConfigurations: []
   };
-  const { t }: { t: any } = useTranslation();
+  const { t, i18n }: { t: any; i18n: any } = useTranslation();
   const { showSnackBar } = useContext(CustomSnackBarContext);
   const brandConfig = useBrand();
 
@@ -61,13 +63,23 @@ export const CompanySettingsProvider: FC = ({ children }) => {
     const timeStr = hideTime ? '' : format(date, ' HH:mm');
 
     if (generalPreferences.dateFormat === 'MMDDYY') {
-      return format(date, 'MM/dd/yy') + timeStr;
+      return format(date, 'MM/dd/yyyy') + timeStr;
     } else {
-      return format(date, 'dd/MM/yy') + timeStr;
+      return format(date, 'dd/MM/yyyy') + timeStr;
     }
   };
+  const getDateInputFormat = (withTime?: boolean): string => {
+    const datePattern =
+      generalPreferences.dateFormat === 'MMDDYY' ? 'MM/dd/yyyy' : 'dd/MM/yyyy';
+    return withTime ? `${datePattern} HH:mm` : datePattern;
+  };
   const getFormattedCurrency = (amount: number): string => {
-    const code = generalPreferences.currency.code;
+    const rawCode = generalPreferences.currency?.code ?? '';
+    // Saudi Riyal: show the Arabic symbol in the Arabic UI
+    const code =
+      rawCode === 'SAR' && i18n.language?.toLowerCase().startsWith('ar')
+        ? 'ر.س'
+        : rawCode;
     const currenciesToReverse = ['$'];
     return currenciesToReverse.includes(code)
       ? `${code} ${amount} `
@@ -228,6 +240,7 @@ ${company.name}
     <CompanySettingsContext.Provider
       value={{
         getFormattedDate,
+        getDateInputFormat,
         uploadFiles,
         getUserNameById,
         getWOFieldsAndShapes,

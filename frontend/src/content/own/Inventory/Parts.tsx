@@ -149,6 +149,7 @@ const Parts = ({ setAction }: PropsType) => {
     getFilteredFields,
     hasViewPermission,
     hasViewOtherPermission,
+    hasCreatePermission,
     hasFeature
   } = useAuth();
   const { partId } = useParams();
@@ -783,6 +784,12 @@ const Parts = ({ setAction }: PropsType) => {
           onRowClick={(row) => handleOpenDetails(row.id)}
           noRowsMessage={t('noRows.part.message')}
           noRowsAction={t('noRows.part.action')}
+          noRowsActionLabel={
+            hasCreatePermission(PermissionEntity.PARTS_AND_MULTIPARTS)
+              ? t('tables.add_first_part')
+              : undefined
+          }
+          onNoRowsAction={() => setOpenAddModal(true)}
           enableColumnReordering
           enableColumnResizing
           pinnedColumns={pinnedColumns}

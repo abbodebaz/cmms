@@ -81,6 +81,7 @@ import {
 import useTableState from '../../../hooks/useTableState';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Inventory2TwoToneIcon from '@mui/icons-material/Inventory2TwoTone';
 import { getCustomFields } from '../../../slices/customField';
 import { CustomFieldEntityType } from '../../../models/owns/customField';
 import { getCustomFieldsRequiredShape } from '../type';
@@ -451,15 +452,51 @@ function Assets() {
           );
         }
 
+        const thumbnailUrl = row.image?.thumbnailUrl;
         return (
           <Box
             sx={{
-              py: 1,
+              py: 0.5,
               fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              minWidth: 0,
               ml: view === 'hierarchy' ? (info.row.depth || 0) * 24 : 0
             }}
           >
-            {info.getValue()}
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                flexShrink: 0,
+                borderRadius: '8px',
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: theme.colors.alpha.black[5],
+                border: `1px solid ${theme.colors.alpha.black[10]}`,
+                color: theme.colors.alpha.black[50]
+              }}
+            >
+              {thumbnailUrl ? (
+                <img
+                  src={thumbnailUrl}
+                  alt={info.getValue()}
+                  loading="lazy"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <Inventory2TwoToneIcon sx={{ fontSize: 18 }} />
+              )}
+            </Box>
+            <Box
+              component="span"
+              sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              {info.getValue()}
+            </Box>
           </Box>
         );
       },
@@ -577,12 +614,12 @@ function Assets() {
       size: 140
     })
   ];
+  const assetCustomFields = getCustomFieldsIFields(
+    customFields,
+    CustomFieldEntityType.ASSET
+  );
   const defaultFields: Array<IField> = [
-    {
-      name: 'assetInfo',
-      type: 'titleGroupField',
-      label: t('asset_information')
-    },
+    // Basic info (always visible)
     {
       name: 'name',
       type: 'text',
@@ -599,11 +636,19 @@ function Assets() {
       midWidth: true
     },
     {
-      name: 'acquisitionCost',
-      type: 'number',
-      label: t('acquisition_cost'),
-      placeholder: t('acquisition_cost'),
-      midWidth: true
+      name: 'category',
+      midWidth: true,
+      label: t('category'),
+      placeholder: t('category'),
+      type: 'select',
+      type2: 'category',
+      category: 'asset-categories'
+    },
+    {
+      name: 'image',
+      type: 'file',
+      fileType: 'image',
+      label: t('image')
     },
     {
       name: 'description',
@@ -613,17 +658,16 @@ function Assets() {
       multiple: true
     },
     {
+      name: 'technicalDetailsGroup',
+      type: 'titleGroupField',
+      label: t('form_section_technical_details'),
+      description: t('form_section_technical_details_desc')
+    },
+    {
       name: 'manufacturer',
       type: 'text',
       label: t('manufacturer'),
       placeholder: t('manufacturer'),
-      midWidth: true
-    },
-    {
-      name: 'power',
-      type: 'text',
-      label: t('power'),
-      placeholder: t('power'),
       midWidth: true
     },
     {
@@ -634,13 +678,6 @@ function Assets() {
       midWidth: true
     },
     {
-      name: 'barCode',
-      type: 'text',
-      label: t('barcode'),
-      placeholder: t('barcode'),
-      midWidth: true
-    },
-    {
       name: 'serialNumber',
       type: 'text',
       label: t('serial_number'),
@@ -648,13 +685,18 @@ function Assets() {
       midWidth: true
     },
     {
-      name: 'category',
-      midWidth: true,
-      label: t('category'),
-      placeholder: t('category'),
-      type: 'select',
-      type2: 'category',
-      category: 'asset-categories'
+      name: 'barCode',
+      type: 'text',
+      label: t('barcode'),
+      placeholder: t('barcode'),
+      midWidth: true
+    },
+    {
+      name: 'power',
+      type: 'text',
+      label: t('power'),
+      placeholder: t('power'),
+      midWidth: true
     },
     {
       name: 'area',
@@ -664,15 +706,11 @@ function Assets() {
       placeholder: t('area')
     },
     {
-      name: 'image',
-      type: 'file',
-      fileType: 'image',
-      label: t('image')
-    },
-    {
-      name: 'assignedTo',
+      name: 'assignmentGroup',
       type: 'titleGroupField',
-      label: t('assigned_to')
+      label: t('form_section_assignment'),
+      description: t('form_section_asset_assignment_desc'),
+      defaultCollapsed: true
     },
     {
       name: 'primaryUser',
@@ -698,11 +736,6 @@ function Assets() {
       placeholder: 'Select teams'
     },
     {
-      name: 'moreInfos',
-      type: 'titleGroupField',
-      label: t('more_informations')
-    },
-    {
       name: 'customers',
       type: 'select',
       type2: 'customer',
@@ -719,6 +752,19 @@ function Assets() {
       placeholder: t('vendors_description')
     },
     {
+      name: 'financialGroup',
+      type: 'titleGroupField',
+      label: t('form_section_financial_warranty'),
+      description: t('form_section_financial_warranty_desc'),
+      defaultCollapsed: true
+    },
+    {
+      name: 'acquisitionCost',
+      type: 'number',
+      label: t('acquisition_cost'),
+      placeholder: t('acquisition_cost')
+    },
+    {
       name: 'inServiceDate',
       type: 'date',
       midWidth: true,
@@ -729,6 +775,13 @@ function Assets() {
       type: 'date',
       midWidth: true,
       label: t('warranty_expiration_date')
+    },
+    {
+      name: 'attachmentsGroup',
+      type: 'titleGroupField',
+      label: t('form_section_attachments_notes'),
+      description: t('form_section_attachments_notes_desc'),
+      defaultCollapsed: true
     },
     {
       name: 'files',
@@ -747,7 +800,9 @@ function Assets() {
     {
       name: 'structure',
       type: 'titleGroupField',
-      label: t('structure')
+      label: t('structure'),
+      description: t('form_section_structure_desc'),
+      defaultCollapsed: true
     },
     { name: 'parts', type: 'select', type2: 'part', label: t('parts') },
     {
@@ -756,7 +811,16 @@ function Assets() {
       type2: 'asset',
       label: t('parent_asset')
     },
-    ...getCustomFieldsIFields(customFields, CustomFieldEntityType.ASSET)
+    ...(assetCustomFields.length
+      ? ([
+          {
+            name: 'customFieldsGroup',
+            type: 'titleGroupField',
+            label: t('custom_fields')
+          },
+          ...assetCustomFields
+        ] as IField[])
+      : [])
   ];
   const shape = {
     name: Yup.string().required(t('required_asset_name')),
@@ -1073,6 +1137,12 @@ function Assets() {
                 onPinnedColumnsChange={tableState.setPinnedColumns}
                 noRowsMessage={t('noRows.asset.message')}
                 noRowsAction={t('noRows.asset.action')}
+                noRowsActionLabel={
+                  hasCreatePermission(PermissionEntity.ASSETS)
+                    ? t('tables.add_first_asset')
+                    : undefined
+                }
+                onNoRowsAction={() => setOpenAddModal(true)}
                 onRowClick={(row) => {
                   if ('isLoadMoreRow' in row && row.isLoadMoreRow) return;
                   navigate(getAssetUrl(row.id));

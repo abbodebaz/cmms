@@ -66,6 +66,7 @@ import { getErrorMessage } from '../../../../../utils/api';
 import DateRangePicker from '../../../components/form/DateRangePicker';
 import HourRangePicker from '../../../components/form/HourRangePicker';
 import { TitleContext } from '../../../../../contexts/TitleContext';
+import { CompanySettingsContext } from '../../../../../contexts/CompanySettingsContext';
 
 interface UICondition {
   type: WorkflowConditionType;
@@ -101,6 +102,7 @@ function Workflows() {
   const [currentMainCondition, setCurrentMainCondition] =
     useState<WFMainCondition>(mainConditions[0]);
   const { setTitle } = useContext(TitleContext);
+  const { getDateInputFormat } = useContext(CompanySettingsContext);
 
   const [currentConditions, setCurrentConditions] = useState<UICondition[]>([]);
   const [saving, setSaving] = useState<boolean>(false);
@@ -789,6 +791,8 @@ function Workflows() {
               </Select>
             ) : config.type === 'date' ? (
               <DateTimePicker
+                inputFormat={getDateInputFormat(true)}
+                ampm={false}
                 value={condition.value}
                 onChange={(newValue) =>
                   handleConditionValueChange(newValue, index)
@@ -864,6 +868,8 @@ function Workflows() {
             </Select>
           ) : config.type === 'date' ? (
             <DateTimePicker
+              inputFormat={getDateInputFormat(true)}
+              ampm={false}
               value={action.value}
               onChange={(newValue) => handleActionValueChange(newValue)}
               renderInput={(params) => (

@@ -72,7 +72,9 @@ function ApiKeys() {
   const dispatch = useDispatch();
   const { showSnackBar } = useContext(CustomSnackBarContext);
   const { apiKeys, loadingGet } = useSelector((state) => state.apiKeys);
-  const { getFormattedDate } = useContext(CompanySettingsContext);
+  const { getFormattedDate, getDateInputFormat } = useContext(
+    CompanySettingsContext
+  );
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -343,6 +345,8 @@ function ApiKeys() {
                     />
                     <Box mt={2}>
                       <DateTimePicker
+                        inputFormat={getDateInputFormat(true)}
+                        ampm={false}
                         label={t('expiration_optional')}
                         value={values.expiresAt}
                         onChange={(value) => setFieldValue('expiresAt', value)}

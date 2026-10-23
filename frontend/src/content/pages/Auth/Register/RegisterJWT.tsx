@@ -241,22 +241,18 @@ function RegisterJWT({
             }}
           />
           {!role && !invitationMode && (
-            <>
-              <Grid item xs={12} lg={6}>
-                <TextField
-                  error={Boolean(touched.companyName && errors.companyName)}
-                  fullWidth
-                  margin="normal"
-                  helperText={touched.companyName && errors.companyName}
-                  label={t('companyName')}
-                  name="companyName"
-                  onBlur={handleBlur}
-                  onChange={handleChange}
-                  value={values.companyName}
-                  variant="outlined"
-                />
-              </Grid>
-            </>
+            <TextField
+              error={Boolean(touched.companyName && errors.companyName)}
+              fullWidth
+              margin="normal"
+              helperText={touched.companyName && errors.companyName}
+              label={t('companyName')}
+              name="companyName"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              value={values.companyName}
+              variant="outlined"
+            />
           )}
           <Button
             sx={{
@@ -272,8 +268,9 @@ function RegisterJWT({
           >
             {t(invitationMode ? 'invite' : 'create_your_account')}
           </Button>
-          {!invitationMode && (
-            <Typography mt={2} variant="body2">
+          {/* Terms link only when a home site is configured (avoid falling back to a third-party domain) */}
+          {!invitationMode && !!homeUrl && (
+            <Typography mt={2} variant="body2" color="text.secondary">
               {t('i_accept')}{' '}
               <Typography
                 color={'primary'}

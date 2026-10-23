@@ -17,7 +17,7 @@ import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import en from 'date-fns/locale/en-US';
+import useDateLocale from '../../../hooks/useDateLocale';
 import useAuth from '../../../hooks/useAuth';
 import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
 
@@ -45,6 +45,7 @@ export default function ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
   const theme = useTheme();
+  const dateLocale = useDateLocale();
 
   const [state, setState] = useState([
     {
@@ -102,8 +103,13 @@ export default function ({
       )?.childCompanyName
     : null;
 
-  const displayStartDate = start ? format(start, 'MMM dd, yyyy') : '';
-  const displayEndDate = end ? format(end, 'MMM dd, yyyy') : '';
+  // Day-first display (Saudi localization)
+  const displayStartDate = start
+    ? format(start, 'dd MMM yyyy', { locale: dateLocale })
+    : '';
+  const displayEndDate = end
+    ? format(end, 'dd MMM yyyy', { locale: dateLocale })
+    : '';
 
   return (
     <>
@@ -176,7 +182,8 @@ export default function ({
           ranges={state}
           onChange={handleSelect}
           months={2}
-          locale={en}
+          locale={dateLocale}
+          weekStartsOn={0}
           direction="horizontal"
           rangeColors={[theme.palette.primary.main]}
         />

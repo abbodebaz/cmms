@@ -569,6 +569,10 @@ function Locations() {
       size: 120
     })
   ];
+  const locationCustomFields = getCustomFieldsIFields(
+    customFields,
+    CustomFieldEntityType.LOCATION
+  );
   const fields: Array<IField> = [
     {
       name: 'name',
@@ -589,6 +593,12 @@ function Locations() {
       type2: 'parentLocation',
       label: t('parent_location'),
       placeholder: t('select_location')
+    },
+    {
+      name: 'assignmentGroup',
+      type: 'titleGroupField',
+      label: t('form_section_assignment'),
+      description: t('form_section_location_assignment_desc')
     },
     {
       name: 'workers',
@@ -625,18 +635,16 @@ function Locations() {
     ...(apiKey
       ? ([
           {
+            name: 'mapTitle',
+            type: 'titleGroupField',
+            label: t('map_coordinates'),
+            defaultCollapsed: true
+          },
+          {
             name: 'mapSwitch',
             type: 'checkbox',
             label: t('put_location_in_map'),
-            relatedFields: [
-              { field: 'mapTitle', value: false, hide: true },
-              { field: 'coordinates', value: false, hide: true }
-            ]
-          },
-          {
-            name: 'mapTitle',
-            type: 'titleGroupField',
-            label: t('map_coordinates')
+            relatedFields: [{ field: 'coordinates', value: false, hide: true }]
           },
           {
             name: 'coordinates',
@@ -645,6 +653,13 @@ function Locations() {
           }
         ] as IField[])
       : []),
+    {
+      name: 'attachmentsGroup',
+      type: 'titleGroupField',
+      label: t('form_section_attachments'),
+      description: t('form_section_attachments_desc'),
+      defaultCollapsed: true
+    },
     {
       name: 'image',
       type: 'file',
@@ -658,7 +673,16 @@ function Locations() {
       label: t('files'),
       fileType: 'file'
     },
-    ...getCustomFieldsIFields(customFields, CustomFieldEntityType.LOCATION)
+    ...(locationCustomFields.length
+      ? ([
+          {
+            name: 'customFieldsGroup',
+            type: 'titleGroupField',
+            label: t('custom_fields')
+          },
+          ...locationCustomFields
+        ] as IField[])
+      : [])
   ];
 
   const getEditFields = () => {
@@ -1113,6 +1137,12 @@ function Locations() {
                   onPinnedColumnsChange={tableState.setPinnedColumns}
                   noRowsMessage={t('noRows.location.message')}
                   noRowsAction={t('noRows.location.action')}
+                  noRowsActionLabel={
+                    hasCreatePermission(PermissionEntity.LOCATIONS)
+                      ? t('tables.add_first_location')
+                      : undefined
+                  }
+                  onNoRowsAction={() => setOpenAddModal(true)}
                   onRowClick={(row) => {
                     if ('isLoadMoreRow' in row && row.isLoadMoreRow) return;
                     handleOpenDetails(row.id);

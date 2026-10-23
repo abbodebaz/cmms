@@ -15,8 +15,8 @@ import {
 } from '@mui/x-data-grid';
 import NoRowsMessageWrapper from '../../components/NoRowsMessageWrapper';
 import { GridEnrichedColDef } from '@mui/x-data-grid/models/colDef/gridColDef';
-import CircleTwoToneIcon from '@mui/icons-material/CircleTwoTone';
 import PriorityWrapper from '../../components/PriorityWrapper';
+import StatusChip from '../../components/StatusChip';
 import { UserMiniDTO } from '../../../../models/user';
 import UserAvatars from '../../components/UserAvatars';
 import { LocationMiniDTO } from '../../../../models/owns/location';
@@ -63,21 +63,7 @@ export default function WOModal({
       description: t('status'),
       width: 150,
       renderCell: (params: GridRenderCellParams<string>) => (
-        <Box display="flex" flexDirection="row" justifyContent="center">
-          <CircleTwoToneIcon
-            fontSize="small"
-            color={
-              params.value === 'IN_PROGRESS'
-                ? 'success'
-                : params.value === 'ON_HOLD'
-                ? 'warning'
-                : params.value === 'COMPLETE'
-                ? 'info'
-                : 'secondary'
-            }
-          />
-          <Typography sx={{ ml: 1 }}>{t(params.value)}</Typography>
-        </Box>
+        <StatusChip status={params.value} />
       )
     },
     {

@@ -90,6 +90,7 @@ export default function PurchaseOrderDetails(props: PurchaseOrderDetailsProps) {
     value: string | number;
     type?: 'vendor';
     id?: number;
+    hijriDate?: string;
   }[] => [
     {
       label: t('name'),
@@ -101,7 +102,8 @@ export default function PurchaseOrderDetails(props: PurchaseOrderDetailsProps) {
     },
     {
       label: t('due_date'),
-      value: getFormattedDate(purchaseOrder1.shippingDueDate)
+      value: getFormattedDate(purchaseOrder1.shippingDueDate),
+      hijriDate: purchaseOrder1.shippingDueDate
     },
     {
       label: t('category'),
@@ -280,6 +282,7 @@ export default function PurchaseOrderDetails(props: PurchaseOrderDetailsProps) {
                 value={field.value}
                 type={field.type}
                 id={field.id}
+                hijriDate={field.hijriDate}
               />
             ))}
           </Grid>

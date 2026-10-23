@@ -325,6 +325,7 @@ function ApplicationsCalendar({
           initialDate={date}
           initialView={view}
           locale={calendarLocale}
+          firstDay={0}
           droppable
           eventDisplay="block"
           eventClick={(arg) =>
